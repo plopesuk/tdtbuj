@@ -1,18 +1,15 @@
 !> \brief defines different data types used around the program
-!> \details 
 !> \author Alin M Elena (Queen's University Belfast)
 !> \date 14-15th of January, 2006
 !> \remarks
-
-
 
 module types
   use constants
   implicit none
   private
-!> I/O data type
+!> \brief I/O data type
+!> \details see read_data::read_io
   type, public :: io_type
-
   character(len=mw) :: inp_file !<  name of the input file from which the data are read
 !>  name of the error input file (parsing errors, before opening specific output files)  
 character(len=mw) :: inp_err
@@ -38,12 +35,14 @@ character(len=mw) :: inp_err
   logical :: first_time = .false.
   end type io_type
 
+!> \brief time keeping type 
   type ,private :: time_type
-  real(pr) :: start
-  real(pr) :: end
-  real(pr) :: int
+  real(pr) :: start !< start time
+  real(pr) :: end !< end time
+  real(pr) :: int !< intermediate time
   end type time_type 
 
+!> \brief see read_data::read_general module for the meaning
   type,public :: general_type
   real(pr) :: electronic_temperature
   real(pr) :: electronic_mu
@@ -98,83 +97,88 @@ character(len=mw) :: inp_err
 !!!!!!
   type(time_type):: time
   end type general_type
+  
+!> \brief fitting data type
+  type, public :: fit_p
+ 	integer :: neps,feval,ns,ipr
+ 	integer ::iter,nt
+ 	real(pr) :: fit_ftol
+ 	logical :: restart_fit
+ 	character(15) :: fit_type
+ 	real(pr):: temp
+ 	real(pr) :: step
+ 	real(pr) ::step_ad
+ 	real(pr) :: rt
+  end type fit_p
 
-! 	type, public :: fit_p
-! 	integer :: neps,feval,ns,ipr
-! 	integer ::iter,nt
-! 	real(pr) :: fit_ftol
-! 	logical :: restart_fit
-! 	character(15) :: fit_type
-! 	real(pr):: temp
-! 	real(pr) :: step
-! 	real(pr) ::step_ad
-! 	real(pr) :: rt
-! 	end type fit_p
-
-
-  type, public :: atomic_type              
-  logical               :: created 
-  integer               :: natoms
-  integer               :: nmoving
-  integer,  allocatable :: id(:)
-  integer,  allocatable :: sp(:)
-  integer,  allocatable :: moving(:)
-  integer,  allocatable :: isscf(:)
-  real(pr), allocatable :: x(:),y(:),z(:)
-  real(pr), allocatable :: dx(:),dy(:),dz(:) 
-  real(pr), allocatable :: chrg(:),chrg0(:)
-  real(pr), allocatable :: fx(:), fy(:), fz(:)
-  real(pr), allocatable :: vx(:), vy(:), vz(:)
-  real(pr), allocatable :: xo(:),yo(:),zo(:)
-  real(pr), allocatable :: fxo(:), fyo(:), fzo(:)
-  real(pr), allocatable :: vxo(:), vyo(:), vzo(:)
-  real(pr), allocatable :: bias(:)
-  integer,  allocatable  :: orbs(:,:)
-  real(pr) :: tdipx,tdipy,tdipz
-  integer :: nacceptor
-  integer :: ndonor
-  integer :: nspacer
-  integer, allocatable :: acceptor(:)
-  integer, allocatable :: donor(:)
-  integer, allocatable :: spacer(:)
-
+!> \brief data type for atoms properties
+  type, private :: atomic_type              
+  logical               :: created !< was it read?
+  integer               :: natoms !< no of atoms
+  integer               :: nmoving !< no of moving atoms
+  integer,  allocatable :: id(:) !< id of the atoms
+  integer,  allocatable :: sp(:) !< specie of the atoms 
+  logical,  allocatable :: moving(:) !< is it moving?
+  logical,  allocatable :: isscf(:) !< is it SCF? 
+  real(pr), allocatable :: x(:),y(:),z(:) !< cartesian coordinates
+  real(pr), allocatable :: dx(:),dy(:),dz(:) !< cartesian dipole moments
+  real(pr), allocatable :: chrg(:),chrg0(:) !< excess charge, initial excess charge 
+  real(pr), allocatable :: fx(:), fy(:), fz(:) !< cartesian forces
+  real(pr), allocatable :: vx(:), vy(:), vz(:) !< cartesian velocities
+  real(pr), allocatable :: xo(:),yo(:),zo(:) !< old cartesian coordinates
+  real(pr), allocatable :: fxo(:), fyo(:), fzo(:) !< old cartesian forces
+  real(pr), allocatable :: vxo(:), vyo(:), vzo(:) !< old cartesian velocities
+  real(pr), allocatable :: bias(:) !< bias of the atoms
+  integer,  allocatable  :: orbs(:,:) !< orbitals, first index atom, second orbital
+  real(pr) :: tdipx,tdipy,tdipz !< total dipole moment, cartesian components
+  integer :: nacceptor !< no of atoms in acceptor
+  integer :: ndonor !< no of atoms in donor
+  integer :: nspacer !< no of atoms in spacer
+  integer, allocatable :: acceptor(:) !< atoms in acceptor
+  integer, allocatable :: donor(:) !< atoms in donor
+  integer, allocatable :: spacer(:) !< atoms in spacer
   end type atomic_type
-! 
-  type, public :: species_type
-  logical :: created
-  integer :: nspecies
-  integer, allocatable :: id(:)
-  real(pr), allocatable :: mass(:)
-  integer,  allocatable :: z(:)
-  real(pr), allocatable ::zval(:)
-  logical,  allocatable :: isqm(:)
-  real(pr), allocatable :: ulocal(:)
-  real(pr), allocatable :: jlocal(:)
-  real(pr), allocatable :: uinter(:)
-  integer,  allocatable :: norbs(:)	
+!> \brief species type 
+  type, private :: species_type
+  logical :: created !< is it created?
+  integer :: nspecies !< no of species
+  integer, allocatable :: id(:) !< if of specie
+  real(pr), allocatable :: mass(:) !< atomic mass of specie
+  integer,  allocatable :: z(:) !< Z of specie
+  real(pr), allocatable ::zval(:) !< no of valence electrons for each specie
+  logical,  allocatable :: isqm(:) !< is qunantum mechanical?
+  real(pr), allocatable :: ulocal(:) !< local U (Hubbard U) 
+  real(pr), allocatable :: jlocal(:) !< local J
+  real(pr), allocatable :: uinter(:) !< Uinter (used for the screaning of electrostatics)
+  integer,  allocatable :: norbs(:) !< no of orbitals	
   end type species_type
 
-
-  type, public :: orbital_type
-  integer :: atom,sp,n,l,m
-  logical :: spin
-  real(pr) :: occup
+!> \brief atomic orbital data type
+  type, private :: orbital_type
+  integer :: atom,sp,n,l,m !< atom to which belongs and specie, quantum numbers n,l,m
+  logical :: spin !< spin up or down up=.true. down=.false.
+  real(pr) :: occup !< occupancy of the orbital
   end type orbital_type
 
-  type, public :: basis_type
-  integer :: norbital
-  integer  :: max_orbitals_per_atom 
-  type(orbital_type), allocatable :: orbitals(:)
+!> \brief atomic basis data type
+  type, private :: basis_type
+  integer :: norbital !< no of orbitals  
+  type(orbital_type), allocatable :: orbitals(:) !< orbitals
   end type basis_type
-
-  type,public :: delta_type
+!> \brief to be added
+  type,private :: delta_type
   integer :: sp,l
   real(pr),allocatable :: d(:,:,:)
   end type delta_type
 
-
-! variables now
-
+!> \brief all atomic data type 
+type, public :: atomicx_type
+type(atomic_type) :: atoms !< atmoic properties
+type(species_type) :: species !< specie properties
+type(basis_type) :: basis !< system basis
+type(delta_type),allocatable :: delta(:) !< delta params for easch specie
+type(orbital_type), allocatable :: species_basis(:,:) !< species basis set
+end type atomicx_type
 
 
 end module types

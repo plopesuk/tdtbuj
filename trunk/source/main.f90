@@ -1,7 +1,9 @@
 !> \mainpage TDTB+UJ Manual
-!> Time-Dependent Tight-Biinding+UJ
+!> Time-Dependent Tight-Binding+UJ
 
-
+!> \brief main program Time-Dependent Tight-Binding+UJ
+!> \author Alin M Elena
+!> \date 14th-15th January 2006
 program tbuj
 	use constants
 	use types
@@ -14,11 +16,7 @@ program tbuj
 	character(len=mw) :: arg
 	type(io_type) :: io_info
 	type(general_type) :: general
-	type(atomic_type) :: atoms
-	type(atomic_type) :: species
-	type(delta_type),allocatable :: delta(:)
-	type(basis_type) :: basis_var
-	type(orbital_type), allocatable :: species_basis(:,:)
+	type(atomicx_type) :: atomicx
 
 	narguments=iargc()
    call cpu_time(general%time%start)
