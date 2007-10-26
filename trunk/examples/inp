@@ -1,0 +1,19 @@
+OutputFile output.out
+DebugFile  output.dbg
+OutputLevel 25
+DebugLevel  25
+OnScreen f 
+
+timestep 3.4321
+gF1 7.98
+block  coords
+1.0 2.0 3.0
+2.0 3.0 4.0
+4.0 5.0 6.0
+endblock coords
+
+include inp1
+
+include inp2 ! dsada
+
+//include inr
