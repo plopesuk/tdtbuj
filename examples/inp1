@@ -1,0 +1,16 @@
+verbosity 10
+output !.true.
+# sa
+
+ !
+
+# include inp 
+block slater
+1.
+endblock slater
+block ujm
+  #:wq block
+7 3 4 5
+
+endblock ujm
+
