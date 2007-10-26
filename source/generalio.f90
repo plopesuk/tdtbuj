@@ -110,7 +110,40 @@ end subroutine initialize
 !> \hline
 !> \end{tabular}
 !> \endlatexonly
-
+!> \htmlonly
+!> <TABLE CELLPADDING=3 BORDER="1">
+!> <TR><TH ALIGN="CENTER"><B>VarName</B></TH>
+!> <TH ALIGN="LEFT" VALIGN="TOP" WIDTH=100><B>Values</B></TH>
+!> <TH ALIGN="CENTER"><B>Default Value</B></TH>
+!> <TH ALIGN="LEFT" VALIGN="TOP" WIDTH=125><B>Description</B></TH>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">DebugFile</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>string</TD>
+!> <TD ALIGN="CENTER">input file name.dbg</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>Name of the debug file</TD>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">OutputFile</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>string</TD>
+!> <TD ALIGN="CENTER">input file name.out</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>Name of the output file</TD>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">OnScreen</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>logical</TD>
+!> <TD ALIGN="CENTER">.false.</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>on/off printing on the screen, on means that nothing will be written in the output file</TD>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">DebugLevel</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>5,15,25</TD>
+!> <TD ALIGN="CENTER">5</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>debug information level (low, medium,high)</TD>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">OutputLevel</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>5,15,25</TD>
+!> <TD ALIGN="CENTER">5</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>output information level (low, medium,high)</TD>
+!> </TR>
+!> </TABLE>
+!> \endhtmlonly
 
 
 subroutine read_io(io_loc)
@@ -187,8 +220,8 @@ end subroutine read_io
 !> \param  io_loc type(io_type) I/O details (see types::io_type)
 !> \param gen_loc type(general_type), keeps all the general information about the parameters of the program
 !> \remarks
+!> A short description of the input file general variables part
 !> \latexonly
-!> \par{A short description of the input file general variables part}
 !>  \begin{longtable}{|c||p{0.2\textwidth}|c||p{0.25\textwidth}|}
 !> \hline
 !> \textbf{VarName} & \textbf{Values} & \textbf{Default Value} & \textbf{Description} \\\
@@ -281,7 +314,234 @@ end subroutine read_io
 !> \hline
 !> \end{longtable}
 !> \endlatexonly
+!> \htmlonly
+!> <TABLE CELLPADDING=3 BORDER="1">
+!> <TR><TH ALIGN="CENTER"><B>VarName</B></TH>
+!> <TH ALIGN="LEFT" VALIGN="TOP" WIDTH=100><B>Values</B></TH>
+!> <TH ALIGN="CENTER"><B>Default Value</B></TH>
+!> <TH ALIGN="LEFT" VALIGN="TOP" WIDTH=125><B>Description</B></TH>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">JobName</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>string</TD>
+!> <TD ALIGN="CENTER">no name</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>a name for the job</TD>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">RanSeed</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>integer </TD>
+!> <TD ALIGN="CENTER">12345</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>A seed for the random number generator</TD>
+!> </TR>
+!> <TR> <TD ALIGN="CENTER">WriteAni </TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>logical </TD>
+!> <TD ALIGN="CENTER">.false.</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>on/off writing animation file </TD>
+!> </TR>
+!> <TR> <TD ALIGN="CENTER">WriteEne </TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>logical</TD>
+!> <TD ALIGN="CENTER">.true. </TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>on/off writing energy file </TD>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">WriteDen </TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>logical</TD>
+!> <TD ALIGN="CENTER">.false. </TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>on/off writing density file</TD>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">ReadDen</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>logical</TD>
+!> <TD ALIGN="CENTER">.false.</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>on/off reading density file</TD>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">ReadVel</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>logical</TD>
+!> <TD ALIGN="CENTER">.false.</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>on/off reading velocity block</TD>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">IonicTemperature</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real</TD>
+!> <TD ALIGN="CENTER">300.0</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>Ionic temperature</TD>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">NetCharge</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real</TD>
+!> <TD ALIGN="CENTER">0.0</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>Net charge on the system</TD>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">ElectronicTemperature</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real</TD>
+!> <TD ALIGN="CENTER">300.0</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>Electronic temperature, used to compute occupation numbers if you choose Fermi-Dirac or Methfessel-Paxton method</TD>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">ElectronicMu</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real</TD>
+!> <TD ALIGN="CENTER">0.0</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>chemical potential, used to compute occupation numbers if you choose constant  method</TD>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">DeltaT</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real</TD>
+!> <TD ALIGN="CENTER">0.001</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>time step used to evolve equtions of motion</TD>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">Nsteps</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>integer</TD>
+!> <TD ALIGN="CENTER">100</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>number of steps used to evolve equtions of motion</TD>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">RunType</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>SinglePoint, BODynamics, Ehrenfest, EhrenfestDamped, Fit, ForceTest, ForceTestX, ForceTestY, ForceTestZ</TD>
+!> <TD ALIGN="CENTER">SinglePoint</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>Type of calculation</TD>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">SCF</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>logical</TD>
+!> <TD ALIGN="CENTER">.false.</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>on/off self consistent field method</TD>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">SCFType</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>TB+UJ</TD>
+!> <TD ALIGN="CENTER">TB+UJ</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>SCF method</TD>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">SCFSteps</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>integer</TD>
+!> <TD ALIGN="CENTER">100</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>maximum number of steps used for scf</TD>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">SCFMix</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real</TD>
+!> <TD ALIGN="CENTER">0.85</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>mixing parameter</TD>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">SCFMixType</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>Broyden, Pulay</TD>
+!> <TD ALIGN="CENTER">Broyden</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>SCF mixing method</TD>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">SCFTol</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real</TD>
+!> <TD ALIGN="CENTER">1e-8</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>convergence tolerance</TD>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">SCFMixN</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>integer</TD>
+!> <TD ALIGN="CENTER">4</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>number of iterations to mix</TD>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">VelScale</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>logical</TD>
+!> <TD ALIGN="CENTER">.false.</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>on/off scaling velocities</TD>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">DMOccTol</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real</TD>
+!> <TD ALIGN="CENTER">1e-10</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>density matrix occupation tolerance</TD>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">HElThres</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real</TD>
+!> <TD ALIGN="CENTER">1e-10</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>hamiltionian element thresold. Any element smaller that the thresold is made zero.</TD>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">Spin</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>logical</TD>
+!> <TD ALIGN="CENTER">.false.</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>on/off spin polarisation</TD>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">CollinearSpins</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>logical</TD>
+!> <TD ALIGN="CENTER">.false.</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>on/off collinear spins</TD>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">SpinDU</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real</TD>
+!> <TD ALIGN="CENTER">0.0</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>spin down spin up difference</TD>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">EulerSteps</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>integer</TD>
+!> <TD ALIGN="CENTER">100</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>after each EulerSteps apply an Euler integration of equations of motions</TD>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">Electrostatics</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>PointCharges, Multipoles</TD>
+!> <TD ALIGN="CENTER">PointCharges</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>method use to compute electrostatic interaction</TD>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">PrecomputeMultipoles</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>logical</TD>
+!> <TD ALIGN="CENTER">.true.</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>on/off precompute multipoles</TD>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">Embedding</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>logical</TD>
+!> <TD ALIGN="CENTER">.true.</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>on/off embedding method</TD>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">FSteps</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>integer</TD>
+!> <TD ALIGN="CENTER">100</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>Number of steps used to test the force/energy consitency</TD>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">FStart</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real</TD>
+!> <TD ALIGN="CENTER">0.0</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>position at which the force/energy consistency test starts</TD>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">Fdx</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real</TD>
+!> <TD ALIGN="CENTER">0.001</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>space step for the force/energy consistency test starts</TD>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">Gamma</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real</TD>
+!> <TD ALIGN="CENTER">0.3</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>damping factor for Ehrenfest equation</TD>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">MPN</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>integer</TD>
+!> <TD ALIGN="CENTER">2</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>the order used for Methfessel-Paxton method</TD>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">Hole</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>integer</TD>
+!> <TD ALIGN="CENTER">0</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>no of level to create hole</TD>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">Excite</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>integer</TD>
+!> <TD ALIGN="CENTER">0</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>no of level to create excitation</TD>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">HoleSpin</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>D,U</TD>
+!> <TD ALIGN="CENTER">D</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>spin of the hole</TD>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">ExciteSpin</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>D,U</TD>
+!> <TD ALIGN="CENTER">D</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>spin of the excitation</TD>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">Units</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>AU EV SI</TD>
+!> <TD ALIGN="CENTER">AU</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>system of units atomic units, electronVolt-Angstrom, International</TD>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">SmearingMethod</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>FD,MP,CMU</TD>
+!> <TD ALIGN="CENTER">FD</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>smearing method (Femi-Dirac, Methfessel-Paxton, constant )</TD>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">BondType</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>Harrison, GSP</TD>
+!> <TD ALIGN="CENTER">Harrison</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>bond type</TD>
+!> </TR>
+!> </TABLE>
 
+
+
+
+!> \endhtmlonly
 
 subroutine read_general(io_loc,gen_loc)
 character(len=*),parameter :: name="read_general"

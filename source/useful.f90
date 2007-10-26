@@ -1,20 +1,8 @@
-!****d* Module/useful
-! NAME
-! useful
-! SYNOPSIS
-! use useful
-! USES
-! types, constants
-! DESCRIPTION
-! functions which are of general use
-!
-! Provides
-!  cstr,error,get_unit
-! AUTHOR
-! Alin M. Elena (Queen's University Belfast)
-! CREATION DATE
-! 14-15th of January, 2006
-!******
+!> \brief subprograms of general use
+!> \author Alin M. Elena (Queen's University Belfast) 
+!> \date 14-15th of January, 2006
+
+
 
 module useful
   use constants
@@ -26,20 +14,12 @@ module useful
   
 contains
 
-!****f*   useful/cstr()
-! NAME
-! cstr
-! SYNOPSIS
-! cstr()
-! DESCRIPTION
-! compares two strings not case sensitive returns true if the strings are the same false otherwise
-! AUTHOR
-! Alin M. Elena (Queen's University Belfast)
-! CREATION DATE
-! 14-15th of January, 2006
-! HISTORY
-!******
-
+!> \brief logical function compares two strings 
+!> \details not case sensitive returns true if the strings are the same false otherwise
+!> \author Alin M. Elena (Queen's University Belfast) 
+!> \date 14-15th of January, 2006
+!> \param str1, str2 character(len=*) that get compared 
+ 
   logical function cstr(str1,str2)
     character(len=*), parameter :: myname = 'cstr'
     character(len=*) :: str1, str2
@@ -55,8 +35,16 @@ contains
       enddo
       if (s==0) cstr=.true.
     endif
-
-  contains
+  end function cstr
+  
+!> \brief integer function returns the ascii code of a letter
+!> \details always will be the ascii code of the capital letter
+!> as long as the characters are grouped in the set consecutive it should work
+!> (A-Z a-z)
+!> \author Alin M. Elena (Queen's University Belfast) 
+!> \date 14-15th of January, 2006
+!> \param a character
+  
     integer function up(a)
       character(len=1) :: a
       if (iachar(a)>iachar("Z")) then
@@ -65,31 +53,15 @@ contains
         up=iachar(a)
       endif
     end function up
-  end function cstr
 
-
-!****s*   useful/error()
-! NAME
-! error
-! SYNOPSIS
-! call error(message, routine, critical,io_loc)
-! INPUTS
-!     character(len=*), intent(in) :: message
-!     character(len=*), intent(in) :: routine
-!     logical, intent(in)   :: critical
-!     type(io_type), intent(in) :: io_loc
-! DESCRIPTION
-! Prints an error message (var message) submitted by a routine (var routine)
-! using the units from io_loc.
-! if critical is .true. will abort the program
-! AUTHOR
-! Alin M. Elena (Queen's University Belfast)
-! CREATION DATE
-! 14-15th January 2006, Alin M Elena (Queen's University Belfast)
-! HISTORY
-! 20th of January, 2007, by Alin M Elena (Queen's University Belfast), added io_loc parameter
-!******
-
+!> \brief prints an error/warning message and aborts the programs if necessary
+!> \author Alin M. Elena (Queen's University Belfast)
+!> \date 14-15th January 2006  
+!> \param message the message that will be displayed
+!> \param routine the name of the caller
+!> \param io_loc I/O details
+!> \param critical logical if true aborts the program
+!> \remarks  20th of January, 2007, by Alin M Elena (Queen's University Belfast), added io_loc parameter
 
 ! provides an elegant way of handling different errors
   subroutine error(message, routine, critical,io_loc)
@@ -132,7 +104,12 @@ contains
 ! HISTORY
 !******
 
-
+!> \brief gives an integer that can be used as a unit number in a open command
+!> \details this function should be used to avoid using the same unit in different open commands
+!> \author Alin M Elena 
+!> \date 14-15th of January, 2006
+!> \warning using a save attribute makes the function thread unsafe, however
+!> I do not expect any problems from it (you do not open so many files after all)
   integer function get_unit()
     character(len=*), parameter :: myname = 'get_unit()'
     integer,save ::ustart=9
