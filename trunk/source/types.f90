@@ -36,7 +36,7 @@ character(len=mw) :: inp_err
   end type io_type
 
 !> \brief time keeping type 
-  type ,private :: time_type
+  type ,public :: time_type
   real(pr) :: start !< start time
   real(pr) :: end !< end time
   real(pr) :: int !< intermediate time
@@ -44,61 +44,66 @@ character(len=mw) :: inp_err
 
 !> \brief see read_data::read_general module for the meaning
   type,public :: general_type
-  real(pr) :: electronic_temperature
-  real(pr) :: electronic_mu
-  real(pr) :: ionic_temperature
-  real(pr) :: netcharge
-  real(pr) :: deltat
-  integer  :: nsteps	
-  integer  :: runtype
-  logical  :: scf
-  integer  :: scf_type
-  integer  :: maxscf
-  real(pr) :: scfmix
-  integer  :: scfmixtype
-  real(pr) :: scftol
-  integer  :: scfmixn
-  logical  :: velocity_scaling
-  real(pr) :: dm_occupation_tolerance
-  integer  :: max_orbitals_per_atom 
-  real(pr) :: h_element_threshold
-  real(pr) :: hessian_displacement
-  logical  :: spin 
-  logical  :: collinear
-  real(pr) :: sdu
-  integer  :: Euler_steps
-  integer  :: electrostatics
-!   precompute the q's and v's for tb+u multipole case if is set to false	
-  logical  :: comp_elec 
-  integer  :: units
-  integer  :: bond
-  logical  :: embedding
-!   for the force test
-  integer :: f_steps
-  real(pr) :: f_start
-  real(pr) :: f_dx
-! for smearing methods Methfessel&Paxton
-  integer :: mp_N
-  integer :: smethod
-  real(pr) :: gamma
-! create excitation
-  integer :: hole
-  integer :: excite
-  integer :: hole_spin
-  integer :: excite_spin
-  character(len=20) :: job_name
-  integer :: ran3_seed
-  logical :: write_ani
-  logical :: write_ene
-  logical :: write_density
-  logical :: read_density
-  logical :: read_velocity
-  logical :: first_time = .false.
+!   real(pr) :: electronic_temperature
+!   real(pr) :: electronic_mu
+!   real(pr) :: ionic_temperature
+!   real(pr) :: netcharge
+!   real(pr) :: deltat
+!   integer  :: nsteps	
+!   integer  :: runtype
+!   logical  :: scf
+!   integer  :: scf_type
+!   integer  :: maxscf
+!   real(pr) :: scfmix
+!   integer  :: scfmixtype
+!   real(pr) :: scftol
+!   integer  :: scfmixn
+!   logical  :: velocity_scaling
+!   real(pr) :: dm_occupation_tolerance
+!   integer  :: max_orbitals_per_atom 
+!   real(pr) :: h_element_threshold
+!   real(pr) :: hessian_displacement
+!   logical  :: spin 
+!   logical  :: collinear
+!   real(pr) :: sdu
+!   integer  :: Euler_steps
+!   integer  :: electrostatics
+! !   precompute the q's and v's for tb+u multipole case if is set to false	
+!   logical  :: comp_elec 
+!   integer  :: units
+!   integer  :: bond
+!   logical  :: embedding
+! !   for the force test
+!   integer :: f_steps
+!   real(pr) :: f_start
+!   real(pr) :: f_dx
+! ! for smearing methods Methfessel&Paxton
+!   integer :: mp_N
+!   integer :: smethod
+!   real(pr) :: gamma
+! ! create excitation
+!   integer :: hole
+!   integer :: excite
+!   integer :: hole_spin
+!   integer :: excite_spin
+  character(len=mw) :: job_name !< name of the job
+  integer :: ran3_seed !< seed to initialize the random number generator
+!   logical :: write_ani
+!   logical :: write_ene
+!   logical :: write_density
+!   logical :: read_density
+!   logical :: read_velocity
+   logical :: first_time = .false. !< is it first time when is read 
+!   logical :: scc
+!   logical :: SymRefRho
+!   logical :: bIsSCFConverged
 !!!!!!
   type(time_type):: time
+  
   end type general_type
   
 !> \brief fitting data type
+!> \todo complete documentation
   type, public :: fit_p
  	integer :: neps,feval,ns,ipr
  	integer ::iter,nt
@@ -109,10 +114,11 @@ character(len=mw) :: inp_err
  	real(pr) :: step
  	real(pr) ::step_ad
  	real(pr) :: rt
+ 	integer :: iNoParams !< no of parameters in optimization
   end type fit_p
 
 !> \brief data type for atoms properties
-  type, private :: atomic_type              
+  type, public :: atomic_type
   logical               :: created !< was it read?
   integer               :: natoms !< no of atoms
   integer               :: nmoving !< no of moving atoms
@@ -139,19 +145,18 @@ character(len=mw) :: inp_err
   integer, allocatable :: spacer(:) !< atoms in spacer
   end type atomic_type
 !> \brief species type 
-  type, private :: species_type
-  logical :: created !< is it created?
+type, public :: species_type
+  logical :: created = .false. !< is it created?
   integer :: nspecies !< no of species
   integer, allocatable :: id(:) !< if of specie
   real(pr), allocatable :: mass(:) !< atomic mass of specie
   integer,  allocatable :: z(:) !< Z of specie
-  real(pr), allocatable ::zval(:) !< no of valence electrons for each specie
-  logical,  allocatable :: isqm(:) !< is qunantum mechanical?
+  real(pr), allocatable :: zval(:) !< no of valence electrons for each specie
   real(pr), allocatable :: ulocal(:) !< local U (Hubbard U) 
   real(pr), allocatable :: jlocal(:) !< local J
   real(pr), allocatable :: uinter(:) !< Uinter (used for the screaning of electrostatics)
   integer,  allocatable :: norbs(:) !< no of orbitals	
-  end type species_type
+end type species_type
 
 !> \brief atomic orbital data type
   type, private :: orbital_type
@@ -173,11 +178,11 @@ character(len=mw) :: inp_err
 
 !> \brief all atomic data type 
 type, public :: atomicx_type
-type(atomic_type) :: atoms !< atmoic properties
-type(species_type) :: species !< specie properties
-type(basis_type) :: basis !< system basis
-type(delta_type),allocatable :: delta(:) !< delta params for easch specie
-type(orbital_type), allocatable :: species_basis(:,:) !< species basis set
+  type(atomic_type) :: atoms !< atmoic properties
+  type(species_type) :: species !< specie properties
+  type(basis_type) :: basis !< system basis
+  type(delta_type),allocatable :: delta(:) !< delta params for easch specie
+  type(orbital_type), allocatable :: species_basis(:,:) !< species basis set
 end type atomicx_type
 
 
