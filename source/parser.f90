@@ -654,7 +654,8 @@ character(len=mw) function get_string(io_loc,label,dflt,print)
       open(unit=nt,action="read",status="old",file=trim(line))
       write(io_loc%udeb,'(a,2x,l)') trim(label),get_block
     else
-      call error("Block "//trim(label)//"was not found",myname,.true.,io_loc)
+      write(io_loc%udeb,'(a)')"Block "//trim(label)//" was not found"
+      get_block=.false.
     endif
 
   end function get_block

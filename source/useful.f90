@@ -1,16 +1,13 @@
 !> \brief subprograms of general use
 !> \author Alin M. Elena (Queen's University Belfast) 
 !> \date 14-15th of January, 2006
-
-
-
 module useful
   use constants
   use types
   
   implicit none
   private
-  public :: cstr,error,get_unit
+  public :: cstr,error,get_unit,isUnique
   
 contains
 
@@ -45,14 +42,14 @@ contains
 !> \date 14-15th of January, 2006
 !> \param a character
   
-    integer function up(a)
-      character(len=1) :: a
-      if (iachar(a)>iachar("Z")) then
-        up=iachar(a)-(iachar("a")-iachar("A"))
-      else
-        up=iachar(a)
-      endif
-    end function up
+  integer function up(a)
+    character(len=1) :: a
+    if (iachar(a)>iachar("Z")) then
+      up=iachar(a)-(iachar("a")-iachar("A"))
+    else
+      up=iachar(a)
+    endif
+  end function up
 
 !> \brief prints an error/warning message and aborts the programs if necessary
 !> \author Alin M. Elena (Queen's University Belfast)
@@ -118,6 +115,34 @@ contains
     get_unit=ustart
 
   end function get_unit
+
+!> \brief checks if the elements of an integer array are unique
+!> \author Alin M Elena
+!> \date 29/10/07, 19:32:47
+!> \param x integer array 
+
+
+logical function isUnique(x)
+  character(len=*), parameter :: sMyName="isUnique"
+  integer,intent(in) :: x(:)
+  integer :: i,j
+  integer :: n
+  logical :: aux
+
+  n=size(x)
+  aux=.false.
+  if (n/=1) then
+    main: do i=1,n-1
+      do j=2,n
+        if (x(i) == x(j)) then
+          aux = .true.
+          exit main
+        endif
+      enddo
+    enddo main
+  endif
+  isUnique=aux
+end function isUnique
 
 end module useful
 
