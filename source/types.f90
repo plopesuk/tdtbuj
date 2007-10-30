@@ -44,6 +44,7 @@ character(len=mw) :: inp_err
 
 !> \brief see read_data::read_general module for the meaning
   type,public :: general_type
+    real(pr) :: bias
 !   real(pr) :: electronic_temperature
 !   real(pr) :: electronic_mu
 !   real(pr) :: ionic_temperature
@@ -51,7 +52,7 @@ character(len=mw) :: inp_err
 !   real(pr) :: deltat
 !   integer  :: nsteps	
 !   integer  :: runtype
-!   logical  :: scf
+   logical  :: scf
 !   integer  :: scf_type
 !   integer  :: maxscf
 !   real(pr) :: scfmix
@@ -60,10 +61,10 @@ character(len=mw) :: inp_err
 !   integer  :: scfmixn
 !   logical  :: velocity_scaling
 !   real(pr) :: dm_occupation_tolerance
-!   integer  :: max_orbitals_per_atom 
+   integer  :: max_orbitals_per_atom
 !   real(pr) :: h_element_threshold
 !   real(pr) :: hessian_displacement
-!   logical  :: spin 
+   logical  :: spin
 !   logical  :: collinear
 !   real(pr) :: sdu
 !   integer  :: Euler_steps
@@ -92,7 +93,7 @@ character(len=mw) :: inp_err
 !   logical :: write_ene
 !   logical :: write_density
 !   logical :: read_density
-!   logical :: read_velocity
+   logical :: read_velocity !< read velocity block?
    logical :: first_time = .false. !< is it first time when is read 
 !   logical :: scc
 !   logical :: SymRefRho
@@ -121,11 +122,12 @@ character(len=mw) :: inp_err
   type, public :: atomic_type
     logical               :: created !< was it read?
     integer               :: natoms !< no of atoms
-    integer               :: nmoving !< no of moving atoms
     integer,  allocatable :: id(:) !< id of the atoms
     integer,  allocatable :: sp(:) !< specie of the atoms 
     logical,  allocatable :: ismoving(:) !< is it moving?
-    logical,  allocatable :: isscf(:) !< is it SCF? 
+    logical,  allocatable :: isscf(:) !< is it SCF?
+    integer, allocatable :: scf(:) !< list of SCCF atoms
+    integer, allocatable :: moving(:) !< list of moving atoms
     real(pr), allocatable :: x(:),y(:),z(:) !< cartesian coordinates
     real(pr), allocatable :: dx(:),dy(:),dz(:) !< cartesian dipole moments
     real(pr), allocatable :: chrg(:),chrg0(:) !< excess charge, initial excess charge 
@@ -135,6 +137,7 @@ character(len=mw) :: inp_err
     real(pr), allocatable :: fxo(:), fyo(:), fzo(:) !< old cartesian forces
     real(pr), allocatable :: vxo(:), vyo(:), vzo(:) !< old cartesian velocities
     real(pr), allocatable :: bias(:) !< bias of the atoms
+integer(pr), allocatable :: norbs(:) !< no of orbitals of atom
     integer,  allocatable  :: orbs(:,:) !< orbitals, first index atom, second orbital
     real(pr) :: tdipx,tdipy,tdipz !< total dipole moment, cartesian components
     integer :: nacceptor !< no of atoms in acceptor
@@ -143,7 +146,11 @@ character(len=mw) :: inp_err
     integer, allocatable :: acceptor(:) !< atoms in acceptor
     integer, allocatable :: donor(:) !< atoms in donor
     integer, allocatable :: spacer(:) !< atoms in spacer
+    integer :: nscf !< no of scf atoms
+    integer :: nmoving !< no of moving atoms
   end type atomic_type
+
+
 !> \brief species type 
   type, public :: species_type
     logical :: created = .false. !< is it created?
@@ -167,7 +174,7 @@ character(len=mw) :: inp_err
 
 !> \brief atomic basis data type
   type, private :: basis_type
-    integer :: norbital !< no of orbitals  
+    integer :: norbitals !< no of orbitals  
     type(orbital_type), allocatable :: orbitals(:) !< orbitals
   end type basis_type
 !> \brief to be added
