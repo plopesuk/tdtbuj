@@ -96,7 +96,7 @@ integer, parameter, public :: electrostatics_multipoles=2
   public :: vdw_radius
   public :: weight
   public :: group
-!> \todo document symbol -> group functions
+
 
 contains 
 
@@ -154,12 +154,15 @@ contains
 
    end subroutine initialize_constants
 
-character(len=2) function Symbol(iz)  
+!> \brief returns the symbol for element iz
+!> \author Alin M Elena
+!> \date 29/10/07, 23:19:04
+!> \param iz integer Z of the atom
+  character(len=2) function Symbol(iz)  
     !--subroutine name--------------------------------!   
     character(len=*), parameter :: myname = 'symbol'
     !--subroutine parameters--------------------------!
     integer, intent(in) :: iz
-     
     character(len=2) :: dummy(1:nz)
 
     data dummy /"H","He","Li","Be","B","C","N","O","F","Ne","Na","Mg","Al","Si",&
@@ -179,14 +182,16 @@ character(len=2) function Symbol(iz)
     endif
   end function symbol
 
-
-  character(len=25) function el_name(iz)  
+!> \brief returns the name for element iz
+!> \author Alin M Elena
+!> \date 29/10/07, 23:18:26
+!> \param iz integer Z of the atom
+  character(len=mw) function el_name(iz)
     !--subroutine name--------------------------------!   
     character(len=*), parameter :: myname = 'el_name'
     !--subroutine parameters--------------------------!
     integer, intent(in) :: iz
-     
-    character(len=25) :: dummy(1:nz)
+    character(len=mw) :: dummy(1:nz)
 
     data dummy /"Hydrogen","Helium","Lithium","Beryllium","Boron","Carbon",&
       "Nitrogen","Oxygen","Fluorine","Neon","Sodium","Magnesium","Aluminium",&
@@ -214,13 +219,16 @@ character(len=2) function Symbol(iz)
     endif
   end function el_name
 
+!> \brief returns the period from periodic for element iz
+!> \author Alin M Elena
+!> \date 29/10/07, 23:17:39
+!> \param iz integer Z of the atom
 
   character(len=4) function period(iz)  
     !--subroutine name--------------------------------!   
     character(len=*), parameter :: myname = 'period'
     !--subroutine parameters--------------------------!
     integer, intent(in) :: iz
-     
     character(len=4) :: dummy(1:nz)
 
     data dummy /"1","1","2","2","2","2","2","2","2","2",&
@@ -241,12 +249,16 @@ character(len=2) function Symbol(iz)
     endif
   end function period
 
+!> \brief returns the group from periodic table for element iz
+!> \author Alin M Elena
+!> \date 29/10/07, 23:17:12
+!> \param iz integer Z of the atom
+
   integer function group(iz)  
     !--subroutine name--------------------------------!   
     character(len=*), parameter :: myname = 'group'
     !--subroutine parameters--------------------------!
     integer, intent(in) :: iz
-     
     integer :: dummy(1:nz)
 
     data dummy /1,18,1,2,13,14,15,16,17,18,1,2,13,14,15,16,17,18,1,2,3,4,5,6,7,8,&
@@ -263,7 +275,11 @@ character(len=2) function Symbol(iz)
     endif
   end function group
 
-!> \todo proper electronic config
+!> \brief returns electronic configuration of valence band for element iz
+!> \author Alin M Elena
+!> \date 29/10/07, 23:15:58
+!> \param iz integer Z of the atom
+!> \todo complete the electronic configuration
   character(len=mw) function el_config(iz)
     !--subroutine name--------------------------------!   
     character(len=*), parameter :: myname = 'el_config'
@@ -287,12 +303,16 @@ character(len=2) function Symbol(iz)
     endif
   end function el_config
 
+!> \brief returns atomic weight for element iz
+!> \author Alin M Elena
+!> \date 29/10/07, 23:15:38
+!> \param iz integer Z of the atom
+
   real(pr) function weight(iz)
     !--subroutine name--------------------------------!   
     character(len=*), parameter :: myname = 'weight'
     !--subroutine parameters--------------------------!
     integer, intent(in) :: iz
-     
     real(pr) :: dummy(1:nz)
 
     data dummy /1.008,4.003,6.941,9.012,10.811,12.011,14.007,15.999,18.998,20.18,&
@@ -315,13 +335,16 @@ character(len=2) function Symbol(iz)
     endif
   end function weight
 
+!> \brief returns covalent radius for element iz
+!> \author Alin M Elena
+!> \date 29/10/07, 23:15:07
+!> \param iz integer Z of the atom
 
   real(pr) function covalent_radius(iz)
     !--subroutine name--------------------------------!   
     character(len=*), parameter :: myname = 'covalent_radius'
     !--subroutine parameters--------------------------!
     integer, intent(in) :: iz
-     
     real(pr) :: dummy(1:nz)
 
     data dummy /0.23,1.5,0.68,0.35,0.83,0.68,0.68,0.68,0.64,1.5,0.97,1.1,1.35,&
@@ -341,14 +364,18 @@ character(len=2) function Symbol(iz)
     endif
   end function covalent_radius  
 
+!> \brief returns the van der Waals radius for element iz
+!> \author Alin M Elena
+!> \date 29/10/07, 23:14:09
+!> \param iz integer Z of the atom
+
   real(pr) function vdw_radius(iz)
     !--subroutine name--------------------------------!   
     character(len=*), parameter :: myname = 'vdw_radius'
     !--subroutine parameters--------------------------!
     integer, intent(in) :: iz
-     
-    real(pr) :: dummy(1:nz)
 
+    real(pr) :: dummy(1:nz)
     data dummy /1.2,1.4,1.82,2,2,1.7,1.55,1.52,1.47,1.54,2.27,1.73,2,2.1,1.8,1.8,&
       1.75,1.88,2.75,2,2,2,2,2,2,2,2,1.63,1.4,1.39,1.87,2,1.85,1.9,1.85,2.02,&
       2,2,2,2,2,2,2,2,2,1.63,1.72,1.58,1.93,2.17,2,2.06,1.98,2.16,2,2,2,2,2,2,&

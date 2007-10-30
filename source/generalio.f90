@@ -78,14 +78,15 @@ contains
   if (io_loc%debug>=medium_debug) call timing(io_loc,gen_loc%time,2)
 
   if (io_loc%debug>=medium_debug) call timing(io_loc,gen_loc%time,1)
-  call read_atoms(io_loc,gen_loc,atomic%atoms)
-  if (io_loc%debug>=medium_debug) call timing(io_loc,gen_loc%time,2)
-
-  if (io_loc%debug>=medium_debug) call timing(io_loc,gen_loc%time,1)
   call read_species(io_loc,gen_loc,atomic%species)
   if (io_loc%debug>=medium_debug) call timing(io_loc,gen_loc%time,2)
 
-! if (get_block(io_loc,"coords",nt)) then
+  if (io_loc%debug>=medium_debug) call timing(io_loc,gen_loc%time,1)
+  call read_atoms(io_loc,gen_loc,atomic)
+  if (io_loc%debug>=medium_debug) call timing(io_loc,gen_loc%time,2)
+
+
+! if (get_block(io_loc,"coord",nt)) then
 !   write(io_loc%udeb,'(a)')"block coords"
 !   do i=1,2
 !     read(nt,fmt=*,iostat=errno)a1,a2,a3
@@ -198,9 +199,8 @@ character(len=*),parameter :: myname="read_io"
   io_loc%first_time=.not. io_loc%first_time
 
   if (io_loc%verbosity>=high_debug) then
-    write( io_loc%udeb,"(a,l)")"Read io_info for the first time: "&
+    write( io_loc%udeb,'(a,l1)')"Read io_info for the first time: "&
       ,io_loc%first_time
-
   endif
 
   write( io_loc%uout,'(a,a)')"Input file: "&
@@ -215,7 +215,7 @@ character(len=*),parameter :: myname="read_io"
     ,io_loc%debug
   write( io_loc%uout,'(a,a)')"Error file: "&
     ,trim(io_loc%inp_err)
-  write( io_loc%uout,'(a,l)')"Standard Output(OnScreen): "&
+  write( io_loc%uout,'(a,l1)')"Standard Output(OnScreen): "&
     ,io_loc%stdout
 
 
@@ -553,9 +553,9 @@ character(len=*),parameter :: name="read_general"
   type(io_type), intent(inout) :: io_loc
   type(general_type), intent(inout) :: gen_loc
 
-character(len=mw) :: saux
+  character(len=mw) :: saux
 
-      if (.not. gen_loc%first_time) gen_loc%first_time=.not. gen_loc%first_time
+  if (.not. gen_loc%first_time) gen_loc%first_time=.not. gen_loc%first_time
 
 !comm_gen JobName & string & no name & a name for the job \\
   gen_loc%job_name=get_string(io_loc,"JobName","no name")
@@ -808,18 +808,6 @@ character(len=mw) :: saux
 !   endif
 ! 
 ! 
-! !! to be moved in read_atoms
-! ! ! ! !comm_atom NAcceptor & integer & 0 & number of atoms in Acceptor group\\
-! ! ! ! gen_loc%nacceptor=get_integer(io_loc,"NAcceptor",0)
-! ! ! !  write( io_loc%uout,'(a,i0)')"Atoms in Acceptor Group(NAcceptor): "&
-! ! ! !         ,gen_loc%naccpetor
-! ! ! ! 
-! ! ! ! !comm_atom NDonor & integer & 0 & number of atoms in Donor group\\
-! ! ! ! gen_loc%nacceptor=get_integer(io_loc,"NAcceptor",0)
-! ! ! !  write( io_loc%uout,'(a,i0)')"Atoms in Acceptor Group(NAcceptor): "&
-! ! ! !         ,gen_loc%naccpetor
-! 
-! 
 ! !comm_gen Units & AU EV SI & AU & system of units atomic units, electronVolt-Angstrom, International\\
 !   saux=get_string(io_loc,"Units","AU")
 !   write( io_loc%uout,'(a,a)')"System of Units (Units): "&
@@ -920,18 +908,82 @@ end subroutine close_io_general
 !> \date 29/10/07, 17:33:50
 !> \param io type(io_type) i/o units
 !> \param general type(general_type) general data
-!> \param atoms type(atomic_type) contains info about atoms
+!> \param atoms type(atomix_type) contains info about atoms
+!> \todo write the structure of the block
 
-
-  subroutine read_atoms(io,general,atoms)
+  subroutine read_atoms(io,general,atomix)
     character(len=*), parameter :: sMyName="read_atoms"
-    type(io_type), intent(in) :: io
+    type(io_type), intent(inout) :: io
     type(general_type), intent(in)  :: general
-    type(atomic_type), intent(inout) :: atoms
+    type(atomicx_type), intent(inout) :: atomix
     ! arguments of the subroutine
+    integer :: nt, errno,i
+    character(len=ml) :: saux
+  atomix%atoms%natoms = get_integer(io,"NumberOfAtoms",-1)
+  if (atomix%atoms%natoms<=0) then
+    call error(sMyName,"NumberOfAtoms token is missing or is negative!",.true.,io)
+  endif
+  atomix%atoms%created=.true.
+  allocate(atomix%atoms%id(1:atomix%atoms%natoms))
+  allocate(atomix%atoms%sp(1:atomix%atoms%natoms))
+  allocate(atomix%atoms%bias(1:atomix%atoms%natoms))
+  allocate(atomix%atoms%isscf(1:atomix%atoms%natoms))
+  allocate(atomix%atoms%ismoving(1:atomix%atoms%natoms))
+  allocate(atomix%atoms%x(1:atomix%atoms%natoms))
+  allocate(atomix%atoms%y(1:atomix%atoms%natoms))
+  allocate(atomix%atoms%z(1:atomix%atoms%natoms))
+  allocate(atomix%atoms%vx(1:atomix%atoms%natoms))
+  allocate(atomix%atoms%vy(1:atomix%atoms%natoms))
+  allocate(atomix%atoms%vz(1:atomix%atoms%natoms))
+  allocate(atomix%atoms%fx(1:atomix%atoms%natoms))
+  allocate(atomix%atoms%fy(1:atomix%atoms%natoms))
+  allocate(atomix%atoms%fz(1:atomix%atoms%natoms))
+  allocate(atomix%atoms%dx(1:atomix%atoms%natoms))
+  allocate(atomix%atoms%dy(1:atomix%atoms%natoms))
+  allocate(atomix%atoms%dz(1:atomix%atoms%natoms))
+  allocate(atomix%atoms%xo(1:atomix%atoms%natoms))
+  allocate(atomix%atoms%yo(1:atomix%atoms%natoms))
+  allocate(atomix%atoms%zo(1:atomix%atoms%natoms))
+  allocate(atomix%atoms%vxo(1:atomix%atoms%natoms))
+  allocate(atomix%atoms%vyo(1:atomix%atoms%natoms))
+  allocate(atomix%atoms%vzo(1:atomix%atoms%natoms))
+  allocate(atomix%atoms%fxo(1:atomix%atoms%natoms))
+  allocate(atomix%atoms%fyo(1:atomix%atoms%natoms))
+  allocate(atomix%atoms%fzo(1:atomix%atoms%natoms))
+  allocate(atomix%atoms%chrg(1:atomix%atoms%natoms))
+  allocate(atomix%atoms%chrg0(1:atomix%atoms%natoms))
 
+  if (get_block(io,"AtomsData",nt)) then
+    do i = 1, atomix%atoms%natoms
+      read(nt,fmt=*,iostat=errno)&
+        atomix%atoms%sp(i),atomix%atoms%x(i),atomix%atoms%y(i),atomix%atoms%z(i),&
+        atomix%atoms%bias(i),atomix%atoms%isscf(i),atomix%atoms%ismoving(i)
+      if (errno/=0) then
+        call error("block AtomsData is not in the right format",sMyName,.true.,io)
+      endif
+        atomix%atoms%id(i)=i
+        write(io%udeb,'(i6,4f16.6,1x,l1,1x,l1)')&
+          atomix%atoms%sp(i),atomix%atoms%x(i),atomix%atoms%y(i),atomix%atoms%z(i),&
+          atomix%atoms%bias(i),atomix%atoms%isscf(i),atomix%atoms%ismoving(i)
+        if(.not.isInList(atomix%atoms%sp(i),atomix%species%id)) then
+          write(saux,*)"block AtomsData contains undefined specie: ", atomix%atoms%sp(i)
+          call error(trim(saux),sMyName,.true.,io)
+        endif
+    enddo
+  else
+    call error(sMyName,"AtomsData block is missing!",.true.,io)
+  endif
+! ! ! ! !comm_atom NAcceptor & integer & 0 & number of atoms in Acceptor group\\
+! ! ! ! gen_loc%nacceptor=get_integer(io_loc,"NAcceptor",0)
+! ! ! !  write( io_loc%uout,'(a,i0)')"Atoms in Acceptor Group(NAcceptor): "&
+! ! ! !         ,gen_loc%naccpetor
+! ! ! ! 
+! ! ! ! !comm_atom NDonor & integer & 0 & number of atoms in Donor group\\
+! ! ! ! gen_loc%nacceptor=get_integer(io_loc,"NAcceptor",0)
+! ! ! !  write( io_loc%uout,'(a,i0)')"Atoms in Acceptor Group(NAcceptor): "&
+! ! ! !         ,gen_loc%naccpetor
+      
 
-    !internal variables
 
 
   end subroutine read_atoms
@@ -944,7 +996,7 @@ end subroutine close_io_general
 !> \param io type(io_type) i/o units
 !> \param general type(general_type) general data
 !> \param specs type(species_type) contains info about atoms
-
+!> \todo write the structure of the block
 
   subroutine read_species(io,general,specs)
     character(len=*), parameter :: sMyName="read_species"
@@ -983,11 +1035,12 @@ end subroutine close_io_general
     else
       call error("Specie block is missing!!!",sMyName,.true.,io)
     endif
-  call print_species(io,specs)
+    call print_species(io,specs)
   end subroutine read_species
 
 
 !> \brief prints the info about species
+!> \details at high verbosity some intristing info is printed about each specie
 !> \author Alin M Elena
 !> \date 29/10/07, 19:59:04
 !> \param io type(io_type) i/o units
@@ -1002,23 +1055,23 @@ subroutine print_species(io,specs)
   write(io%uout,'(a)')"  Id  Z el    Zval            Mass          Ulocal          Jlocal          Uinter Norbs"
   write(io%uout,'(a)')"----------------------------------------------------------------------------------------"
   write(io%uout,'(i4,i3,1x,a,f8.4,4f16.8,i5)')(specs%id(i),specs%z(i),symbol(specs%z(i)),specs%zval(i),specs%mass(i),&
-                                 specs%ulocal(i),specs%jlocal(i),specs%uinter(i),specs%norbs(i),i=1,specs%nspecies)
+            specs%ulocal(i),specs%jlocal(i),specs%uinter(i),specs%norbs(i),i=1,specs%nspecies)
   write(io%uout,'(a)')"=EndSpeciesData========================================================================="
 
-      if (io%verbosity>=high_verbos) then
-        do i=1, specs%nspecies
-          write(io%uout,'(a)')"================================================================"
-          write(io%uout,'(a,i0,a)')"Specie: ",specs%id(i)," detailed info"
-          write(io%uout,'(a,a,a)')"name: ",el_name(specs%z(i))," symbol: ",symbol(specs%z(i))
-          write(io%uout,'(a,i4,a,f8.3,a,f8.3,a,f8.3,a)')"Z=",specs%z(i)," Zvalence=",specs%zval(i),&
-            " mass=",specs%mass(i),"(",weight(specs%z(i)),") a.u."
-          write(io%uout,'(a,a,a,i3,a,a)')"period: ",period(specs%z(i))," group:",group(specs%z(i)),&
-            " electronic config:",trim(el_config(specs%z(i)))
-          write(io%uout,'(a,f8.3,a,f8.3,a)')"van der Waals radius=",vdw_radius(specs%z(i)),&
-            "A covalent radius=",covalent_radius(specs%z(i)),"A"
-        enddo
-        write(io%uout,'(a)')"================================================================"
-      endif
+  if (io%verbosity>=high_verbos) then
+    do i=1, specs%nspecies
+      write(io%uout,'(a)')"========================================================"
+      write(io%uout,'(a,i0,a)')"Specie: ",specs%id(i)," detailed info"
+      write(io%uout,'(a,a,a,a)')"name: ",trim(el_name(specs%z(i)))," symbol: ",trim(symbol(specs%z(i)))
+      write(io%uout,'(a,i0,a,f0.3,a,f0.3,a,f0.3,a)')"Z=",specs%z(i)," Zvalence=",specs%zval(i),&
+        " mass=",specs%mass(i)," (",weight(specs%z(i)),") a.u."
+      write(io%uout,'(a,a,a,i0,a,a)')"period: ",trim(period(specs%z(i)))," group: ",group(specs%z(i)),&
+        " electronic config:",trim(el_config(specs%z(i)))
+      write(io%uout,'(a,f0.3,a,f0.3,a)')"van der Waals radius=",vdw_radius(specs%z(i)),&
+        "A covalent radius=",covalent_radius(specs%z(i)),"A"
+    enddo
+    write(io%uout,'(a)')"========================================================"
+  endif
 end subroutine print_species
 
 !> \brief deallocates the memory 
