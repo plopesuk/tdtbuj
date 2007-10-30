@@ -162,7 +162,7 @@ contains
     n=size(x)
     if (present(pos)) pos = -1
     aux=.false.
-    if (n/=1) then
+    if (n>=1) then
       do i=1,n
         if (y == x(i)) then
           aux = .true.

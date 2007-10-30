@@ -173,11 +173,10 @@ contains
           call parse_war("detected empty(probably only comments and empty lines) block "&
             //trim(blockname),myname,nam,lineno,io_loc)
 ! empty files we delete them immediately
-          close(nt,status="delete")
         endif
 ! check the uniquness of the block
         ireport%blocklines=blines+ireport%blocklines
-          
+
         close(nt)
 ! check for the block in the existent list
         if (ireport%blocks==1) then
@@ -189,7 +188,7 @@ contains
         else
           if (find_name(trim(blockname),bnames)) &
             call parse_err("found block "//trim(blockname)//" duplicated",&
-            myname,nam,lineno,io_loc)
+              myname,nam,lineno,io_loc)
           call add_name(trim(blockname),currentb,blines)
           currentb%ut=nt
           currentb%value=trim(filename)
@@ -230,7 +229,7 @@ contains
 !> \param line character(len=*), the line that was read
 !> \return .true. if successfull in reading the line, .false. otherwise
 !> \remarks
-              
+
   logical function get_line(uno,line)
     character(len=*), parameter :: myname = 'get_line'
     character(len=ml), intent(out) :: line 
@@ -254,7 +253,7 @@ contains
 !> \param word character(len=*), value for field nam of the node
 !> \param current pointer to the last node in the list
 !> \param lines integer, optional value for field lines 
-!> \remarks
+
 
 
   subroutine add_name(word,current,lines)
@@ -353,7 +352,6 @@ contains
 !> \author Alin M Elena
 !> \date 14th of January 2006
 !> \param line character(len=*) the line to be parsed
-!> \remarks
 
   character(ml) function parse_line(line)
     character(len=*), parameter :: myname = 'parse_line' 
@@ -406,9 +404,6 @@ contains
 !> \param filename raeding this \em filename the error occured
 !> \param lineno the line number that generated the error
 !> \param io_loc type(io_type) (see types::io_type)
-!> \remarks
-
-          
   subroutine parse_err(message,routine,filename,lineno,io_loc)
     character(len=*), parameter :: myname = 'parse_err'
     character(len=*),intent(in) :: message,routine,filename
@@ -434,7 +429,7 @@ contains
 !> \param filename raeding this \em filename the warning occured
 !> \param lineno the line number that generated the warning
 !> \param io_loc type(io_type) (see types::io_type)
-!> \remarks
+
   subroutine parse_war(message,routine,filename,lineno,io_loc)
     character(len=*), parameter :: myname = 'parse_war'
     character(len=*),intent(in) :: message,routine,filename

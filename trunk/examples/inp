@@ -2,10 +2,17 @@ OutputFile output.out
 DebugFile  output.dbg
 OutputLevel 25
 DebugLevel  25
-OnScreen   F
+OnScreen   T
+
+
+
+ReadVel T
+Spin T
+MaxOrbsPerAtom 10
+
+
 
 include coords.dat
 include species.dat
+include basis.dat
 
-block coord
-endblock coord

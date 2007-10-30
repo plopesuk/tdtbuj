@@ -9,11 +9,14 @@ module read_data
   use useful
   use parser
   use types
+  use ISO_FORTRAN_ENV
 
 
   implicit none
   private
-  public :: initialize,close_io_general
+  public :: initialize
+  public :: close_io_general
+  public :: clean_memory
 
 contains
 
@@ -70,7 +73,7 @@ contains
     write(io_loc%udeb,'(a,f16.6,a)')"Parsing time "&
       ,aux," seconds"
     write(io_loc%udeb,'(a,f16.6,a)')"Setting io_info "&
-    ,gen_loc%time%end-gen_loc%time%int," seconds"
+      ,gen_loc%time%end-gen_loc%time%int," seconds"
   endif
 
   if (io_loc%debug>=medium_debug) call timing(io_loc,gen_loc%time,1)
@@ -85,7 +88,13 @@ contains
   call read_atoms(io_loc,gen_loc,atomic)
   if (io_loc%debug>=medium_debug) call timing(io_loc,gen_loc%time,2)
 
+  if (io_loc%debug>=medium_debug) call timing(io_loc,gen_loc%time,1)
+  call read_basis(io_loc,gen_loc,atomic)
+  if (io_loc%debug>=medium_debug) call timing(io_loc,gen_loc%time,2)
 
+  call print_species(io_loc,atomic%species)
+  call print_atoms(io_loc,gen_loc,atomic)
+  call print_basis(io_loc,gen_loc,atomic)
 ! if (get_block(io_loc,"coord",nt)) then
 !   write(io_loc%udeb,'(a)')"block coords"
 !   do i=1,2
@@ -223,104 +232,25 @@ end subroutine read_io
 
 
 !> \brief reads the parameters necessary for running
-!> \details
 !> \author Alin M Elena
 !> \date 21st of January, 2007 
 !> \param  io_loc type(io_type) I/O details (see types::io_type)
 !> \param gen_loc type(general_type), keeps all the general information about the parameters of the program
-!> \remarks
+!> \details
 !> A short description of the input file general variables part
 !> \latexonly
-!>  \begin{longtable}{|c||p{0.2\textwidth}|c||p{0.25\textwidth}|}
+!> \begin{longtable}{|c||p{0.2\textwidth}|c||p{0.25\textwidth}|}
 !> \hline
 !> \textbf{VarName} & \textbf{Values} & \textbf{Default Value} & \textbf{Description} \\\
 !> \hline \hline
 !> JobName & string & no name & a name for the job \\ 
 !> \hline
-!> RanSeed & integer & 12345 & A seed for the random number generator \\ 
+!> RanSeed & integer & 12345 & A seed for the random number generator \\
 !> \hline
-! !> WriteAni & logical & .false. & on/off writing animation file \\ 
-! !> \hline
-! !> WriteEne & logical & .true. & on/off writing energy file \\ 
-! !> \hline
-! !> WriteDen & logical & .false. & on/off writing density file \\ 
-! !> \hline
-! !> ReadDen & logical & .false. & on/off reading density file \\ 
-! !> \hline
-! !> ReadVel & logical & .false. & on/off reading velocity block \\ 
-! !> \hline
-! !> IonicTemperature & real & 300.0 & Ionic temperature\\ 
-! !> \hline
-! !> NetCharge & real & 0.0 & Net charge on the system\\ 
-! !> \hline
-! !> ElectronicTemperature & real & 300.0 & Electronic temperature, used to compute occupation numbers if you choose Fermi-Dirac or Methfessel-Paxton method\\ 
-! !> \hline
-! !> ElectronicMu & real & 0.0 & chemical potential, used to compute occupation numbers if you choose constant $\mu$ method\\ 
-! !> \hline
-! !> DeltaT & real & 0.001 & time step used to evolve equtions of motion\\ 
-! !> \hline
-! !> Nsteps & integer & 100 & number of steps used to evolve equtions of motion\\ 
-! !> \hline
-! !> RunType & SinglePoint, BODynamics, Ehrenfest, EhrenfestDamped, Fit, ForceTest, ForceTestX, ForceTestY, ForceTestZ & SinglePoint & Type of calculation\\ 
-! !> \hline
-! !> SCF & logical & .false. & on/off self consistent field method \\ 
-! !> \hline
-! !> SCFType & TB+UJ & TB+UJ & SCF method\\ 
-! !> \hline
-! !> SCFSteps & integer & 100 & maximum number of steps used for scf\\ 
-! !> \hline
-! !> SCFMix & real & 0.85 & mixing parameter\\ 
-! !> \hline
-! !> SCFMixType & Broyden, Pulay & Broyden & SCF mixing method\\ 
-! !> \hline
-! !> SCFTol & real & 1e-8 & convergence tolerance\\ 
-! !> \hline
-! !> SCFMixN & integer & 4 & number of iterations to mix\\ 
-! !> \hline
-! !> VelScale & logical & .false. & on/off scaling velocities\\ 
-! !> \hline
-! !> DMOccTol & real & 1e-10 & density matrix occupation tolerance\\ 
-! !> \hline
-! !> HElThres & real & 1e-10 & hamiltionian element thresold. Any element smaller that the thresold is made zero.\\ 
-! !> \hline
-! !> Spin & logical & .false. & on/off spin polarisation\\ 
-! !> \hline
-! !> CollinearSpins & logical & .false. & on/off collinear spins\\ 
-! !> \hline
-! !> SpinDU & real & 0.0 & spin down spin up difference\\ 
-! !> \hline
-! !> EulerSteps & integer & 100 & after each EulerSteps apply an Euler integration of equations of motions\\ 
-! !> \hline
-! !> Electrostatics & PointCharges, Multipoles & PointCharges & method use to compute electrostatic interaction\\ 
-! !> \hline
-! !> PrecomputeMultipoles & logical & .true. & on/off precompute multipoles\\ 
-! !> \hline
-! !> Embedding & logical & .true. & on/off embedding method\\ 
-! !> \hline
-! !> FSteps & integer & 100 & Number of steps used to test the force/energy consitency\\ 
-! !> \hline
-! !> FStart & real & 0.0 & position at which the force/energy consistency test starts\\ 
-! !> \hline
-! !> Fdx & real & 0.001 & space step for the force/energy consistency test starts\\ 
-! !> \hline
-! !> Gamma & real & 0.3 & damping factor for Ehrenfest equation\\ 
-! !> \hline
-! !> MPN & integer & 2 & the order used for Methfessel-Paxton method\\ 
-! !> \hline
-! !> Hole & integer & 0 & no of level to create hole\\ 
-! !> \hline
-! !> Excite & integer & 0 & no of level to create excitation\\ 
-! !> \hline
-! !> HoleSpin & D,U & D & spin of the hole\\ 
-! !> \hline
-! !> ExciteSpin & D,U & D & spin of the excitation\\ 
-! !> \hline
-! !> Units & AU EV SI & AU & system of units atomic units, electronVolt-Angstrom, International\\ 
-! !> \hline
-! !> SmearingMethod & FD,MP,CMU & FD & smearing method (Femi-Dirac, Methfessel-Paxton, constant $\mu$)\\ 
-! !> \hline
-! !> BondType & Harrison, GSP &Harrison& bond type\\ 
-! !> \hline
+!> ReadVel & logical & .false. & on/off reading velocity block \\
+!> \hline
+!> SCF & logical & .false. & on/off self consistent field method \\
+!> \hline
 !> \end{longtable}
 !> \endlatexonly
 !> \htmlonly
@@ -340,232 +270,50 @@ end subroutine read_io
 !> <TD ALIGN="CENTER">12345</TD>
 !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>A seed for the random number generator</TD>
 !> </TR>
-! !> <TR> <TD ALIGN="CENTER">WriteAni </TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>logical </TD>
-! !> <TD ALIGN="CENTER">.false.</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>on/off writing animation file </TD>
-! !> </TR>
-! !> <TR> <TD ALIGN="CENTER">WriteEne </TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>logical</TD>
-! !> <TD ALIGN="CENTER">.true. </TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>on/off writing energy file </TD>
-! !> </TR>
-! !> <TR><TD ALIGN="CENTER">WriteDen </TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>logical</TD>
-! !> <TD ALIGN="CENTER">.false. </TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>on/off writing density file</TD>
-! !> </TR>
-! !> <TR><TD ALIGN="CENTER">ReadDen</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>logical</TD>
-! !> <TD ALIGN="CENTER">.false.</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>on/off reading density file</TD>
-! !> </TR>
-! !> <TR><TD ALIGN="CENTER">ReadVel</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>logical</TD>
-! !> <TD ALIGN="CENTER">.false.</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>on/off reading velocity block</TD>
-! !> </TR>
-! !> <TR><TD ALIGN="CENTER">IonicTemperature</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real</TD>
-! !> <TD ALIGN="CENTER">300.0</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>Ionic temperature</TD>
-! !> </TR>
-! !> <TR><TD ALIGN="CENTER">NetCharge</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real</TD>
-! !> <TD ALIGN="CENTER">0.0</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>Net charge on the system</TD>
-! !> </TR>
-! !> <TR><TD ALIGN="CENTER">ElectronicTemperature</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real</TD>
-! !> <TD ALIGN="CENTER">300.0</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>Electronic temperature, used to compute occupation numbers if you choose Fermi-Dirac or Methfessel-Paxton method</TD>
-! !> </TR>
-! !> <TR><TD ALIGN="CENTER">ElectronicMu</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real</TD>
-! !> <TD ALIGN="CENTER">0.0</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>chemical potential, used to compute occupation numbers if you choose constant  method</TD>
-! !> </TR>
-! !> <TR><TD ALIGN="CENTER">DeltaT</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real</TD>
-! !> <TD ALIGN="CENTER">0.001</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>time step used to evolve equtions of motion</TD>
-! !> </TR>
-! !> <TR><TD ALIGN="CENTER">Nsteps</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>integer</TD>
-! !> <TD ALIGN="CENTER">100</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>number of steps used to evolve equtions of motion</TD>
-! !> </TR>
-! !> <TR><TD ALIGN="CENTER">RunType</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>SinglePoint, BODynamics, Ehrenfest, EhrenfestDamped, Fit, ForceTest, ForceTestX, ForceTestY, ForceTestZ</TD>
-! !> <TD ALIGN="CENTER">SinglePoint</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>Type of calculation</TD>
-! !> </TR>
-! !> <TR><TD ALIGN="CENTER">SCF</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>logical</TD>
-! !> <TD ALIGN="CENTER">.false.</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>on/off self consistent field method</TD>
-! !> </TR>
-! !> <TR><TD ALIGN="CENTER">SCFType</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>TB+UJ</TD>
-! !> <TD ALIGN="CENTER">TB+UJ</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>SCF method</TD>
-! !> </TR>
-! !> <TR><TD ALIGN="CENTER">SCFSteps</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>integer</TD>
-! !> <TD ALIGN="CENTER">100</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>maximum number of steps used for scf</TD>
-! !> </TR>
-! !> <TR><TD ALIGN="CENTER">SCFMix</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real</TD>
-! !> <TD ALIGN="CENTER">0.85</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>mixing parameter</TD>
-! !> </TR>
-! !> <TR><TD ALIGN="CENTER">SCFMixType</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>Broyden, Pulay</TD>
-! !> <TD ALIGN="CENTER">Broyden</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>SCF mixing method</TD>
-! !> </TR>
-! !> <TR><TD ALIGN="CENTER">SCFTol</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real</TD>
-! !> <TD ALIGN="CENTER">1e-8</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>convergence tolerance</TD>
-! !> </TR>
-! !> <TR><TD ALIGN="CENTER">SCFMixN</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>integer</TD>
-! !> <TD ALIGN="CENTER">4</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>number of iterations to mix</TD>
-! !> </TR>
-! !> <TR><TD ALIGN="CENTER">VelScale</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>logical</TD>
-! !> <TD ALIGN="CENTER">.false.</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>on/off scaling velocities</TD>
-! !> </TR>
-! !> <TR><TD ALIGN="CENTER">DMOccTol</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real</TD>
-! !> <TD ALIGN="CENTER">1e-10</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>density matrix occupation tolerance</TD>
-! !> </TR>
-! !> <TR><TD ALIGN="CENTER">HElThres</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real</TD>
-! !> <TD ALIGN="CENTER">1e-10</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>hamiltionian element thresold. Any element smaller that the thresold is made zero.</TD>
-! !> </TR>
-! !> <TR><TD ALIGN="CENTER">Spin</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>logical</TD>
-! !> <TD ALIGN="CENTER">.false.</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>on/off spin polarisation</TD>
-! !> </TR>
-! !> <TR><TD ALIGN="CENTER">CollinearSpins</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>logical</TD>
-! !> <TD ALIGN="CENTER">.false.</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>on/off collinear spins</TD>
-! !> </TR>
-! !> <TR><TD ALIGN="CENTER">SpinDU</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real</TD>
-! !> <TD ALIGN="CENTER">0.0</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>spin down spin up difference</TD>
-! !> </TR>
-! !> <TR><TD ALIGN="CENTER">EulerSteps</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>integer</TD>
-! !> <TD ALIGN="CENTER">100</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>after each EulerSteps apply an Euler integration of equations of motions</TD>
-! !> </TR>
-! !> <TR><TD ALIGN="CENTER">Electrostatics</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>PointCharges, Multipoles</TD>
-! !> <TD ALIGN="CENTER">PointCharges</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>method use to compute electrostatic interaction</TD>
-! !> </TR>
-! !> <TR><TD ALIGN="CENTER">PrecomputeMultipoles</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>logical</TD>
-! !> <TD ALIGN="CENTER">.true.</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>on/off precompute multipoles</TD>
-! !> </TR>
-! !> <TR><TD ALIGN="CENTER">Embedding</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>logical</TD>
-! !> <TD ALIGN="CENTER">.true.</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>on/off embedding method</TD>
-! !> </TR>
-! !> <TR><TD ALIGN="CENTER">FSteps</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>integer</TD>
-! !> <TD ALIGN="CENTER">100</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>Number of steps used to test the force/energy consitency</TD>
-! !> </TR>
-! !> <TR><TD ALIGN="CENTER">FStart</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real</TD>
-! !> <TD ALIGN="CENTER">0.0</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>position at which the force/energy consistency test starts</TD>
-! !> </TR>
-! !> <TR><TD ALIGN="CENTER">Fdx</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real</TD>
-! !> <TD ALIGN="CENTER">0.001</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>space step for the force/energy consistency test starts</TD>
-! !> </TR>
-! !> <TR><TD ALIGN="CENTER">Gamma</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real</TD>
-! !> <TD ALIGN="CENTER">0.3</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>damping factor for Ehrenfest equation</TD>
-! !> </TR>
-! !> <TR><TD ALIGN="CENTER">MPN</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>integer</TD>
-! !> <TD ALIGN="CENTER">2</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>the order used for Methfessel-Paxton method</TD>
-! !> </TR>
-! !> <TR><TD ALIGN="CENTER">Hole</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>integer</TD>
-! !> <TD ALIGN="CENTER">0</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>no of level to create hole</TD>
-! !> </TR>
-! !> <TR><TD ALIGN="CENTER">Excite</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>integer</TD>
-! !> <TD ALIGN="CENTER">0</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>no of level to create excitation</TD>
-! !> </TR>
-! !> <TR><TD ALIGN="CENTER">HoleSpin</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>D,U</TD>
-! !> <TD ALIGN="CENTER">D</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>spin of the hole</TD>
-! !> </TR>
-! !> <TR><TD ALIGN="CENTER">ExciteSpin</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>D,U</TD>
-! !> <TD ALIGN="CENTER">D</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>spin of the excitation</TD>
-! !> </TR>
-! !> <TR><TD ALIGN="CENTER">Units</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>AU EV SI</TD>
-! !> <TD ALIGN="CENTER">AU</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>system of units atomic units, electronVolt-Angstrom, International</TD>
-! !> </TR>
-! !> <TR><TD ALIGN="CENTER">SmearingMethod</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>FD,MP,CMU</TD>
-! !> <TD ALIGN="CENTER">FD</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>smearing method (Femi-Dirac, Methfessel-Paxton, constant )</TD>
-! !> </TR>
-! !> <TR><TD ALIGN="CENTER">BondType</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>Harrison, GSP</TD>
-! !> <TD ALIGN="CENTER">Harrison</TD>
-! !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>bond type</TD>
-! !> </TR>
+!> <TR><TD ALIGN="CENTER">ReadVel</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>logical</TD>
+!> <TD ALIGN="CENTER">.false.</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>on/off reading velocity block</TD>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">Spin</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>logical</TD>
+!> <TD ALIGN="CENTER">.false.</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>on/off spin polarisation</TD>
+!> </TR>
 !> </TABLE>
 !> \endhtmlonly
 
 subroutine read_general(io_loc,gen_loc)
-character(len=*),parameter :: name="read_general"
+  character(len=*),parameter :: name="read_general"
   type(io_type), intent(inout) :: io_loc
   type(general_type), intent(inout) :: gen_loc
 
   character(len=mw) :: saux
 
-  if (.not. gen_loc%first_time) gen_loc%first_time=.not. gen_loc%first_time
+    if (.not. gen_loc%first_time) gen_loc%first_time=.not. gen_loc%first_time
 
-!comm_gen JobName & string & no name & a name for the job \\
-  gen_loc%job_name=get_string(io_loc,"JobName","no name")
-  write( io_loc%uout,'(a,a)')"Job Name(JobName): "&
-    ,gen_loc%job_name
+    gen_loc%job_name=get_string(io_loc,"JobName","no name")
+    write( io_loc%uout,'(a,a)')"Job Name(JobName): "&
+      ,gen_loc%job_name
 
-!comm_gen RanSeed & integer & 12345 & A seed for the random number generator \\
-  gen_loc%ran3_seed=get_integer(io_loc,"RanSeed",12345)
-  write( io_loc%uout,'(a,i0)')"Random number generator seed(RanSeed): "&
-    ,gen_loc%ran3_seed
+    gen_loc%ran3_seed=get_integer(io_loc,"RanSeed",12345)
+    write( io_loc%uout,'(a,i0)')"Random number generator seed(RanSeed): "&
+      ,gen_loc%ran3_seed
+
+    gen_loc%read_velocity=get_logical(io_loc,"ReadVel",.false.)
+    write( io_loc%uout,'(a,l1)')"Read Velocity(ReadVel): "&
+     ,gen_loc%read_velocity
+
+!comm_gen VBias & real & 0.0 & bias factor\\
+    gen_loc%bias=get_real(io_loc,"VBias",0.0_pr)
+    write( io_loc%uout,'(a,f0.8)')"Bias(VBias): "&
+     ,gen_loc%bias
+
+
+!comm_gen MaxOrbsPerAtom & integer & 8 & maximum number of orbitals per atom\\
+    gen_loc%max_orbitals_per_atom=get_integer(io_loc,"MaxOrbsPerAtom",8)
+    write( io_loc%uout,'(a,i0)')"Maximum Orbitals Per Atom (MaxOrbsPerAtom): "&
+      ,gen_loc%max_orbitals_per_atom
 
 ! !comm_gen WriteAni & logical & .false. & on/off writing animation file \\
 !   gen_loc%write_ani=get_logical(io_loc,"WriteAni",.false.)
@@ -586,11 +334,7 @@ character(len=*),parameter :: name="read_general"
 !   write( io_loc%uout,'(a,l)')"Read Density(ReadDen): "&
 !     ,gen_loc%read_density
 ! 
-! !comm_gen ReadVel & logical & .false. & on/off reading velocity block \\
-!   gen_loc%read_velocity=get_logical(io_loc,"ReadVel",.false.)
-!   write( io_loc%uout,'(a,l)')"Read Velocity(ReadVel): "&
-!     ,gen_loc%read_velocity
-! 
+!
 ! !comm_gen IonicTemperature & real & 300.0 & Ionic temperature\\
 !   gen_loc%ionic_temperature=get_real(io_loc,"IonicTemperature",300.0_pr)
 !   write( io_loc%uout,'(a,g)')"Ionic Temperature(IonicTemperature): "&
@@ -647,10 +391,10 @@ character(len=*),parameter :: name="read_general"
 !     call error("The requested RunType is not implemented",name,.true.,io_loc)
 !   endif
 ! 
-! !comm_gen SCF & logical & .false. & on/off self consistent field method \\
-!   gen_loc%scf=get_logical(io_loc,"SCF",.false.)
-!   write( io_loc%uout,'(a,l)')"SCF?(SCF): "&
-!     ,gen_loc%scf
+
+   gen_loc%scf=get_logical(io_loc,"SCF",.false.)
+   write( io_loc%uout,'(a,l1)')"Is SCF?(SCF): "&
+     ,gen_loc%scf
 ! 
 ! !comm_gen SCFType & TB+UJ & TB+UJ & SCF method\\
 !   saux=get_string(io_loc,"SCFType","TB+UJ")
@@ -706,10 +450,10 @@ character(len=*),parameter :: name="read_general"
 !   write( io_loc%uout,'(a,g)')"hamiltionian element thresold(HElThres): "&
 !     ,gen_loc%h_element_threshold
 ! 
-! !comm_gen Spin & logical & .false. & on/off spin polarisation\\
-!   gen_loc%spin=get_logical(io_loc,"Spin",.false.)
-!   write( io_loc%uout,'(a,l)')"spin polarisation(Spin): "&
-!     ,gen_loc%spin
+
+  gen_loc%spin=get_logical(io_loc,"Spin",.false.)
+  write( io_loc%uout,'(a,l1)')"spin polarisation(Spin): "&
+    ,gen_loc%spin
 ! 
 ! !comm_gen CollinearSpins & logical & .false. & on/off collinear spins\\
 !   gen_loc%collinear=get_logical(io_loc,"CollinearSpins",.false.)
@@ -908,8 +652,49 @@ end subroutine close_io_general
 !> \date 29/10/07, 17:33:50
 !> \param io type(io_type) i/o units
 !> \param general type(general_type) general data
-!> \param atoms type(atomix_type) contains info about atoms
-!> \todo write the structure of the block
+!> \param atomix type(atomicx_type) contains info about atoms
+!> \remarks
+!> The strucure of a typical block will be
+!> \verbatim
+!> NumberOfAtoms 1
+!> block AtomsData
+!> 1 0.0 0.0 0.0 0.0 T F
+!> endblock AtomsData
+!> \endverbatim
+!> NumberOfAtoms specifies the number of Atoms to be read from the block AtomsData\n
+!> each atom has a line with 7 entities\n
+!> <1> is the id of the specie of the atom (integer)\n
+!> <2-4> carteasian coordinates (reals)\n
+!> <5> local bias (real) gets multiplied internal with the values speciefied by \c Bias \n
+!> <6> should the atom be treated scf in a scf calculation (logical)\n
+!> <7> should the atom move in a molecular dynamics simulation (logical)\n
+!> The velocities block
+!> \verbatim
+!> block VelocitiesData
+!> 1 0.0 0.0 3.0
+!> endblock VelocitiesData
+!> \endverbatim
+!> VelocitiesData block allows to specify initial velocties for atoms. Not all the atoms have to be present.
+!> The missing ones have the velocities initialized with zero. Each atom has a line\n
+!> <1> the id of the atom (integer) \n 
+!> <2-4> the carteasian componets of the velocity (reals) \n
+!> AcceptorAtoms and DonorAtoms blocks specify which atoms belong to the acceptor and which to the donor.
+!> The rest of the atoms are considered to be part of the spacer. Each block waits for a line with a list of atoms in between the \c block \c endblock. \c Ndonor and \c NAcceptor specify how many atoms to be expected in each list
+!>\verbatim
+!> NDonor 1
+!> block DonorAtoms
+!> 3
+!> endblock DonorAtoms
+!>
+!> NAcceptor 2
+!> block AcceptorAtoms
+!> 2 1 
+!> endblock AcceptorAtoms
+!>\endverbatim
+!> - if you read the VelocitiesData block not all the exceptions are caught.
+!> check the output to be sure that it read the proper stuff. (fortran will automatically convert an integer to real
+!> so will generate a valid entry when is not the case)
+!> - atoms ids are set according to theri position in the AtomsData block
 
   subroutine read_atoms(io,general,atomix)
     character(len=*), parameter :: sMyName="read_atoms"
@@ -917,76 +702,338 @@ end subroutine close_io_general
     type(general_type), intent(in)  :: general
     type(atomicx_type), intent(inout) :: atomix
     ! arguments of the subroutine
-    integer :: nt, errno,i
+    integer :: nt, errno,i,k, atom_id
     character(len=ml) :: saux
-  atomix%atoms%natoms = get_integer(io,"NumberOfAtoms",-1)
-  if (atomix%atoms%natoms<=0) then
-    call error(sMyName,"NumberOfAtoms token is missing or is negative!",.true.,io)
-  endif
-  atomix%atoms%created=.true.
-  allocate(atomix%atoms%id(1:atomix%atoms%natoms))
-  allocate(atomix%atoms%sp(1:atomix%atoms%natoms))
-  allocate(atomix%atoms%bias(1:atomix%atoms%natoms))
-  allocate(atomix%atoms%isscf(1:atomix%atoms%natoms))
-  allocate(atomix%atoms%ismoving(1:atomix%atoms%natoms))
-  allocate(atomix%atoms%x(1:atomix%atoms%natoms))
-  allocate(atomix%atoms%y(1:atomix%atoms%natoms))
-  allocate(atomix%atoms%z(1:atomix%atoms%natoms))
-  allocate(atomix%atoms%vx(1:atomix%atoms%natoms))
-  allocate(atomix%atoms%vy(1:atomix%atoms%natoms))
-  allocate(atomix%atoms%vz(1:atomix%atoms%natoms))
-  allocate(atomix%atoms%fx(1:atomix%atoms%natoms))
-  allocate(atomix%atoms%fy(1:atomix%atoms%natoms))
-  allocate(atomix%atoms%fz(1:atomix%atoms%natoms))
-  allocate(atomix%atoms%dx(1:atomix%atoms%natoms))
-  allocate(atomix%atoms%dy(1:atomix%atoms%natoms))
-  allocate(atomix%atoms%dz(1:atomix%atoms%natoms))
-  allocate(atomix%atoms%xo(1:atomix%atoms%natoms))
-  allocate(atomix%atoms%yo(1:atomix%atoms%natoms))
-  allocate(atomix%atoms%zo(1:atomix%atoms%natoms))
-  allocate(atomix%atoms%vxo(1:atomix%atoms%natoms))
-  allocate(atomix%atoms%vyo(1:atomix%atoms%natoms))
-  allocate(atomix%atoms%vzo(1:atomix%atoms%natoms))
-  allocate(atomix%atoms%fxo(1:atomix%atoms%natoms))
-  allocate(atomix%atoms%fyo(1:atomix%atoms%natoms))
-  allocate(atomix%atoms%fzo(1:atomix%atoms%natoms))
-  allocate(atomix%atoms%chrg(1:atomix%atoms%natoms))
-  allocate(atomix%atoms%chrg0(1:atomix%atoms%natoms))
+    integer, allocatable :: ids(:)
+    real(pr) :: vx,vy,vz
 
-  if (get_block(io,"AtomsData",nt)) then
-    do i = 1, atomix%atoms%natoms
-      read(nt,fmt=*,iostat=errno)&
-        atomix%atoms%sp(i),atomix%atoms%x(i),atomix%atoms%y(i),atomix%atoms%z(i),&
-        atomix%atoms%bias(i),atomix%atoms%isscf(i),atomix%atoms%ismoving(i)
-      if (errno/=0) then
-        call error("block AtomsData is not in the right format",sMyName,.true.,io)
-      endif
-        atomix%atoms%id(i)=i
-        write(io%udeb,'(i6,4f16.6,1x,l1,1x,l1)')&
+    atomix%atoms%natoms = get_integer(io,"NumberOfAtoms",-1)
+    if (atomix%atoms%natoms<=0) then
+      call error(sMyName,"NumberOfAtoms token is missing or is negative!",.true.,io)
+    endif
+    atomix%atoms%created=.true.
+    allocate(atomix%atoms%id(1:atomix%atoms%natoms))
+    allocate(atomix%atoms%sp(1:atomix%atoms%natoms))
+    allocate(atomix%atoms%bias(1:atomix%atoms%natoms))
+    allocate(atomix%atoms%isscf(1:atomix%atoms%natoms))
+    allocate(atomix%atoms%ismoving(1:atomix%atoms%natoms))
+    allocate(atomix%atoms%x(1:atomix%atoms%natoms))
+    allocate(atomix%atoms%y(1:atomix%atoms%natoms))
+    allocate(atomix%atoms%z(1:atomix%atoms%natoms))
+    allocate(atomix%atoms%vx(1:atomix%atoms%natoms))
+    allocate(atomix%atoms%vy(1:atomix%atoms%natoms))
+    allocate(atomix%atoms%vz(1:atomix%atoms%natoms))
+    allocate(atomix%atoms%fx(1:atomix%atoms%natoms))
+    allocate(atomix%atoms%fy(1:atomix%atoms%natoms))
+    allocate(atomix%atoms%fz(1:atomix%atoms%natoms))
+    allocate(atomix%atoms%dx(1:atomix%atoms%natoms))
+    allocate(atomix%atoms%dy(1:atomix%atoms%natoms))
+    allocate(atomix%atoms%dz(1:atomix%atoms%natoms))
+    allocate(atomix%atoms%xo(1:atomix%atoms%natoms))
+    allocate(atomix%atoms%yo(1:atomix%atoms%natoms))
+    allocate(atomix%atoms%zo(1:atomix%atoms%natoms))
+    allocate(atomix%atoms%vxo(1:atomix%atoms%natoms))
+    allocate(atomix%atoms%vyo(1:atomix%atoms%natoms))
+    allocate(atomix%atoms%vzo(1:atomix%atoms%natoms))
+    allocate(atomix%atoms%fxo(1:atomix%atoms%natoms))
+    allocate(atomix%atoms%fyo(1:atomix%atoms%natoms))
+    allocate(atomix%atoms%fzo(1:atomix%atoms%natoms))
+    allocate(atomix%atoms%chrg(1:atomix%atoms%natoms))
+    allocate(atomix%atoms%chrg0(1:atomix%atoms%natoms))
+    allocate(atomix%atoms%norbs(1:atomix%atoms%natoms))
+
+    atomix%atoms%vx=0.0_pr
+    atomix%atoms%vy=0.0_pr
+    atomix%atoms%vz=0.0_pr
+    atomix%atoms%vxo=0.0_pr
+    atomix%atoms%vyo=0.0_pr
+    atomix%atoms%vzo=0.0_pr
+    atomix%atoms%xo=0.0_pr
+    atomix%atoms%yo=0.0_pr
+    atomix%atoms%zo=0.0_pr
+    atomix%atoms%dx=0.0_pr
+    atomix%atoms%dy=0.0_pr
+    atomix%atoms%dz=0.0_pr
+    atomix%atoms%fx=0.0_pr
+    atomix%atoms%fy=0.0_pr
+    atomix%atoms%fz=0.0_pr
+    atomix%atoms%fxo=0.0_pr
+    atomix%atoms%fyo=0.0_pr
+    atomix%atoms%fzo=0.0_pr
+    atomix%atoms%chrg=0.0_pr
+    atomix%atoms%chrg0=0.0_pr
+    atomix%atoms%ismoving=.true.
+    atomix%atoms%isscf=.true.
+    atomix%atoms%nmoving=0
+    atomix%atoms%nscf=0
+    atomix%atoms%norbs=0
+
+    if (get_block(io,"AtomsData",nt)) then
+      do i = 1, atomix%atoms%natoms
+        read(nt,fmt=*,iostat=errno)&
           atomix%atoms%sp(i),atomix%atoms%x(i),atomix%atoms%y(i),atomix%atoms%z(i),&
           atomix%atoms%bias(i),atomix%atoms%isscf(i),atomix%atoms%ismoving(i)
-        if(.not.isInList(atomix%atoms%sp(i),atomix%species%id)) then
-          write(saux,*)"block AtomsData contains undefined specie: ", atomix%atoms%sp(i)
-          call error(trim(saux),sMyName,.true.,io)
+        if (errno/=0) then
+          call error("block AtomsData is not in the right format",sMyName,.true.,io)
         endif
-    enddo
-  else
-    call error(sMyName,"AtomsData block is missing!",.true.,io)
-  endif
-! ! ! ! !comm_atom NAcceptor & integer & 0 & number of atoms in Acceptor group\\
-! ! ! ! gen_loc%nacceptor=get_integer(io_loc,"NAcceptor",0)
-! ! ! !  write( io_loc%uout,'(a,i0)')"Atoms in Acceptor Group(NAcceptor): "&
-! ! ! !         ,gen_loc%naccpetor
-! ! ! ! 
-! ! ! ! !comm_atom NDonor & integer & 0 & number of atoms in Donor group\\
-! ! ! ! gen_loc%nacceptor=get_integer(io_loc,"NAcceptor",0)
-! ! ! !  write( io_loc%uout,'(a,i0)')"Atoms in Acceptor Group(NAcceptor): "&
-! ! ! !         ,gen_loc%naccpetor
-      
+          atomix%atoms%id(i)=i
+          write(io%udeb,'(i6,4f16.6,1x,l1,1x,l1)')&
+            atomix%atoms%sp(i),atomix%atoms%x(i),atomix%atoms%y(i),atomix%atoms%z(i),&
+            atomix%atoms%bias(i),atomix%atoms%isscf(i),atomix%atoms%ismoving(i)
+          if(.not.isInList(atomix%atoms%sp(i),atomix%species%id)) then
+            write(saux,*)"block AtomsData contains undefined specie: ", atomix%atoms%sp(i)
+            call error(trim(saux),sMyName,.true.,io)
+          endif
+          atomix%atoms%bias(i)=atomix%atoms%bias(i)*general%bias
+          if (atomix%atoms%isscf(i)) atomix%atoms%nscf=atomix%atoms%nscf+1
+          if (atomix%atoms%ismoving(i)) atomix%atoms%nmoving=atomix%atoms%nmoving+1
+      enddo
+    else
+      call error(sMyName,"AtomsData block is missing!",.true.,io)
+    endif
 
+    if (atomix%atoms%nscf/=0) then
+      k=0
+      allocate(atomix%atoms%scf(1:atomix%atoms%nscf))
+        do i=1,atomix%atoms%natoms
+          if (atomix%atoms%isscf(i)) then
+            k=k+1
+            atomix%atoms%scf(k)=atomix%atoms%id(i)
+          endif
+        enddo
+    endif
 
+    if (atomix%atoms%nmoving/=0) then
+      k=0
+      allocate(atomix%atoms%moving(1:atomix%atoms%nmoving))
+        do i=1,atomix%atoms%natoms
+          if (atomix%atoms%ismoving(i)) then
+            k=k+1
+            atomix%atoms%moving(k)=atomix%atoms%id(i)
+          endif
+        enddo
+    endif
 
+    if (general%read_velocity) then
+      if (get_block(io,"VelocitiesData",nt)) then
+        errno=0
+        k=0
+        allocate(ids(1:atomix%atoms%natoms))
+        ids=0
+        do 
+          read(nt,fmt=*,iostat=errno)&
+            atom_id,vx,vy,vz
+          if ((errno/=0).and.(errno/=IOSTAT_END)) then
+            call error("block VelocitiesData is not in the right format",sMyName,.true.,io)
+          endif
+          if (errno==IOSTAT_END) then
+            exit
+          endif
+          write(io%udeb,'(i6,1x,f0.8,1x,f0.8,1x,f0.8)')&
+              atom_id,vx,vy,vz
+          k=k+1
+          if (k>atomix%atoms%natoms) then
+            write(saux,'(a,i0,a)')"block VelocitiesData contains more than ", atomix%atoms%natoms, " entries"
+            call error(trim(saux),sMyName,.true.,io)
+          endif
+          if(isInList(atom_id,ids)) then
+            write(saux,*)"block VelocitiesData contains duplicated atom ", atom_id
+            call error(trim(saux),sMyName,.true.,io)
+          endif
+          ids(k)=atom_id
+          if(.not.isInList(atom_id,atomix%atoms%id)) then
+            write(saux,*)"block VelocitiesData contains undefined atom: ", atomix%atoms%id(i)
+            call error(trim(saux),sMyName,.true.,io)
+          endif
+          atomix%atoms%vx(atom_id)=vx
+          atomix%atoms%vy(atom_id)=vy
+          atomix%atoms%vz(atom_id)=vz
+        enddo
+        deallocate(ids)
+      else
+        call error("Block VelocitiesData is missing even if ReadVel=T!",sMyName,.true.,io)
+      endif
+    endif
+    
+!! donor acceptor spacer atoms
+    atomix%atoms%nacceptor=get_integer(io,"NAcceptor",0)
+    atomix%atoms%ndonor=get_integer(io,"Ndonor",0)
+
+    if (atomix%atoms%ndonor/=0) then
+      allocate(atomix%atoms%donor(1:atomix%atoms%ndonor))
+      atomix%atoms%donor=0
+      if (get_block(io,'DonorAtoms',nt)) then
+        read(nt,*,iostat=errno)(atomix%atoms%donor(i),i=1,atomix%atoms%ndonor)
+        if (errno/=0) then
+          call error("Unexpexted end of DonorAtoms block",sMyName,.true.,io)
+        endif
+        do i=1,atomix%atoms%ndonor
+          if (.not.isInList(atomix%atoms%donor(i),atomix%atoms%id)) then
+            write(saux,'(a,i0)')"Invalid atom specified for donor",atomix%atoms%donor(i)
+            call error(trim(saux),sMyName,.true.,io)
+          endif
+        enddo
+      else
+        call error("No atoms for Donor found",sMyName,.true.,io)
+      endif
+    endif
+
+    if (atomix%atoms%nacceptor/=0) then
+      allocate(atomix%atoms%acceptor(1:atomix%atoms%nacceptor))
+      atomix%atoms%acceptor=0
+      if (get_block(io,'AcceptorAtoms',nt)) then
+        read(nt,*,iostat=errno)(atomix%atoms%acceptor(i),i=1,atomix%atoms%nacceptor)
+        if (errno/=0) then
+          call error("Unexpexted end of AcceptorAtoms block",sMyName,.true.,io)
+        endif
+        do i=1,atomix%atoms%nacceptor
+          if (.not.isInList(atomix%atoms%acceptor(i),atomix%atoms%id)) then
+            write(saux,'(a,i0)')"Invalid atom specified for acceptor",atomix%atoms%acceptor(i)
+            call error(trim(saux),sMyName,.true.,io)
+          endif
+        enddo
+      else
+        call error("No atoms for Acceptor found",sMyName,.true.,io)
+      endif
+    endif
+    atomix%atoms%nspacer=atomix%atoms%natoms-atomix%atoms%ndonor-atomix%atoms%nacceptor
+    if (atomix%atoms%nspacer/=0) then
+      allocate(atomix%atoms%spacer(1:atomix%atoms%nspacer))
+      atomix%atoms%spacer=0
+      k=0
+      do i=1,atomix%atoms%natoms
+        if((.not.isInList(atomix%atoms%id(i),atomix%atoms%donor)).and. &
+            (.not.isInList(atomix%atoms%id(i),atomix%atoms%acceptor))) then
+          k=k+1
+          atomix%atoms%spacer(k)=atomix%atoms%id(i)
+        endif
+      enddo
+    endif
   end subroutine read_atoms
+
+
+
+!> \brief prints coordinates, velocities and type of atoms
+!> \author Alin M Elena
+!> \date 30/10/07, 13:22:04
+!> \param io type(io_type) i/o units
+!> \param general type(general_type) general data
+!> \param atomix type(atomicx_type) contains info about atoms
+
+  subroutine print_atoms(io,general,atomix)
+    character(len=*), parameter :: sMyName="print_atoms"
+    type(io_type), intent(inout) :: io
+    type(general_type), intent(in)  :: general
+    type(atomicx_type), intent(in) :: atomix
+    integer :: i
+
+    write(io%uout,'(a)')  "=StartAtomsData==============================================================================="
+    write(io%uout,'(a)')  "      Id Symbol               X               Y               Z            Bias IsSCF IsMoving"
+    write(io%uout,'(a)')"----------------------------------------------------------------------------------------------"
+    do i=1,atomix%atoms%natoms
+      write(io%uout,'(i8,3x,a4,4f16.8,5x,l1,8x,l1)')atomix%atoms%id(i),symbol(get_Z(atomix,i)),&
+              atomix%atoms%x(i),atomix%atoms%y(i),atomix%atoms%z(i),atomix%atoms%bias(i),&
+              atomix%atoms%isscf(i),atomix%atoms%ismoving(i)
+    enddo
+    write(io%uout,'(a)')   "=EndAtomsData================================================================================="
+    if (general%read_velocity) then
+      write(io%uout,'(a)')  "=StartVelocitiesData==========================================="
+      write(io%uout,'(a)')  "      Id Symbol              VX              VY              VZ"
+      write(io%uout,'(a)')  "---------------------------------------------------------------"
+      do i=1,atomix%atoms%natoms
+        write(io%uout,'(i8,3x,a4,3f16.8,5x)')atomix%atoms%id(i),symbol(get_Z(atomix,i)),&
+              atomix%atoms%vx(i),atomix%atoms%vy(i),atomix%atoms%vz(i)
+      enddo
+      write(io%uout,'(a)')  "=EndVelocitiesData============================================="
+    endif
+    write(io%uout,'(a)')"=AtomicLists=========================================="
+    if(atomix%atoms%nscf/=0) then
+      write(io%uout,'(a)')"SCFAtoms:"
+      do i=1,atomix%atoms%nscf
+        write(io%uout,'(i0,a,a,a)',advance="no")atomix%atoms%scf(i),"(",symbol(get_Z(atomix,atomix%atoms%scf(i))),") "
+      enddo
+      write(io%uout,*)
+    endif
+    if(atomix%atoms%nmoving/=0) then
+      write(io%uout,'(a)')"Moving Atoms:"
+      do i=1,atomix%atoms%nmoving
+        write(io%uout,'(i0,a,a,a)',advance="no")atomix%atoms%moving(i),"(",symbol(get_Z(atomix,atomix%atoms%moving(i))),") "
+      enddo
+      write(io%uout,*)
+    endif
+    write(io%uout,'(a,i0)')"Atoms in Donor Group(NDonor): "&
+        ,atomix%atoms%ndonor
+    if(atomix%atoms%ndonor/=0) then
+      write(io%uout,'(a)')"Donor Atoms:"
+      do i=1,atomix%atoms%ndonor
+        write(io%uout,'(i0,a,a,a)',advance="no")atomix%atoms%donor(i),"(",symbol(get_Z(atomix,atomix%atoms%donor(i))),") "
+      enddo
+      write(io%uout,*)
+    endif
+    write( io%uout,'(a,i0)')"Atoms in Acceptor Group(NAcceptor): "&
+        ,atomix%atoms%nacceptor
+    if(atomix%atoms%nacceptor/=0) then
+      write(io%uout,'(a)')"Acceptor Atoms:"
+      do i=1,atomix%atoms%nacceptor
+        write(io%uout,'(i0,a,a,a)',advance="no")atomix%atoms%acceptor(i),"(",symbol(get_Z(atomix,atomix%atoms%acceptor(i))),") "
+      enddo
+      write(io%uout,*)
+    endif
+    write(io%uout,'(a,i0)')"Atoms in Spacer Group(NSpacer): "&
+        ,atomix%atoms%nspacer
+    if(atomix%atoms%nspacer/=0) then
+      write(io%uout,'(a)')"Spacer Atoms:"
+      do i=1,atomix%atoms%nspacer
+        write(io%uout,'(i0,a,a,a)',advance="no")atomix%atoms%spacer(i),"(",symbol(get_Z(atomix,atomix%atoms%spacer(i))),") "
+      enddo
+      write(io%uout,*)
+    endif
+    write(io%uout,'(a)')"=EndLists============================================="
+  end subroutine print_atoms
+
+
+
+!> \brief returns the index at which the info about specie sp is stored
+!> \author Alin M Elena
+!> \date 30th of October 2007
+!> \param atomic type(atomicx_type) data about atoms
+!> \param sp integer the id of a specie
+  integer function get_index(atomic,sp)
+    character(len=*), parameter :: sMyName="get_index"
+    type(atomicx_type), intent(in) :: atomic
+    integer, intent(in) :: sp
+    integer :: i
+    do i=1,atomic%species%nspecies
+      if (sp==atomic%species%id(i)) exit
+    enddo
+    get_index=i
+  end function get_index
+
+!> \brief returns the atomic no Z
+!> \author Alin M Elena
+!> \date 30th of October 2007
+!> \param atomic type(atomicx_type) data about atoms
+!> \param atom integer the id of an atom
+  integer function get_Z(atomic,atom)
+    character(len=*), parameter :: sMyName="get_Z"
+    type(atomicx_type), intent(in) :: atomic
+    integer, intent(in) :: atom
+
+    get_Z=atomic%species%z(get_index(atomic,get_specie(atomic,atom)))
+  end function get_Z
+
+!> \brief returns the id of the specie of an atom
+!> \author Alin M Elena
+!> \date 30th of October 2007
+!> \param atomic type(atomicx_type) data about atoms
+!> \param atom integer the id of an atom
+  integer function get_specie(atomic,atom)
+    character(len=*), parameter :: sMyName="get_specie"
+    type(atomicx_type), intent(in) :: atomic
+    integer, intent(in) :: atom
+
+    get_specie=atomic%atoms%sp(atom)
+  end function get_specie
 
 !> \brief reads and allocates the info about species of atoms 
 !> \details this is all that should be done in this module.
@@ -996,8 +1043,23 @@ end subroutine close_io_general
 !> \param io type(io_type) i/o units
 !> \param general type(general_type) general data
 !> \param specs type(species_type) contains info about atoms
-!> \todo write the structure of the block
-
+!> \remarks
+!> The structure of the SpeciesData block
+!> \verbatim
+!> NumberOfSpecies 2
+!> block SpeciesData
+!> 1 2 0.0 1.0 2.0 3.0
+!> 3 3 4.0 2.0 3.0 4.0
+!> endblock SpeciesData
+!> \endverbatim
+!> It expects to read a number NumberofSpecies lines in beetween the \c block \c endblock
+!> The structue of a line is\n
+!> <1> id of the specie (integer). It has to be unique. \n
+!> <2> Z the atomic number (integer) \n
+!> <3> atomic mass (in a.m.u.) it gets converted internally to the chosen system of units \n
+!> <4-5> U J (reals) U,J for the SCF calculation \n
+!> <6> the screening factor for tha electrostatic interaction if the option is chosen. \n
+!> \f[ V_I=\frac{e^2}{4\pi\epsilon_0}\cfrac{q_J}{\sqrt{r_{IJ}^2+\left ( \cfrac{1}{U_I}+\cfrac{1}{U_J}\right )^2}} \f]
   subroutine read_species(io,general,specs)
     character(len=*), parameter :: sMyName="read_species"
     type(io_type), intent(inout) :: io
@@ -1035,7 +1097,7 @@ end subroutine close_io_general
     else
       call error("Specie block is missing!!!",sMyName,.true.,io)
     endif
-    call print_species(io,specs)
+    
   end subroutine read_species
 
 
@@ -1044,18 +1106,21 @@ end subroutine close_io_general
 !> \author Alin M Elena
 !> \date 29/10/07, 19:59:04
 !> \param io type(io_type) i/o units
-!> \param spec type(species_type) species data
+!> \param specs type(species_type) species data
 
 subroutine print_species(io,specs)
   character(len=*), parameter :: sMyName="print_species"
   type(io_type), intent(in) :: io
-  type(species_type), intent(in) :: specs
+  type(species_type), intent(inout) :: specs
   integer :: i
   write(io%uout,'(a)')"=SpeciesData============================================================================"
   write(io%uout,'(a)')"  Id  Z el    Zval            Mass          Ulocal          Jlocal          Uinter Norbs"
   write(io%uout,'(a)')"----------------------------------------------------------------------------------------"
-  write(io%uout,'(i4,i3,1x,a,f8.4,4f16.8,i5)')(specs%id(i),specs%z(i),symbol(specs%z(i)),specs%zval(i),specs%mass(i),&
-            specs%ulocal(i),specs%jlocal(i),specs%uinter(i),specs%norbs(i),i=1,specs%nspecies)
+  do i=1,specs%nspecies
+    write(io%uout,'(i4,i3,1x,a,f8.4,4f16.8,i5)')specs%id(i),specs%z(i),symbol(specs%z(i)),specs%zval(i),specs%mass(i),&
+            specs%ulocal(i),specs%jlocal(i),specs%uinter(i),specs%norbs(i)
+    specs%mass(i)=specs%mass(i)*amu_to_internal
+  enddo
   write(io%uout,'(a)')"=EndSpeciesData========================================================================="
 
   if (io%verbosity>=high_verbos) then
@@ -1074,14 +1139,229 @@ subroutine print_species(io,specs)
   endif
 end subroutine print_species
 
-!> \brief deallocates the memory 
+
+
+!> \brief reads and initializes the basis set
+!> \author Alin M Elena
+!> \date 30/10/07, 16:43:38
+!> \param io type(io_type) i/o units
+!> \param gen type(general_type) general data
+!> \param atomix type(atomicx_type) contains info about atoms
+!> \remarks
+!> The \c basis block
+!> \verbatim
+!> block Basis
+!> 1 4
+!> 0 0  0 1.0 1.0
+!> 0 1  1 0.2 0.2
+!> 0 1 -1 0.3 0.3
+!> 0 1  0 0.4 0.4
+!> 2 1
+!> 0 0  0 0.5 0.5
+!> endblock Basis
+!> \endverbatim
+!> The structure for each specie is:\n
+!> A line with two integers is expected. First is the id of the specie, second the number of orbitals for that specie.
+!> A number of lines equal with the number of orbitals specified previously is expected.
+!> the structure of each line is \n
+!> <1-3> n,l,m (integers) n principal quantum number, l angular quantum number m magnetic quantum number
+!> n is not used at anything for the moment
+!> <4-5> occupation numbers for the orbital. In the case of a spin polarised calculation (\c Spin T) both o them are read
+!> for (\c Spin F) only the first one is read. They are used to compute \c Zval
+  subroutine read_basis(io,gen,atomix)
+    character(len=*), parameter :: sMyName="read_basis"
+    type(io_type), intent(inout) :: io
+    type(general_type), intent(in)  :: gen
+    type(atomicx_type), intent(inout) :: atomix
+
+    integer :: i,j,nt,errno,sp, norbitals
+    character(len=ml) :: saux
+    integer :: n,l,m,lmax=0,k
+    real(pr) :: qu,qd
+
+    allocate(atomix%species_basis(1:atomix%species%nspecies,1:gen%max_orbitals_per_atom))
+    if (get_block(io,"Basis",nt)) then
+      do i = 1,atomix%species%nspecies
+        read(nt,fmt=*,iostat=errno) sp, norbitals
+        if(errno/=0) then
+          write(saux,'(a,i0)')"error reading specie no ",i
+          call error(trim(saux),sMyName,.true.,io)
+        endif
+        if(.not.isInList(sp,atomix%species%id)) then
+          write(saux,'(a,i0)')"undefined specie ",sp
+          call error(trim(saux),sMyName,.true.,io)
+        endif
+        if (gen%spin) then
+          atomix%species%norbs(i)=2*norbitals
+        else
+          atomix%species%norbs(i)=norbitals
+        endif
+        if (atomix%species%norbs(i) > gen%max_orbitals_per_atom) then
+          write(saux,'(a,i0)')"Maximum number of orbitals per atom exceeded for specie ",sp
+          call error(trim(saux),sMyName,.true.,io)
+        endif
+        do j=1,norbitals
+          
+          read(nt,fmt=*,iostat=errno) n,l,m,qd,qu
+          if (errno/=0) then
+            write(saux,'(a,i0,a,i0)')"error reading orbital ",j, " specie ",sp
+            call error(trim(saux),sMyName,.true.,io)
+          endif
+          if (lmax<l) lmax=l
+          if (gen%spin) then
+! spin down
+            atomix%species_basis(i,j)%sp = sp
+            atomix%species_basis(i,j)%atom = 0
+            atomix%species_basis(i,j)%spin=.false.
+            atomix%species_basis(i,j)%n=n
+            atomix%species_basis(i,j)%l=l
+            atomix%species_basis(i,j)%m=m
+            atomix%species_basis(i,j)%occup=qd
+! spin up   
+            atomix%species_basis(i,j+norbitals)%sp = sp
+            atomix%species_basis(i,j+norbitals)%atom = 0
+            atomix%species_basis(i,j+norbitals)%spin=.true.
+            atomix%species_basis(i,j+norbitals)%n=atomix%species_basis(i,j)%n
+            atomix%species_basis(i,j+norbitals)%l=atomix%species_basis(i,j)%l
+            atomix%species_basis(i,j+norbitals)%m=atomix%species_basis(i,j)%m
+            atomix%species_basis(i,j+norbitals)%occup=qu
+            atomix%species%zval(i)=atomix%species%zval(i)+atomix%species_basis(i,j+norbitals)%occup&
+                +atomix%species_basis(i,j)%occup
+          else
+            atomix%species_basis(i,j)%sp = sp
+            atomix%species_basis(i,j)%atom = 0
+            atomix%species_basis(i,j)%spin=.false.
+            atomix%species_basis(i,j)%n=n
+            atomix%species_basis(i,j)%l=l
+            atomix%species_basis(i,j)%m=m
+            atomix%species_basis(i,j)%occup=qd
+            atomix%species%zval(i)=atomix%species%zval(i)+atomix%species_basis(i,j)%occup
+          endif
+        enddo
+      enddo
+
+! allocate the basis for the atoms
+    k=maxval(atomix%species%norbs)
+    allocate(atomix%atoms%orbs(1:atomix%atoms%natoms,1:k))
+    atomix%basis%norbitals = 0
+    do i=1,atomix%atoms%natoms
+      atomix%basis%norbitals = atomix%basis%norbitals + atomix%species%norbs(get_index(atomix,atomix%atoms%sp(i)))
+    enddo
+    allocate(atomix%basis%orbitals(1:atomix%basis%norbitals))
+!     ! build the basis
+     k = 0
+     if (gen%spin) then
+        ! spin down
+        do i=1,atomix%atoms%natoms
+          sp=get_index(atomix,atomix%atoms%sp(i))
+          atomix%atoms%norbs(i)=atomix%species%norbs(sp)
+          do j=1,atomix%species%norbs(sp)
+            if (.not.atomix%species_basis(sp,j)%spin) then
+              k = k + 1
+              atomix%basis%orbitals(k) = atomix%species_basis(sp,j)
+              atomix%basis%orbitals(k)%atom = i
+!                 ! this array maps which orbitals belong to atom i
+              atomix%atoms%orbs(i,j) = k
+            endif
+          enddo
+        enddo
+!spin up
+        do i=1,atomix%atoms%natoms
+          sp=get_index(atomix,atomix%atoms%sp(i))
+          atomix%atoms%norbs(i)=atomix%species%norbs(sp)
+          do j=1,atomix%species%norbs(sp)
+            if (atomix%species_basis(sp,j)%spin) then
+              k = k + 1
+              atomix%basis%orbitals(k) = atomix%species_basis(sp,j)
+              atomix%basis%orbitals(k)%atom = i
+!                 ! this array maps which orbitals belong to atom i
+              atomix%atoms%orbs(i,j) = k
+            endif
+          enddo
+        enddo
+      else
+        do i=1,atomix%atoms%natoms
+          sp=get_index(atomix,atomix%atoms%sp(i))
+          atomix%atoms%norbs(i)=atomix%species%norbs(sp)
+          do j=1,atomix%species%norbs(sp)
+              k = k + 1
+              atomix%basis%orbitals(k) = atomix%species_basis(sp,j)
+              atomix%basis%orbitals(k)%atom = i
+!                 ! this array maps which orbitals belong to atom i
+              atomix%atoms%orbs(i,j) = k
+          enddo
+        enddo
+      endif
+    else
+      call error("Basis block not found",sMyName,.true.,io)
+    endif
+    
+end subroutine read_basis
+
+!> \brief prints the basis set information
+!> \author Alin M Elena
+!> \date 30/10/07, 17:56:02
+!> \param io type(io_type) i/o units
+!> \param gen type(general_type) general data
+!> \param atomix type(atomicx_type) contains info about atoms
+  subroutine print_basis(io,gen,atomix)
+    character(len=*), parameter :: sMyName="print_basis"
+    type(io_type), intent(inout) :: io
+    type(general_type), intent(in)  :: gen
+    type(atomicx_type), intent(inout) :: atomix
+    integer :: i,j,sp
+    character(len=1) :: spin=""
+    character(len=2) :: el=""
+    write(io%uout,'(a)')"==BasisSetInfo==================================="
+    write(io%uout,'(a)')"==Listed by species==================="
+    write(io%uout,'(a)')"  #Orb  Sp El  N  L  M Spin Occupation"
+    do i=1,atomix%species%nspecies
+      sp=atomix%species%id(i)
+      
+      do j=1,atomix%species%norbs(i)
+        if (gen%spin) then
+          if (atomix%species_basis(i,j)%spin) then
+            spin="U"
+          else
+            spin="D"
+          endif
+        endif
+          write(io%uout,'(i6,i4,1x,a,3i3,4x,a,1x,f0.8)')j,atomix%species_basis(i,j)%sp,&
+              symbol(atomix%species%z(get_index(atomix,atomix%species_basis(i,j)%sp))),&
+            atomix%species_basis(i,j)%n,atomix%species_basis(i,j)%l,atomix%species_basis(i,j)%m,&
+                spin,atomix%species_basis(i,j)%occup
+      enddo
+    enddo
+    write(io%uout,'(a)')"==End Listed by species==============="
+    write(io%uout,'(a)')"==Listed by atoms============================"
+    write(io%uout,'(a)')"  #Orb  Atom  Sp  El  N  L  M Spin Occupation"
+    spin=""
+    el="el"
+    do i=1,atomix%basis%norbitals
+      if (atomix%basis%orbitals(i)%spin) then
+        spin="U"
+      else
+        spin="D"
+      endif
+      el=symbol(get_Z(atomix,atomix%basis%orbitals(i)%atom))
+      write(io%uout,'(2i6,i4,a4,3i3,1x,a4,1x,f0.8)')i,atomix%basis%orbitals(i)%atom,atomix%basis%orbitals(i)%sp,el,&
+            atomix%basis%orbitals(i)%n,atomix%basis%orbitals(i)%l,atomix%basis%orbitals(i)%m,spin,&
+            atomix%basis%orbitals(i)%occup
+    enddo
+    write(io%uout,'(a)')"==End Listed by atoms========================"
+    write(io%uout,'(a)')"==EndBasisSetInfo================================"
+  end subroutine print_basis
+      
+!> \brief deallocates the memory
 !> \author Alin M Elena
 !> \date 29/10/07, 17:38:16
-!> \param atomic type(atomicx_type) 
+!> \param atomic type(atomicx_type) contains atomic data
+!> \param general type(general_type) general data that controls the flow of the program
 
-  subroutine clean_memory(atomic)
+  subroutine clean_memory(atomic,general)
     character(len=*), parameter :: sMyName="clean_memory"
     type(atomicx_type), intent(inout) :: atomic
+    type(general_type), intent(in) :: general
 
     deallocate(atomic%species%id)
     deallocate(atomic%species%mass)
@@ -1092,7 +1372,43 @@ end subroutine print_species
     deallocate(atomic%species%uinter)
     deallocate(atomic%species%norbs)
 
-
+    deallocate(atomic%atoms%id)
+    deallocate(atomic%atoms%sp)
+    deallocate(atomic%atoms%bias)
+    deallocate(atomic%atoms%isscf)
+    deallocate(atomic%atoms%ismoving)
+    deallocate(atomic%atoms%x)
+    deallocate(atomic%atoms%y)
+    deallocate(atomic%atoms%z)
+    deallocate(atomic%atoms%vx)
+    deallocate(atomic%atoms%vy)
+    deallocate(atomic%atoms%vz)
+    deallocate(atomic%atoms%fx)
+    deallocate(atomic%atoms%fy)
+    deallocate(atomic%atoms%fz)
+    deallocate(atomic%atoms%dx)
+    deallocate(atomic%atoms%dy)
+    deallocate(atomic%atoms%dz)
+    deallocate(atomic%atoms%xo)
+    deallocate(atomic%atoms%yo)
+    deallocate(atomic%atoms%zo)
+    deallocate(atomic%atoms%vxo)
+    deallocate(atomic%atoms%vyo)
+    deallocate(atomic%atoms%vzo)
+    deallocate(atomic%atoms%fxo)
+    deallocate(atomic%atoms%fyo)
+    deallocate(atomic%atoms%fzo)
+    deallocate(atomic%atoms%chrg)
+    deallocate(atomic%atoms%chrg0)
+    deallocate(atomic%atoms%norbs)
+    if (allocated(atomic%atoms%spacer)) deallocate(atomic%atoms%spacer)
+    if (allocated(atomic%atoms%donor)) deallocate(atomic%atoms%donor)
+    if (allocated(atomic%atoms%acceptor)) deallocate(atomic%atoms%acceptor)
+    if (allocated(atomic%atoms%scf)) deallocate(atomic%atoms%scf)
+    if (allocated(atomic%atoms%moving)) deallocate(atomic%atoms%moving)
+    deallocate(atomic%species_basis)
+    deallocate(atomic%basis%orbitals)
+    deallocate(atomic%atoms%orbs)
     !internal variables
   end subroutine clean_memory
 end module read_data

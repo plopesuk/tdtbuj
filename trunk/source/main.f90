@@ -2,7 +2,7 @@
 !> Time-Dependent Tight-Binding+UJ
 !> \brief main program Time-Dependent Tight-Binding+UJ
 !> \author Alin M Elena
-!> \date 14th-15th January 2006
+
 
 program tbuj
   use constants
@@ -36,6 +36,7 @@ program tbuj
 !!!!!! closes all the units associated with blocks and deallocated the trees for tokens and blocks
   call end_parse
 
+  call clean_memory(atomicx,general)
   call cpu_time(general%time%end)
   write(io_info%udeb,'(a,f16.6,a)')"Program has run for "&
     ,general%time%end-general%time%start," seconds"
