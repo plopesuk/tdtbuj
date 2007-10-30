@@ -6,3 +6,6 @@ OnScreen   F
 
 include coords.dat
 include species.dat
+
+block coord
+endblock coord

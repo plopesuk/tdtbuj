@@ -4,11 +4,12 @@
 module useful
   use constants
   use types
-  
+
   implicit none
   private
   public :: cstr,error,get_unit,isUnique
-  
+  public :: isInList
+
 contains
 
 !> \brief logical function compares two strings 
@@ -120,29 +121,57 @@ contains
 !> \author Alin M Elena
 !> \date 29/10/07, 19:32:47
 !> \param x integer array 
+  logical function isUnique(x)
+    character(len=*), parameter :: sMyName="isUnique"
+    integer,intent(in) :: x(:)
+    integer :: i,j
+    integer :: n
+    logical :: aux
 
+    n=size(x)
+    aux=.false.
+    if (n/=1) then
+      main: do i=1,n-1
+        do j=i+1,n
+          if (x(i) == x(j)) then
+            aux = .true.
+            exit main
+          endif
+        enddo
+      enddo main
+    endif
+    isUnique=aux
+  end function isUnique
 
-logical function isUnique(x)
-  character(len=*), parameter :: sMyName="isUnique"
-  integer,intent(in) :: x(:)
-  integer :: i,j
-  integer :: n
-  logical :: aux
+!> \brief checks if the elements of an integer is in a list
+!> \author Alin M Elena
+!> \date 29/10/07, 23:50:47
+!> \param x integer array 
+!> \param y integer number to be searched
+!> \param pos integer optional returns the position where y is found or -1 if is not found
+  logical function isInList(y,x,pos)
+    character(len=*), parameter :: sMyName="isInList"
+    integer, intent(in) :: x(:)
+    integer,intent(in) :: y
+    integer, intent(inout), optional :: pos
 
-  n=size(x)
-  aux=.false.
-  if (n/=1) then
-    main: do i=1,n-1
-      do j=2,n
-        if (x(i) == x(j)) then
+    integer :: i
+    integer :: n
+    logical :: aux
+
+    n=size(x)
+    if (present(pos)) pos = -1
+    aux=.false.
+    if (n/=1) then
+      do i=1,n
+        if (y == x(i)) then
           aux = .true.
-          exit main
+          if (present(pos)) pos = i
         endif
       enddo
-    enddo main
-  endif
-  isUnique=aux
-end function isUnique
+    endif
+    isInList=aux
+  end function isInList
 
 end module useful
 

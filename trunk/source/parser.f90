@@ -16,27 +16,25 @@ module parser
 
 
 !> data structure of a node in the parsing tree
-type, private :: names
-  integer :: lines  !< the number of lines useful in the case of blocks
-  character(len=mw) :: nam !< name of the entity read in file
-  character(len=mw) :: value !< the value associated with the node
-  integer  :: ut !< unit number where write the info to be parsed (write(ut,*))
-  type(names),pointer :: next=>null() !< next element in tree
-end type names
+  type, private :: names
+    integer :: lines=0  !< the number of lines useful in the case of blocks
+    character(len=mw) :: nam="" !< name of the entity read in file
+    character(len=mw) :: value="" !< the value associated with the node
+    integer  :: ut !< unit number where write the info to be parsed (write(ut,*))
+    type(names),pointer :: next=>null() !< next element in tree
+  end type names
 
 !> data structure of info about the parsed files
-	type, private :: info_parse
-	  integer :: comments=0 !< number of comments parsed
-	  integer :: empty=0 !< number of empty lines
-	  integer :: includ=0 !<  number of include statements
-	  integer :: tokens=0 !< number of tokens
-	  integer :: blocks=0 !< number of blocks
-	  integer :: lines=0 !< number of lines
-	  integer :: blocklines=0 !< number of lines in blocks
-    end type info_parse
+  type, private :: info_parse
+    integer :: comments=0 !< number of comments parsed
+    integer :: empty=0 !< number of empty lines
+    integer :: includ=0 !<  number of include statements
+    integer :: tokens=0 !< number of tokens
+    integer :: blocks=0 !< number of blocks
+    integer :: lines=0 !< number of lines
+    integer :: blocklines=0 !< number of lines in blocks
+  end type info_parse
 
-    
-    
   type(names),pointer:: bnames,tnames,currentb,currentt !< blocks and tokens lists for the files plus the current ones
 
 contains
@@ -48,13 +46,11 @@ contains
 !> \date 14th-15th of January 2006
 !> \param io_loc is type(io_type) (see types::io_type)
 !> \remark 20th of January 2007 added the parameter \em io_loc
-
-
   subroutine parse_file(io_loc)
     character(len=*), parameter :: myname = 'parse_file'
     integer :: errno
-    type(io_type), intent(inout) :: io_loc	
-	type(info_parse) :: ireport
+    type(io_type), intent(inout) :: io_loc
+    type(info_parse) :: ireport
 
 !allocate the lists for name of the blocks and tokens
     allocate(bnames)
@@ -93,8 +89,8 @@ contains
 
   recursive subroutine parse(nounit,io_loc, ireport)
     character(len=*), parameter :: myname = 'parse'
-    type(io_type), intent(inout) :: io_loc	
-    integer,intent(in) :: nounit	
+    type(io_type), intent(inout) :: io_loc
+    integer,intent(in) :: nounit
     type(info_parse), intent(inout) :: ireport
 
     character(len=ml) :: line,lineaux,storeline,lineaux2
@@ -167,7 +163,7 @@ contains
             storeline=parse_line(lineaux)
             write(nt,'(a)')trim(storeline)
             blines=blines+1
-          endif     
+          endif
         end do
 
 ! check if we have reached end-of-file
@@ -176,30 +172,28 @@ contains
         if (blines==0)  then
           call parse_war("detected empty(probably only comments and empty lines) block "&
             //trim(blockname),myname,nam,lineno,io_loc)
-! empty files we delete them immediately    
-          close(unit=nt,status="delete")
+! empty files we delete them immediately
+          close(nt,status="delete")
         endif
-
-! check the uniquness of the block  
-        ireport%blocklines=blines+ireport%blocklines   
-        if (blines/=0) then
-          close(nt)   
+! check the uniquness of the block
+        ireport%blocklines=blines+ireport%blocklines
+          
+        close(nt)
 ! check for the block in the existent list
-          if (ireport%blocks==1) then
-            currentb=>bnames 
-            bnames%nam=trim(blockname)
-            bnames%lines=blines
-            bnames%ut=nt
-            bnames%value=trim(filename)
-          else
-            if (find_name(trim(blockname),bnames)) &
-              call parse_err("found block "//trim(blockname)//" duplicated",&
-              myname,nam,lineno,io_loc)
-            call add_name(trim(blockname),currentb,blines)
-            currentb%ut=nt
-            currentb%value=trim(filename)
-          endif
-        endif 
+        if (ireport%blocks==1) then
+          currentb=>bnames
+          bnames%nam=trim(blockname)
+          bnames%lines=blines
+          bnames%ut=nt
+          bnames%value=trim(filename)
+        else
+          if (find_name(trim(blockname),bnames)) &
+            call parse_err("found block "//trim(blockname)//" duplicated",&
+            myname,nam,lineno,io_loc)
+          call add_name(trim(blockname),currentb,blines)
+          currentb%ut=nt
+          currentb%value=trim(filename)
+        endif
       elseif (cstr(lineaux(1:8),"endblock")) then
 ! endblock without block    
         call parse_err("endblock without block",myname,nam,lineno,io_loc)
@@ -224,9 +218,6 @@ contains
       endif
 
     enddo
-
-
-
     ireport%lines=ireport%lines+lineno
   end subroutine parse
 
@@ -270,7 +261,7 @@ contains
     character(len=*), parameter :: myname = 'add_name'
     character(len=*),intent(in) :: word 
     integer,intent(in),optional :: lines
-    type(names), pointer,intent(inout) :: current
+    type(names),pointer :: current
     type(names),pointer :: node
 
     allocate(node)
@@ -293,8 +284,8 @@ contains
   logical function find_name(word,root,loc)
     character(len=*), parameter :: myname = 'find_name'
     character(len=*),intent(in) :: word
-    type(names), pointer,intent(in) :: root
-    type(names),pointer,intent(out),optional :: loc
+    type(names), pointer :: root
+    type(names), pointer, optional :: loc
     type(names), pointer :: current
 
     current=>root
@@ -323,8 +314,8 @@ contains
 
   subroutine print_name(root,io_loc)
     character(len=*), parameter :: myname = 'print_name'
-    type(names), pointer,intent(in) :: root
-    type(io_type), intent(inout) :: io_loc		
+    type(names), pointer :: root
+    type(io_type), intent(inout) :: io_loc
     type(names),pointer :: current
 
     current=>root
@@ -393,7 +384,7 @@ contains
         
   subroutine finalize(io_loc)
     character(len=*), parameter :: myname = 'finalize'
-    type(io_type), intent(inout) :: io_loc	
+    type(io_type), intent(inout) :: io_loc
     integer :: i
     logical :: op
     character(len=mw) :: filename
@@ -448,7 +439,7 @@ contains
     character(len=*), parameter :: myname = 'parse_war'
     character(len=*),intent(in) :: message,routine,filename
     integer, intent(in) :: lineno
-    type(io_type), intent(inout) :: io_loc	
+    type(io_type), intent(inout) :: io_loc
 
     write(io_loc%uerr,'(a,a)')"Warning: ",trim(message)
     write(io_loc%uerr,'(a,a)')"Routine: ",trim(routine)
@@ -493,14 +484,14 @@ contains
         call error("Unsuported value: "//&
           trim(label)//" "//trim(found%value),myname,.true.,io_loc)
       endif
-      write(io_loc%udeb,'(a,2x,l)') trim(label),get_logical
+      write(io_loc%udeb,'(a,2x,l1)') trim(label),get_logical
     else
       if (present(dflt)) then
         get_logical=dflt
       else
         get_logical=.true.
       endif 
-      write(io_loc%udeb,'(a,2x,l,a)') trim(label),get_logical, " default" 
+      write(io_loc%udeb,'(a,2x,l1,a)') trim(label),get_logical, " default" 
     endif
 
   end function get_logical
@@ -640,7 +631,7 @@ character(len=mw) function get_string(io_loc,label,dflt,print)
 
   logical function get_block(io_loc,label,nt)
     character(len=*), parameter :: myname = 'get_block'
-    type(io_type),intent(inout) :: io_loc	
+    type(io_type),intent(inout) :: io_loc
     character(len=*),intent(in) :: label
     integer, intent(out) :: nt
     type(names),pointer :: found
@@ -652,7 +643,7 @@ character(len=mw) function get_string(io_loc,label,dflt,print)
       nt=found%ut
       line=found%value  
       open(unit=nt,action="read",status="old",file=trim(line))
-      write(io_loc%udeb,'(a,2x,l)') trim(label),get_block
+      write(io_loc%udeb,'(a,2x,l1)') trim(label),get_block
     else
       write(io_loc%udeb,'(a)')"Block "//trim(label)//" was not found"
       get_block=.false.
