@@ -2,6 +2,7 @@
 !> \author Alin M. Elena
 !> \date 14th of January 2006
 !> \remark 17th of July 2007 removed the save attribute from variables
+!> \todo suspected memory leak
 module parser
 
 
@@ -335,7 +336,7 @@ contains
   recursive subroutine delete_list(root)
     character(len=*), parameter :: myname = 'delete_list'
     type(names), pointer :: root
-    type(names),pointer :: current
+    type(names), pointer :: current
 
     current=>root%next
 
@@ -379,7 +380,6 @@ contains
 !> \param io_loc type(io_type) contain the staring unit for the list of temporary units (see types::io_type)
 !> \remarks
 
-        
   subroutine finalize(io_loc)
     character(len=*), parameter :: myname = 'finalize'
     type(io_type), intent(inout) :: io_loc

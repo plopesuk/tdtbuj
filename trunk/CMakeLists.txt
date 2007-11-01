@@ -43,7 +43,7 @@ MESSAGE("Using this version of makeindex ${MKIDX}")
 ####
 
 
-######################a.mod.proxy
+######################
 ##set the output folder for libs and bins
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
@@ -60,11 +60,11 @@ ${src_dir}/types.f90
 ${src_dir}/useful.f90
 )
 
-#add_library(linalg 
-#${src_dir}/constants.f90
-#${src_dir}/util.f90
-#${src_dir}/linear_algebra.f90
-#)
+add_library(linalg 
+${src_dir}/constants.f90
+${src_dir}/useful.f90
+${src_dir}/linear_algebra.f90
+)
 
 ####################
 
