@@ -2,17 +2,35 @@ OutputFile output.out
 DebugFile  output.dbg
 OutputLevel 25
 DebugLevel  25
-OnScreen   T
+OnScreen   Yes
 
-
-
-ReadVel T
-Spin T
+JobName test
+RanSeed 142
+Units AU
 MaxOrbsPerAtom 10
 
 
 
+Spin No
+Electrostatics Multipoles
+
+BondType Harrison
+Embedding Yes
+
+ReadVel Yes
+
+
+###################
+block DeltaPol
+1
+0.1
+0.2
+2
+endblock DeltaPol
+###############
+
 include coords.dat
 include species.dat
 include basis.dat
+include gsp.dat
 

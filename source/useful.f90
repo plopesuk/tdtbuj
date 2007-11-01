@@ -7,8 +7,16 @@ module useful
 
   implicit none
   private
-  public :: cstr,error,get_unit,isUnique
+  public :: cstr
+  public :: error
+  public :: get_unit
+  public :: isUnique
   public :: isInList
+  public :: dateandtime
+  public :: ccvar
+  public :: ccnlm
+  public :: rmarin
+  public :: ranmar
 
 contains
 
@@ -172,6 +180,140 @@ contains
     endif
     isInList=aux
   end function isInList
+
+!> \brief return the date and time in a human format
+!> \author Alin M Elena
+!> \date 31/10/07, 09:48:57
+!> \param date character contains the date in the format dd-mm-yyyy
+!> \param time character contains the time in the format hh:mm:ss.mmmgoo
+  subroutine dateandtime(date,time)
+    character(len=*), parameter :: sMyName="dateandtime"
+    character(len=*), intent(out) :: date, time
+    character(len=8) :: d
+    character(len=10) :: t
+
+    call date_and_time(d,t)
+    date(7:10)=d(1:4)
+    date(3:3)="-"
+    date(4:5)=d(5:6)
+    date(6:6)="-"
+    date(1:2)=d(7:8)
+    time(1:2)=t(1:2)
+    time(3:3)=":"
+    time(4:5)=t(3:4)
+    time(6:6)=":"
+    time(7:12)=t(5:10)
+  end subroutine dateandtime
+
+!> \brief creates a string having as input two integers and a string by concatenation and removing blanks
+!> \author Alin M. Elena, Queen's University Belfast, UK
+!> \date 20th of January, 2005
+!> \param i,j integers to be concatenated
+!> \param strr string 
+!> \remarks rewrote on 31st of October 2007
+            
+  character(len=30) function ccvar(i,j,strr)
+    character(len=*),parameter :: myname="ccvar"
+    integer, intent(in) :: i,j
+    character(len=10), intent(in) :: strr
+    character(len=ml)   :: dump
+
+    write(dump,'(a,i0,i0)')trim(strr),i,j
+    ccvar=trim(dump)
+  end function ccvar
+
+!> \brief creates a string having as input five integers by concatenation and removing blanks
+!> \author Alin M. Elena, Queen's University Belfast, UK
+!> \date 20th of January, 2005
+!> \param i,j,k,k1,k2 integers to be concatenated
+!> \remarks rewrote on 31st of October 2007
+  character(len=30) function ccnlm(i,j,k,k1,k2)
+    character(len=*),parameter :: myname="ccnlm"
+    integer, intent(in) :: i,j,k,k1,k2
+    character(len=30) ::dump
+
+    write(dump,'(a,i0,a,i0,a,i0,a,i0,i0)')"l",k,"l",k1,"m",k2,"_",i,j
+    ccnlm=trim(dump)
+  end function ccnlm
+
+!> \brief initializes the random number generator
+!> \details returns an array of "seeds"
+!> \author netlib
+!> \param ij,kl starting seeds
+!> \param u real array of "seeds
+!> \param io type(io_type) i/o units
+!> \remarks
+!> here is a sequence of code that will initialize the generator
+!> \code
+!> real(pr) :: cr,seed(97)
+!>  call cpu_time(cr)
+!>  call rmarin(int((cr-int(cr))*3132),general%ranseed*30081),seed)
+!> \endcode
+  subroutine rmarin(ij,kl,u,io)
+    character(len=*),parameter :: myname="rmarin"
+    real(pr),intent(out) ::  u(:)
+    integer, intent(in) :: ij,kl
+    type(io_type),intent(in) :: io
+
+    integer :: i,j,k,l,ii,jj,m
+    real(pr) :: s,t
+                
+    if( ij < 0  .or.  ij > 31328  .or. &
+        kl < 0  .or.  kl > 30081 ) then
+      call error("first seed must be between 0 and 31328 the second seed must be between 0 and  30081",&
+                 myname,.true.,io)
+    endif
+    i = mod(ij/177, 177) + 2
+    j = mod(ij    , 177) + 2
+    k = mod(kl/169, 178) + 1
+    l = mod(kl,     169)
+    do ii = 1, 97
+        s = 0.0_pr
+        t = 0.5_pr
+        do jj = 1, 24
+            m = mod(mod(i*j, 179)*k, 179)
+            i = j
+            j = k
+            k = m
+            l = mod(53*l+1, 169)
+            if (mod(l*m, 64) >= 32) then
+              s = s + t
+            endif
+            t = 0.5_pr * t
+        enddo
+        u(ii) = s
+    enddo
+
+  end subroutine rmarin
+
+!> \brief generates a random number
+!> \author netlib
+!> \param u(:) real array of "seeds"
+  real(pr) function ranmar(u)
+    real(pr), intent(inout) :: u(:)
+    real(pr) :: c, cd, cm,uni
+    integer :: i97, j97
+
+
+    c = 362436.0_pr / 16777216.0_pr
+    cd = 7654321.0_pr / 16777216.0_pr
+    cm = 16777213.0_pr /16777216.0_pr
+    i97 = 97
+    j97 = 33
+    uni = u(i97) - u(j97)
+    if( uni < 0.0_pr) uni = uni + 1.0_pr
+    u(i97) = uni
+    i97 = i97 - 1
+    if(i97 == 0) i97 = 97
+    j97 = j97 - 1
+    if(j97 == 0) j97 = 97
+    c = c - cd
+    if( c < 0.0_pr ) c = c + cm
+    uni = uni - c
+    if( uni < 0.0_pr ) uni = uni + 1.0_pr
+    ranmar = uni
+  end function ranmar
+
 
 end module useful
 

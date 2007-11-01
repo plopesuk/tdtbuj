@@ -52,7 +52,7 @@ character(len=mw) :: inp_err
 !   real(pr) :: deltat
 !   integer  :: nsteps	
 !   integer  :: runtype
-   logical  :: scf
+    logical  :: scf
 !   integer  :: scf_type
 !   integer  :: maxscf
 !   real(pr) :: scfmix
@@ -61,19 +61,19 @@ character(len=mw) :: inp_err
 !   integer  :: scfmixn
 !   logical  :: velocity_scaling
 !   real(pr) :: dm_occupation_tolerance
-   integer  :: max_orbitals_per_atom
+    integer  :: max_orbitals_per_atom
 !   real(pr) :: h_element_threshold
 !   real(pr) :: hessian_displacement
-   logical  :: spin
+    logical  :: spin
 !   logical  :: collinear
 !   real(pr) :: sdu
 !   integer  :: Euler_steps
-!   integer  :: electrostatics
-! !   precompute the q's and v's for tb+u multipole case if is set to false	
-!   logical  :: comp_elec 
-!   integer  :: units
-!   integer  :: bond
-!   logical  :: embedding
+    integer  :: electrostatics
+! !   
+    logical  :: comp_elec !<precompute the q's and v's for tb+u multipole case if is set to false  
+    integer  :: units
+    integer  :: bond
+    logical  :: embedding !< Has the model embedding?
 ! !   for the force test
 !   integer :: f_steps
 !   real(pr) :: f_start
@@ -87,14 +87,14 @@ character(len=mw) :: inp_err
 !   integer :: excite
 !   integer :: hole_spin
 !   integer :: excite_spin
-  character(len=mw) :: job_name !< name of the job
-  integer :: ran3_seed !< seed to initialize the random number generator
+    character(len=mw) :: job_name !< name of the job
+    real(pr) :: ranseed !< seed to initialize the random number generator
 !   logical :: write_ani
 !   logical :: write_ene
 !   logical :: write_density
 !   logical :: read_density
-   logical :: read_velocity !< read velocity block?
-   logical :: first_time = .false. !< is it first time when is read 
+    logical :: read_velocity !< read velocity block?
+    logical :: first_time = .false. !< is it first time when is read 
 !   logical :: scc
 !   logical :: SymRefRho
 !   logical :: bIsSCFConverged
@@ -177,6 +177,7 @@ integer(pr), allocatable :: norbs(:) !< no of orbitals of atom
     integer :: norbitals !< no of orbitals  
     type(orbital_type), allocatable :: orbitals(:) !< orbitals
   end type basis_type
+
 !> \brief to be added
   type,private :: delta_type
     integer :: sp,l
@@ -188,9 +189,56 @@ integer(pr), allocatable :: norbs(:) !< no of orbitals of atom
     type(atomic_type) :: atoms !< atmoic properties
     type(species_type) :: species !< specie properties
     type(basis_type) :: basis !< system basis
-    type(delta_type),allocatable :: delta(:) !< delta params for easch specie
     type(orbital_type), allocatable :: species_basis(:,:) !< species basis set
   end type atomicx_type
 
+  type, public :: qvs
+    integer :: dim
+    real(pr), allocatable :: a(:)
+  end type qvs
+
+!> \brief tail parameters
+  type, public :: tail_parameters
+    real(pr) :: r_in
+    real(pr) :: a, b, c, r_out
+  end type tail_parameters
+
+!> \brief hopping parameters
+  type, public :: hop_matrix
+    integer :: l1,l2,ll ! nn -->l1, mm-->l2,  ll-->m
+    real(pr) :: a1,a2,a3,a4 !< embedding parameters
+    real(pr) :: phi0,r0,rc,r1,rcut,n,nc,d0,dc,d1,dcut,m,mc
+    real(pr), allocatable  :: eps(:)
+    real(pr), allocatable :: a(:,:,:)
+    type(tail_parameters)  :: rep_tail, hmn_tail
+  end type hop_matrix
+
+!> \brief data type for tight-binding model
+  type, public :: model_type
+    type(delta_type), allocatable :: delta(:) !< delta params for each specie
+    type(hop_matrix), allocatable :: hopping(:,:)
+    real(pr),allocatable :: vlm(:,:,:,:,:,:)
+    real(pr), allocatable ::n0(:),hn0(:)
+    real(pr), allocatable :: gcoeff(:,:,:),rgc(:,:,:)
+    real(pr), allocatable :: fact(:)
+    type(qvs), allocatable :: delq(:), vs(:)
+  end type model_type
+
+!> sqaure matrix type it may keep both dense and sparse matrices
+  type, public :: matrix
+    logical :: is_sparse !< is it sparse?
+    logical :: created !< is it created?
+    integer :: dim !< dimesion of the matrix
+    integer :: nonzero !< no of non zero elements in a sparse matrix
+    integer, allocatable :: indx(:), jndx(:) !< the indeces of the non zero elements for sparse
+    complex(kind=pr), allocatable :: a(:,:) !< keeps the data
+  end type matrix
+
+!> vector type 
+  type, public :: vector
+    logical :: created !< is it created?
+    integer :: dim !< dimension of the array
+    complex(kind=pr), allocatable :: v(:) !< keeps the data of the array
+  end type vector
 
 end module types

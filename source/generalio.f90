@@ -26,17 +26,17 @@ contains
 !> \date ~2007
 !> \param io_loc type(io_type) contains all the info about I/O files
 !> \param gen_loc type(general_type) contains the info needed by the program to run
-!> \param atomic type(atomic_type) contains all inf about the atoms and basis set, parameters
+!> \param atomic type(atomic_type) contains all info about the atoms and basis set and some parameters
+!> \param tbMod type(model_type) contains iformation about the tight binding model parameters
 
-  subroutine initialize(io_loc,gen_loc,atomic)
+  subroutine initialize(io_loc,gen_loc,atomic,tbMod)
     character(len=*), parameter :: myname = 'initialize'
     type(io_type), intent(inout) :: io_loc
     type(general_type), intent(inout) :: gen_loc
     type(atomicx_type), intent(inout) :: atomic
+    type(model_type), intent(inout) :: tbMod
     real(pr) :: aux
-    integer :: errno,nt,i
-    real(pr) :: a1,a2,a3
-
+    integer :: errno=-1,nt,i
 
     io_loc%uerr=get_unit()
     io_loc%inp_err=trim(io_loc%inp_file)//".err"
@@ -58,56 +58,53 @@ contains
 
 ! parse file and in the same time 
 ! makes a minimal check of corectness
-  call cpu_time(gen_loc%time%int)
+    call cpu_time(gen_loc%time%int)
 
-  call parse_file(io_loc)
-  call cpu_time(gen_loc%time%end)
-  aux=gen_loc%time%end-gen_loc%time%int
-
-  call cpu_time(gen_loc%time%int)
-
-  call read_io(io_loc)
-
-  if (io_loc%debug>=medium_debug) then
+    call parse_file(io_loc)
     call cpu_time(gen_loc%time%end)
-    write(io_loc%udeb,'(a,f16.6,a)')"Parsing time "&
-      ,aux," seconds"
-    write(io_loc%udeb,'(a,f16.6,a)')"Setting io_info "&
-      ,gen_loc%time%end-gen_loc%time%int," seconds"
-  endif
+    aux=gen_loc%time%end-gen_loc%time%int
 
-  if (io_loc%debug>=medium_debug) call timing(io_loc,gen_loc%time,1)
-  call read_general(io_loc,gen_loc)
-  if (io_loc%debug>=medium_debug) call timing(io_loc,gen_loc%time,2)
+    call cpu_time(gen_loc%time%int)
 
-  if (io_loc%debug>=medium_debug) call timing(io_loc,gen_loc%time,1)
-  call read_species(io_loc,gen_loc,atomic%species)
-  if (io_loc%debug>=medium_debug) call timing(io_loc,gen_loc%time,2)
+    call read_io(io_loc)
 
-  if (io_loc%debug>=medium_debug) call timing(io_loc,gen_loc%time,1)
-  call read_atoms(io_loc,gen_loc,atomic)
-  if (io_loc%debug>=medium_debug) call timing(io_loc,gen_loc%time,2)
+    if (io_loc%debug>=medium_debug) then
+      call cpu_time(gen_loc%time%end)
+      write(io_loc%udeb,'(a,f16.6,a)')"Parsing time "&
+        ,aux," seconds"
+      write(io_loc%udeb,'(a,f16.6,a)')"Setting io_info "&
+        ,gen_loc%time%end-gen_loc%time%int," seconds"
+    endif
 
-  if (io_loc%debug>=medium_debug) call timing(io_loc,gen_loc%time,1)
-  call read_basis(io_loc,gen_loc,atomic)
-  if (io_loc%debug>=medium_debug) call timing(io_loc,gen_loc%time,2)
+    if (io_loc%debug>=medium_debug) call timing(io_loc,gen_loc%time,1)
+    call read_general(io_loc,gen_loc)
+    if (io_loc%debug>=medium_debug) call timing(io_loc,gen_loc%time,2)
 
-  call print_species(io_loc,atomic%species)
-  call print_atoms(io_loc,gen_loc,atomic)
-  call print_basis(io_loc,gen_loc,atomic)
-! if (get_block(io_loc,"coord",nt)) then
-!   write(io_loc%udeb,'(a)')"block coords"
-!   do i=1,2
-!     read(nt,fmt=*,iostat=errno)a1,a2,a3
-!     if (errno/=0) call error("block coords is not in the right format"&
-!       ,myname,.true.,io_loc)
-!     write(io_loc%udeb,'(3f16.6)')a1,a2,a3
-!   enddo
-!   write(io_loc%udeb,'(a)')"endblock coords"
-! endif
-a1=get_real(io_loc,"gf1",0.0_pr)
+    if (io_loc%debug>=medium_debug) call timing(io_loc,gen_loc%time,1)
+    call read_species(io_loc,gen_loc,atomic%species)
+    if (io_loc%debug>=medium_debug) call timing(io_loc,gen_loc%time,2)
 
-end subroutine initialize
+    if (io_loc%debug>=medium_debug) call timing(io_loc,gen_loc%time,1)
+    call read_atoms(io_loc,gen_loc,atomic)
+    if (io_loc%debug>=medium_debug) call timing(io_loc,gen_loc%time,2)
+
+    if (io_loc%debug>=medium_debug) call timing(io_loc,gen_loc%time,1)
+    call read_basis(io_loc,gen_loc,atomic)
+    if (io_loc%debug>=medium_debug) call timing(io_loc,gen_loc%time,2)
+
+    call print_species(io_loc,atomic%species)
+    call print_atoms(io_loc,gen_loc,atomic)
+    call print_basis(io_loc,gen_loc,atomic)
+
+    if (io_loc%debug>=medium_debug) call timing(io_loc,gen_loc%time,1)
+    call read_tb_model(io_loc,gen_loc,atomic,tbMod)
+    if (gen_loc%electrostatics==electrostatics_multipoles) then
+      call read_delta(io_loc,gen_loc,atomic,tbMod)
+    endif
+    if (io_loc%debug>=medium_debug) call timing(io_loc,gen_loc%time,2)
+
+    call end_parse
+  end subroutine initialize
 
 !> \brief reads the names for I/O files and the output levels
 !> \author Alin M Elena
@@ -153,7 +150,8 @@ end subroutine initialize
 !> <TR><TD ALIGN="CENTER">OnScreen</TD>
 !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>logical</TD>
 !> <TD ALIGN="CENTER">.false.</TD>
-!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>on/off printing on the screen, on means that nothing will be written in the output file</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>on/off printing on the screen, on
+!>      means that nothing will be written in the output file</TD>
 !> </TR>
 !> <TR><TD ALIGN="CENTER">DebugLevel</TD>
 !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>5,15,25</TD>
@@ -245,7 +243,7 @@ end subroutine read_io
 !> \hline \hline
 !> JobName & string & no name & a name for the job \\ 
 !> \hline
-!> RanSeed & integer & 12345 & A seed for the random number generator \\
+!> RanSeed & real(0,1)& 0.5 & A seed for the random number generator \\
 !> \hline
 !> ReadVel & logical & .false. & on/off reading velocity block \\
 !> \hline
@@ -266,8 +264,8 @@ end subroutine read_io
 !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>a name for the job</TD>
 !> </TR>
 !> <TR><TD ALIGN="CENTER">RanSeed</TD>
-!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>integer </TD>
-!> <TD ALIGN="CENTER">12345</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real (0,1) </TD>
+!> <TD ALIGN="CENTER">0.5</TD>
 !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>A seed for the random number generator</TD>
 !> </TR>
 !> <TR><TD ALIGN="CENTER">ReadVel</TD>
@@ -296,9 +294,9 @@ subroutine read_general(io_loc,gen_loc)
     write( io_loc%uout,'(a,a)')"Job Name(JobName): "&
       ,gen_loc%job_name
 
-    gen_loc%ran3_seed=get_integer(io_loc,"RanSeed",12345)
-    write( io_loc%uout,'(a,i0)')"Random number generator seed(RanSeed): "&
-      ,gen_loc%ran3_seed
+    gen_loc%ranseed=get_real(io_loc,"RanSeed",0.5_pr)
+    write( io_loc%uout,'(a,f0.16)')"Random number generator seed(RanSeed): "&
+      ,gen_loc%ranseed
 
     gen_loc%read_velocity=get_logical(io_loc,"ReadVel",.false.)
     write( io_loc%uout,'(a,l1)')"Read Velocity(ReadVel): "&
@@ -314,6 +312,64 @@ subroutine read_general(io_loc,gen_loc)
     gen_loc%max_orbitals_per_atom=get_integer(io_loc,"MaxOrbsPerAtom",8)
     write( io_loc%uout,'(a,i0)')"Maximum Orbitals Per Atom (MaxOrbsPerAtom): "&
       ,gen_loc%max_orbitals_per_atom
+
+    gen_loc%spin=get_logical(io_loc,"Spin",.false.)
+    write( io_loc%uout,'(a,l1)')"spin polarisation(Spin): "&
+      ,gen_loc%spin
+
+    gen_loc%scf=get_logical(io_loc,"SCF",.false.)
+    write( io_loc%uout,'(a,l1)')"Is SCF?(SCF): "&
+      ,gen_loc%scf
+
+!comm_gen Units & AU EV SI & AU & system of units: atomic units(AU), electronVolt-Angstrom(eVA), International(SI)\\
+    saux=get_string(io_loc,"Units","AU")
+    write( io_loc%uout,'(a,a)')"System of Units (Units): "&
+      ,trim(saux)
+    if (cstr(trim(saux),'AU')) then
+      gen_loc%units = units_au
+    elseif (cstr(trim(saux),'eVA')) then
+      gen_loc%units = units_ev
+    elseif (cstr(trim(saux),'SI')) then
+      gen_loc%units = units_si
+    else
+      call error("The requested system of units is not implemented",name,.true.,io_loc)
+    endif
+
+ !comm_gen BondType & Harrison, GSP &Harrison& bond type \\
+! \hline
+    saux=get_string(io_loc,"BondType","Harrison")
+    write( io_loc%uout,'(a,a)')"bond type (BondType): "&
+      ,trim(saux)
+    if (cstr(trim(saux),'Harrison')) then
+      gen_loc%bond = bond_harrison
+    elseif (cstr(trim(saux),'GSP')) then
+      gen_loc%bond = bond_gsp
+    else
+      call error("The requested bond type is not implemented",name,.true.,io_loc)
+    endif
+
+   !comm_gen Embedding & logical & .true. & on/off embedding method\\
+    gen_loc%embedding=get_logical(io_loc,"Embedding",.true.)
+    write( io_loc%uout,'(a,l1)')"has embedding(Embedding): "&
+     ,gen_loc%embedding
+
+!comm_gen Electrostatics & PointCharges, Multipoles & PointCharges & method use to compute electrostatic interaction\\
+    saux=get_string(io_loc,"Electrostatics","PointCharges")
+    write( io_loc%uout,'(a,a)')"Electrostatics type (Electrostatics): "&
+     ,trim(saux)
+    if (cstr(trim(saux),'PointCharges')) then
+      gen_loc%electrostatics = electrostatics_point
+    elseif (cstr(trim(saux),'Multipoles')) then
+      gen_loc%electrostatics = electrostatics_multipoles
+    else
+      call error("The requested Electrostatics type is not implemented",name,.true.,io_loc)
+    endif
+! 
+!comm_gen PrecomputeMultipoles & logical & .true. & on/off precompute multipoles\\
+    gen_loc%comp_elec=get_logical(io_loc,"PrecomputeMultipoles",.true.)
+    write( io_loc%uout,'(a,l1)')"precompute multipoles(PrecomputeMultipoles): "&
+      ,gen_loc%comp_elec
+! 
 
 ! !comm_gen WriteAni & logical & .false. & on/off writing animation file \\
 !   gen_loc%write_ani=get_logical(io_loc,"WriteAni",.false.)
@@ -345,7 +401,8 @@ subroutine read_general(io_loc,gen_loc)
 !   write( io_loc%uout,'(a,g)')"Net charge(NetCharge): "&
 !     ,gen_loc%netcharge
 ! 
-! !comm_gen ElectronicTemperature & real & 300.0 & Electronic temperature, used to compute occupation numbers if you choose Fermi-Dirac or Methfessel-Paxton method\\
+! !comm_gen ElectronicTemperature & real & 300.0 & Electronic temperature, used to compute
+!       occupation numbers if you choose Fermi-Dirac or Methfessel-Paxton method\\
 !   gen_loc%electronic_temperature=get_real(io_loc,"ElectronicTemperature",300.0_pr)
 !   write( io_loc%uout,'(a,g)')"Electronic Temperature(ElectronicTemperature): "&
 !     ,gen_loc%electronic_temperature
@@ -365,7 +422,8 @@ subroutine read_general(io_loc,gen_loc)
 !   write( io_loc%uout,'(a,i0)')"Number of steps(Nsteps): "&
 !     ,gen_loc%nsteps
 ! 
-! !comm_gen RunType & SinglePoint, BODynamics, Ehrenfest, EhrenfestDamped, Fit, ForceTest, ForceTestX, ForceTestY, ForceTestZ & SinglePoint & Type of calculation\\
+! !comm_gen RunType & SinglePoint, BODynamics, Ehrenfest, EhrenfestDamped, Fit, ForceTest, ForceTestX,
+!! ForceTestY, ForceTestZ & SinglePoint & Type of calculation\\
 !   saux=get_string(io_loc,"RunType","SinglePoint")
 !   write( io_loc%uout,'(a,a)')"Calculation type(RunType): "&
 !     ,trim(saux)
@@ -392,9 +450,6 @@ subroutine read_general(io_loc,gen_loc)
 !   endif
 ! 
 
-   gen_loc%scf=get_logical(io_loc,"SCF",.false.)
-   write( io_loc%uout,'(a,l1)')"Is SCF?(SCF): "&
-     ,gen_loc%scf
 ! 
 ! !comm_gen SCFType & TB+UJ & TB+UJ & SCF method\\
 !   saux=get_string(io_loc,"SCFType","TB+UJ")
@@ -451,9 +506,7 @@ subroutine read_general(io_loc,gen_loc)
 !     ,gen_loc%h_element_threshold
 ! 
 
-  gen_loc%spin=get_logical(io_loc,"Spin",.false.)
-  write( io_loc%uout,'(a,l1)')"spin polarisation(Spin): "&
-    ,gen_loc%spin
+
 ! 
 ! !comm_gen CollinearSpins & logical & .false. & on/off collinear spins\\
 !   gen_loc%collinear=get_logical(io_loc,"CollinearSpins",.false.)
@@ -470,27 +523,7 @@ subroutine read_general(io_loc,gen_loc)
 !   write( io_loc%uout,'(a,i0)')"Euler steps (EulerSteps): "&
 !     ,gen_loc%euler_steps
 ! 
-! !comm_gen Electrostatics & PointCharges, Multipoles & PointCharges & method use to compute electrostatic interaction\\
-!   saux=get_string(io_loc,"Electrostatics","PointCharges")
-!   write( io_loc%uout,'(a,a)')"Electrostatics type (Electrostatics): "&
-!     ,trim(saux)
-!   if (cstr(trim(saux),'PointCharges')) then
-!     gen_loc%electrostatics = electrostatics_point
-!   elseif (cstr(trim(saux),'Multipoles')) then
-!     gen_loc%electrostatics = electrostatics_multipoles
-!   else  
-!     call error("The requested Electrostatics type is not implemented",name,.true.,io_loc)
-!   endif
-! 
-! !comm_gen PrecomputeMultipoles & logical & .true. & on/off precompute multipoles\\
-!   gen_loc%comp_elec=get_logical(io_loc,"PrecomputeMultipoles",.true.)
-!   write( io_loc%uout,'(a,l)')"precompute multipoles(PrecomputeMultipoles): "&
-!     ,gen_loc%comp_elec
-! 
-! !comm_gen Embedding & logical & .true. & on/off embedding method\\
-!   gen_loc%embedding=get_logical(io_loc,"Embedding",.true.)
-!   write( io_loc%uout,'(a,l)')"has embedding(Embedding): "&
-!     ,gen_loc%embedding
+
 ! 
 ! !comm_gen FSteps & integer & 100 & Number of steps used to test the force/energy consitency\\
 !   gen_loc%f_steps=get_integer(io_loc,"FSteps",100)
@@ -578,19 +611,7 @@ subroutine read_general(io_loc,gen_loc)
 !     gen_loc%smethod = sm_cmu
 !   else  
 !     call error("The requested smearing method is not implemented",name,.true.,io_loc)
-!   endif
-! 
-! !comm_gen BondType & Harrison, GSP &Harrison& bond type\\
-!   saux=get_string(io_loc,"BondType","Harrison")
-!   write( io_loc%uout,'(a,a)')"bond type (BondType): "&
-!     ,trim(saux)
-!   if (cstr(trim(saux),'Harrison')) then
-!     gen_loc%bond = bond_harrison
-!   elseif (cstr(trim(saux),'MP')) then
-!     gen_loc%bond = bond_gsp
-!   else  
-!     call error("The requested bond type is not implemented",name,.true.,io_loc)
-!   endif
+!   endif!
 
 end subroutine read_general
 
@@ -677,9 +698,11 @@ end subroutine close_io_general
 !> VelocitiesData block allows to specify initial velocties for atoms. Not all the atoms have to be present.
 !> The missing ones have the velocities initialized with zero. Each atom has a line\n
 !> <1> the id of the atom (integer) \n 
-!> <2-4> the carteasian componets of the velocity (reals) \n
+!> <2-4> the carteasian components of the velocity (reals) \n
 !> AcceptorAtoms and DonorAtoms blocks specify which atoms belong to the acceptor and which to the donor.
-!> The rest of the atoms are considered to be part of the spacer. Each block waits for a line with a list of atoms in between the \c block \c endblock. \c Ndonor and \c NAcceptor specify how many atoms to be expected in each list
+!> The rest of the atoms are considered to be part of the spacer. Each block waits for a line with a
+!> list of atoms in between the \c block \c endblock. \c Ndonor and \c NAcceptor specify how many atoms to be
+!> expected in each list
 !>\verbatim
 !> NDonor 1
 !> block DonorAtoms
@@ -928,20 +951,20 @@ end subroutine close_io_general
     integer :: i
 
     write(io%uout,'(a)')  "=StartAtomsData==============================================================================="
-    write(io%uout,'(a)')  "      Id Symbol               X               Y               Z            Bias IsSCF IsMoving"
+    write(io%uout,'(a)')  "      Id  Sp El               X               Y               Z            Bias IsSCF IsMoving"
     write(io%uout,'(a)')"----------------------------------------------------------------------------------------------"
     do i=1,atomix%atoms%natoms
-      write(io%uout,'(i8,3x,a4,4f16.8,5x,l1,8x,l1)')atomix%atoms%id(i),symbol(get_Z(atomix,i)),&
+          write(io%uout,'(i8,i4,1x,a2,4f16.8,5x,l1,8x,l1)')atomix%atoms%id(i),atomix%atoms%sp(i),symbol(get_Z(atomix,i)),&
               atomix%atoms%x(i),atomix%atoms%y(i),atomix%atoms%z(i),atomix%atoms%bias(i),&
               atomix%atoms%isscf(i),atomix%atoms%ismoving(i)
     enddo
     write(io%uout,'(a)')   "=EndAtomsData================================================================================="
     if (general%read_velocity) then
       write(io%uout,'(a)')  "=StartVelocitiesData==========================================="
-      write(io%uout,'(a)')  "      Id Symbol              VX              VY              VZ"
+      write(io%uout,'(a)')  "      Id  Sp El              VX              VY              VZ"
       write(io%uout,'(a)')  "---------------------------------------------------------------"
       do i=1,atomix%atoms%natoms
-        write(io%uout,'(i8,3x,a4,3f16.8,5x)')atomix%atoms%id(i),symbol(get_Z(atomix,i)),&
+            write(io%uout,'(i8,i4,1x,a2,3f16.8,5x)')atomix%atoms%id(i),atomix%atoms%sp(i),symbol(get_Z(atomix,i)),&
               atomix%atoms%vx(i),atomix%atoms%vy(i),atomix%atoms%vz(i)
       enddo
       write(io%uout,'(a)')  "=EndVelocitiesData============================================="
@@ -991,24 +1014,6 @@ end subroutine close_io_general
     write(io%uout,'(a)')"=EndLists============================================="
   end subroutine print_atoms
 
-
-
-!> \brief returns the index at which the info about specie sp is stored
-!> \author Alin M Elena
-!> \date 30th of October 2007
-!> \param atomic type(atomicx_type) data about atoms
-!> \param sp integer the id of a specie
-  integer function get_index(atomic,sp)
-    character(len=*), parameter :: sMyName="get_index"
-    type(atomicx_type), intent(in) :: atomic
-    integer, intent(in) :: sp
-    integer :: i
-    do i=1,atomic%species%nspecies
-      if (sp==atomic%species%id(i)) exit
-    enddo
-    get_index=i
-  end function get_index
-
 !> \brief returns the atomic no Z
 !> \author Alin M Elena
 !> \date 30th of October 2007
@@ -1019,7 +1024,7 @@ end subroutine close_io_general
     type(atomicx_type), intent(in) :: atomic
     integer, intent(in) :: atom
 
-    get_Z=atomic%species%z(get_index(atomic,get_specie(atomic,atom)))
+    get_Z=atomic%species%z(get_specie(atomic,atom))
   end function get_Z
 
 !> \brief returns the id of the specie of an atom
@@ -1060,13 +1065,15 @@ end subroutine close_io_general
 !> <4-5> U J (reals) U,J for the SCF calculation \n
 !> <6> the screening factor for tha electrostatic interaction if the option is chosen. \n
 !> \f[ V_I=\frac{e^2}{4\pi\epsilon_0}\cfrac{q_J}{\sqrt{r_{IJ}^2+\left ( \cfrac{1}{U_I}+\cfrac{1}{U_J}\right )^2}} \f]
+
   subroutine read_species(io,general,specs)
     character(len=*), parameter :: sMyName="read_species"
     type(io_type), intent(inout) :: io
     type(general_type), intent(in)  :: general
     type(species_type), intent(inout) :: specs
     !internal variables
-    integer :: nt,i,errno
+    integer :: nt,i,errno,sp
+    character(len=ml) :: saux
 
     specs%nspecies=get_integer(io,"NumberOfSpecies",-1)
     if (specs%nspecies <= 0) then
@@ -1082,10 +1089,17 @@ end subroutine close_io_general
     allocate(specs%jlocal(1:specs%nspecies))
     allocate(specs%uinter(1:specs%nspecies))
     allocate(specs%norbs(1:specs%nspecies))
-      specs%norbs=0
+    specs%norbs=0
+    specs%zval=0
     if (get_block(io,"SpeciesData",nt)) then
       do i = 1, specs%nspecies
-        read(nt,fmt=*,iostat=errno) specs%id(i),specs%z(i),specs%mass(i),specs%ulocal(i),specs%jlocal(i),specs%uinter(i)
+        read(nt,fmt=*,iostat=errno) sp,specs%z(i),specs%mass(i),specs%ulocal(i),specs%jlocal(i),specs%uinter(i)
+        specs%id(i)=i
+        if (sp/=i) then
+          write(saux,'(a,i0,a,i0,a,i0)')"the id of the specie differs from the one expected by convention found ",&
+            sp," expected ",i," will make it ",i
+          call error(trim(saux),sMyName,.false.,io)
+        endif
         if (errno/=0) then
           call error("block SpeciesData is not in the right format",sMyName,.true.,io)
         endif
@@ -1176,10 +1190,13 @@ end subroutine print_species
 
     integer :: i,j,nt,errno,sp, norbitals
     character(len=ml) :: saux
-    integer :: n,l,m,lmax=0,k
+    integer :: n,l,m,k
     real(pr) :: qu,qd
+    integer, allocatable :: tmpid(:)
 
     allocate(atomix%species_basis(1:atomix%species%nspecies,1:gen%max_orbitals_per_atom))
+    allocate(tmpid(1:atomix%species%nspecies))
+    tmpid=0
     if (get_block(io,"Basis",nt)) then
       do i = 1,atomix%species%nspecies
         read(nt,fmt=*,iostat=errno) sp, norbitals
@@ -1191,6 +1208,11 @@ end subroutine print_species
           write(saux,'(a,i0)')"undefined specie ",sp
           call error(trim(saux),sMyName,.true.,io)
         endif
+        if(isInList(sp,tmpid)) then
+          write(saux,'(a,i0)')"specie basis already specified ",sp
+          call error(trim(saux),sMyName,.true.,io)
+        endif
+        tmpid(i)=sp
         if (gen%spin) then
           atomix%species%norbs(i)=2*norbitals
         else
@@ -1201,13 +1223,11 @@ end subroutine print_species
           call error(trim(saux),sMyName,.true.,io)
         endif
         do j=1,norbitals
-          
           read(nt,fmt=*,iostat=errno) n,l,m,qd,qu
           if (errno/=0) then
             write(saux,'(a,i0,a,i0)')"error reading orbital ",j, " specie ",sp
             call error(trim(saux),sMyName,.true.,io)
           endif
-          if (lmax<l) lmax=l
           if (gen%spin) then
 ! spin down
             atomix%species_basis(i,j)%sp = sp
@@ -1245,7 +1265,7 @@ end subroutine print_species
     allocate(atomix%atoms%orbs(1:atomix%atoms%natoms,1:k))
     atomix%basis%norbitals = 0
     do i=1,atomix%atoms%natoms
-      atomix%basis%norbitals = atomix%basis%norbitals + atomix%species%norbs(get_index(atomix,atomix%atoms%sp(i)))
+      atomix%basis%norbitals = atomix%basis%norbitals + atomix%species%norbs(atomix%atoms%sp(i))
     enddo
     allocate(atomix%basis%orbitals(1:atomix%basis%norbitals))
 !     ! build the basis
@@ -1253,7 +1273,7 @@ end subroutine print_species
      if (gen%spin) then
         ! spin down
         do i=1,atomix%atoms%natoms
-          sp=get_index(atomix,atomix%atoms%sp(i))
+          sp=atomix%atoms%sp(i)
           atomix%atoms%norbs(i)=atomix%species%norbs(sp)
           do j=1,atomix%species%norbs(sp)
             if (.not.atomix%species_basis(sp,j)%spin) then
@@ -1267,7 +1287,7 @@ end subroutine print_species
         enddo
 !spin up
         do i=1,atomix%atoms%natoms
-          sp=get_index(atomix,atomix%atoms%sp(i))
+          sp=atomix%atoms%sp(i)
           atomix%atoms%norbs(i)=atomix%species%norbs(sp)
           do j=1,atomix%species%norbs(sp)
             if (atomix%species_basis(sp,j)%spin) then
@@ -1281,7 +1301,7 @@ end subroutine print_species
         enddo
       else
         do i=1,atomix%atoms%natoms
-          sp=get_index(atomix,atomix%atoms%sp(i))
+          sp=atomix%atoms%sp(i)
           atomix%atoms%norbs(i)=atomix%species%norbs(sp)
           do j=1,atomix%species%norbs(sp)
               k = k + 1
@@ -1295,7 +1315,7 @@ end subroutine print_species
     else
       call error("Basis block not found",sMyName,.true.,io)
     endif
-    
+    deallocate(tmpid)
 end subroutine read_basis
 
 !> \brief prints the basis set information
@@ -1317,7 +1337,6 @@ end subroutine read_basis
     write(io%uout,'(a)')"  #Orb  Sp El  N  L  M Spin Occupation"
     do i=1,atomix%species%nspecies
       sp=atomix%species%id(i)
-      
       do j=1,atomix%species%norbs(i)
         if (gen%spin) then
           if (atomix%species_basis(i,j)%spin) then
@@ -1326,8 +1345,8 @@ end subroutine read_basis
             spin="D"
           endif
         endif
-          write(io%uout,'(i6,i4,1x,a,3i3,4x,a,1x,f0.8)')j,atomix%species_basis(i,j)%sp,&
-              symbol(atomix%species%z(get_index(atomix,atomix%species_basis(i,j)%sp))),&
+        write(io%uout,'(i6,i4,1x,a,3i3,4x,a,1x,f0.8)')j,atomix%species_basis(i,j)%sp,&
+              symbol(atomix%species%z(atomix%species_basis(i,j)%sp)),&
             atomix%species_basis(i,j)%n,atomix%species_basis(i,j)%l,atomix%species_basis(i,j)%m,&
                 spin,atomix%species_basis(i,j)%occup
       enddo
@@ -1351,17 +1370,590 @@ end subroutine read_basis
     write(io%uout,'(a)')"==End Listed by atoms========================"
     write(io%uout,'(a)')"==EndBasisSetInfo================================"
   end subroutine print_basis
-      
+
+
+!> \brief selects the initialization routine for the tight binding model
+!> \author Alin M Elena
+!> \date 31/10/07, 15:07:56
+!> \param io type(io_type) contains all the info about I/O files
+!> \param gen type(general_type) contains the info needed by the program to run
+!> \param atomix type(atomic_type) contains all info about the atoms and basis set and some parameters
+!> \param tbMod type(model_type) contains iformation about the tight binding model parameters
+  subroutine read_tb_model(io,gen,atomix,tbMod)
+    character(len=*), parameter :: sMyName="read_tb_model"
+    type(io_type), intent(inout) :: io
+    type(general_type), intent(inout) :: gen
+    type(atomicx_type), intent(inout) :: atomix
+    type(model_type), intent(inout) :: tbMod
+
+    integer :: i,j,k,k1,k2
+
+    allocate(tbMod%hopping(1:atomix%species%nspecies,1:atomix%species%nspecies))
+
+    do i=1,atomix%species%nspecies
+      do j=1,atomix%species%nspecies
+        tbMod%hopping(i,j)%l1=atomix%species_basis(i,1)%l
+        do k=2,atomix%species%norbs(i)
+          if (tbMod%hopping(i,j)%l1 < atomix%species_basis(i,k)%l) then
+            tbMod%hopping(i,j)%l1 = atomix%species_basis(i,k)%l
+          endif
+        enddo
+
+        tbMod%hopping(i,j)%l2=atomix%species_basis(j,1)%l
+        do k=2,atomix%species%norbs(j)
+          if (tbMod%hopping(i,j)%l2<atomix%species_basis(j,k)%l) then
+            tbMod%hopping(i,j)%l2=atomix%species_basis(j,k)%l
+          endif
+        enddo
+
+        tbMod%hopping(i,j)%ll=min(tbMod%hopping(i,j)%l1,tbMod%hopping(i,j)%l2)
+        allocate(tbMod%hopping(i,j)%a(0:tbMod%hopping(i,j)%l1,0:tbMod%hopping(i,j)%l2,0:tbMod%hopping(i,j)%ll))
+        allocate(tbMod%hopping(i,j)%eps(0:atomix%species%norbs(i)-1))
+
+      enddo
+    enddo
+
+    do i=1,atomix%species%nspecies
+      do j=1,atomix%species%nspecies
+        tbMod%hopping(i,j)%eps=0.0_pr
+        tbMod%hopping(i,j)%a1=0.0_pr
+        tbMod%hopping(i,j)%a2=0.0_pr
+        tbMod%hopping(i,j)%a3=0.0_pr
+        tbMod%hopping(i,j)%a4=0.0_pr
+        tbMod%hopping(i,j)%phi0=0.0_pr
+        tbMod%hopping(i,j)%r0=0.0_pr
+        tbMod%hopping(i,j)%rc=0.0_pr
+        tbMod%hopping(i,j)%r1=0.0_pr
+        tbMod%hopping(i,j)%rcut=0.0_pr
+        tbMod%hopping(i,j)%n=0.0_pr
+        tbMod%hopping(i,j)%nc=0.0_pr
+        tbMod%hopping(i,j)%d0=0.0_pr
+        tbMod%hopping(i,j)%dc=0.0_pr
+        tbMod%hopping(i,j)%d1=0.0_pr
+        tbMod%hopping(i,j)%dcut=0.0_pr
+        tbMod%hopping(i,j)%m=0.0_pr
+        tbMod%hopping(i,j)%mc=0.0_pr
+        tbMod%hopping(i,j)%a=0.0_pr
+      enddo
+    enddo
+    select case (gen%bond)
+      case (bond_gsp)
+        call read_tb_gsp(io,gen,atomix,tbMod)
+        call print_tb_gsp(io,gen,atomix,tbMod)
+      case (bond_harrison)
+        call read_tb_harrison(io,gen,atomix,tbMod)
+        call print_tb_harrison(io,gen,atomix,tbMod)
+    end select  
+
+  end subroutine read_tb_model
+
+
+!> \brief selects the initialization routine for the Goodwin-Skinner-Petifor tight binding model
+!> \author Alin M Elena
+!> \date 31/10/07, 15:15:15
+!> \param io type(io_type) contains all the info about I/O files
+!> \param gen type(general_type) contains the info needed by the program to run
+!> \param atomix type(atomic_type) contains all info about the atoms and basis set and some parameters
+!> \param tbMod type(model_type) contains iformation about the tight binding model parameters
+!> \remarks Using tight binding model as described in: \n
+!> A.P. Horsfield,P.D. Godwin,D.G. Pettifor,A.P. Sutton \n
+!> Computational materials synthesis. I. A tight-binding scheme for hydrocarbons - Phys. Rev. B 54, 22, 15 773
+
+  subroutine read_tb_gsp(io,gen,atomix,tbMod)
+    character(len=*), parameter :: sMyName="read_tb_gsp"
+    type(io_type), intent(inout) :: io
+    type(general_type), intent(inout) :: gen
+    type(atomicx_type), intent(inout) :: atomix
+    type(model_type), intent(inout) :: tbMod
+    integer :: i,j,i1,k,k1,k2,p
+    character(len=mw) :: read_var
+
+    do i=1,atomix%species%nspecies
+      do j=1,atomix%species%nspecies
+        if (i == j) then
+          if (gen%spin) then
+            i1=0
+            p=0
+            do while (i1<=atomix%species%norbs(i)/2-1)
+              read_var="eps"
+              read_var=trim(ccvar(i,i,read_var))
+              tbMod%hopping(i,j)%eps(i1:i1+2*p)=get_real(io,trim(ccvar(i1,i1,read_var)),0.0_pr)
+              tbMod%hopping(i,j)%eps(i1+atomix%species%norbs(i)/2:i1+atomix%species%norbs(i)/2+2*p)=tbMod%hopping(i,j)%eps(i1)
+              i1=i1+2*p+1
+              p=p+1
+            enddo
+          else
+            i1=0
+            p=0
+            do while (i1<=atomix%species%norbs(i)-1)
+              read_var="eps"
+              read_var=trim(ccvar(i,i,read_var))
+              tbMod%hopping(i,j)%eps(i1:i1+2*p)=get_real(io,trim(ccvar(i1,i1,read_var)),0.0_pr)
+              i1=i1+2*p+1
+              p=p+1
+            enddo
+          endif
+          if (gen%embedding) then
+            read_var="a1"
+            tbMod%hopping(i,j)%a1=get_real(io,trim(ccvar(i,j,read_var)),0.0_pr)
+            read_var="a2"
+            tbMod%hopping(i,j)%a2=get_real(io,trim(ccvar(i,j,read_var)),0.0_pr)
+            read_var="a3"
+            tbMod%hopping(i,j)%a3=get_real(io,trim(ccvar(i,j,read_var)),0.0_pr)
+            read_var="a4"
+            tbMod%hopping(i,j)%a4=get_real(io,trim(ccvar(i,j,read_var)),0.0_pr)
+          endif
+        endif
+        read_var="phi0"
+        tbMod%hopping(i,j)%phi0=get_real(io,trim(ccvar(i,j,read_var)),0.0_pr)
+        read_var="r0"
+        tbMod%hopping(i,j)%r0=get_real(io,trim(ccvar(i,j,read_var)),0.0_pr)
+        read_var="rc"
+        tbMod%hopping(i,j)%rc=get_real(io,trim(ccvar(i,j,read_var)),0.0_pr)
+        read_var="r1"
+        tbMod%hopping(i,j)%r1=get_real(io,trim(ccvar(i,j,read_var)),0.0_pr)
+        read_var="rcut"
+        tbMod%hopping(i,j)%rcut=get_real(io,trim(ccvar(i,j,read_var)),0.0_pr)
+        read_var="n"
+        tbMod%hopping(i,j)%n=get_real(io,trim(ccvar(i,j,read_var)),0.0_pr)
+        read_var="nc"
+        tbMod%hopping(i,j)%nc=get_real(io,trim(ccvar(i,j,read_var)),0.0_pr)
+        read_var="d0"
+        tbMod%hopping(i,j)%d0=get_real(io,trim(ccvar(i,j,read_var)),0.0_pr)
+        read_var="dc"
+        tbMod%hopping(i,j)%dc=get_real(io,trim(ccvar(i,j,read_var)),0.0_pr)
+        read_var="d1"
+        tbMod%hopping(i,j)%d1=get_real(io,trim(ccvar(i,j,read_var)),0.0_pr)
+        read_var="dcut"
+        tbMod%hopping(i,j)%dcut=get_real(io,trim(ccvar(i,j,read_var)),0.0_pr)
+        read_var="m"
+        tbMod%hopping(i,j)%m=get_real(io,trim(ccvar(i,j,read_var)),0.0_pr)
+        read_var="mc"
+        tbMod%hopping(i,j)%mc=get_real(io,trim(ccvar(i,j,read_var)),0.0_pr)
+        do k=0,tbMod%hopping(i,j)%l1
+          do k1=k,tbMod%hopping(i,j)%l2
+            do k2=0,k
+              tbMod%hopping(i,j)%a(k,k1,k2)=get_real(io,trim(ccnlm(i,j,k,k1,k2)),0.0_pr)
+            enddo
+          enddo
+        enddo
+      enddo
+    enddo
+
+    do i=1,atomix%species%nspecies
+      do j=1,atomix%species%nspecies
+        do k=0,tbMod%hopping(i,j)%l1
+          do k1=0,tbMod%hopping(i,j)%l2
+            do k2=0,min(k,k1)
+              if (k>k1) then
+                tbMod%hopping(i,j)%a(k,k1,k2)=(-1.0_pr)**((k-k1+abs(k-k1))/2.0_pr)*tbMod%hopping(j,i)%a(k1,k,k2)
+              endif
+            enddo
+          enddo
+        enddo
+      enddo
+    enddo
+
+  end subroutine read_tb_gsp
+
+
+
+!> \brief prints the parameters of the gsp model that will be used 
+!> \author Alin M Elena
+!> \date 31/10/07, 16:55:21
+!> \param io type(io_type) contains all the info about I/O files
+!> \param gen type(general_type) contains the info needed by the program to run
+!> \param atomix type(atomic_type) contains all info about the atoms and basis set and some parameters
+!> \param tbMod type(model_type) contains iformation about the tight binding model parameters
+  subroutine print_tb_gsp(io,gen,atomix,tbMod)
+    character(len=*), parameter :: sMyName="print_tb_gsp"
+    type(io_type), intent(inout) :: io
+    type(general_type), intent(inout) :: gen
+    type(atomicx_type), intent(inout) :: atomix
+    type(model_type), intent(inout) :: tbMod
+    integer :: i,j,i1,k,k1,k2
+    character(len=mw) :: read_var
+
+    write(io%uout,'(a)')"==GSP Model======================================="
+    write(io%uout,*) &
+        "Using tight binding model as described in:"
+    write(io%uout,*) &
+        "A.P. Horsfield,P.D. Godwin,D.G. Pettifor,A.P. Sutton"
+    write(io%uout,*) &
+        "Computational materials synthesis. I. A tight-binding scheme"
+    write(io%uout,*) &
+        "for hydrocarbons - Phys. Rev. B 54, 22, 15 773"
+    write(io%uout,'(a)')"===================================================="
+
+    do i=1,atomix%species%nspecies
+      do j=1,atomix%species%nspecies
+        write(io%uout,'(a,2i2)')"# Species",i,j
+        if (i.eq.j) then
+          do i1=0,atomix%species%norbs(i)-1
+            read_var="eps"
+            read_var=trim(ccvar(i,i,read_var))
+            write(io%uout,*) trim(ccvar(i1,i1,read_var)),tbMod%hopping(i,j)%eps(i1)
+          enddo
+          if (gen%embedding) then
+            read_var="a1"
+            write(io%uout,*) &
+              trim(ccvar(i,j,read_var)), tbMod%hopping(i,j)%a1
+            read_var="a2"
+            write(io%uout,*) &
+              trim(ccvar(i,j,read_var)), tbMod%hopping(i,j)%a2
+            read_var="a3"
+            write(io%uout,*) &
+              trim(ccvar(i,j,read_var)), tbMod%hopping(i,j)%a3
+            read_var="a4"
+            write(io%uout,*) &
+              trim(ccvar(i,j,read_var)), tbMod%hopping(i,j)%a4
+          endif
+        endif
+        read_var="phi0"
+        write(io%uout,*) &
+          trim(ccvar(i,j,read_var)), tbMod%hopping(i,j)%phi0
+        read_var="r0"
+        write(io%uout,*) &
+          trim(ccvar(i,j,read_var)), tbMod%hopping(i,j)%r0
+        read_var="rc"
+        write(io%uout,*) &
+          trim(ccvar(i,j,read_var)), tbMod%hopping(i,j)%rc
+        read_var="r1"
+        write(io%uout,*) &
+          trim(ccvar(i,j,read_var)), tbMod%hopping(i,j)%r1
+        read_var="rcut"
+        write(io%uout,*) &
+          trim(ccvar(i,j,read_var)), tbMod%hopping(i,j)%rcut
+        read_var="n"
+        write(io%uout,*) &
+          trim(ccvar(i,j,read_var)), tbMod%hopping(i,j)%n
+        read_var="nc"
+        write(io%uout,*) &
+          trim(ccvar(i,j,read_var)),  tbMod%hopping(i,j)%nc
+        read_var="d0"
+        write(io%uout,*) &
+          trim(ccvar(i,j,read_var)), tbMod%hopping(i,j)%d0
+        read_var="dc"
+        write(io%uout,*) &
+          trim(ccvar(i,j,read_var)), tbMod%hopping(i,j)%dc
+        read_var="d1"
+        write(io%uout,*) &
+          trim(ccvar(i,j,read_var)),tbMod%hopping(i,j)%d1
+        read_var="dcut"
+        write(io%uout,*) &
+          trim(ccvar(i,j,read_var)), tbMod%hopping(i,j)%dcut
+        read_var="m"
+        write(io%uout,*) &
+          trim(ccvar(i,j,read_var)),  tbMod%hopping(i,j)%m
+        read_var="mc"
+        write(io%uout,*) &
+          trim(ccvar(i,j,read_var)),tbMod%hopping(i,j)%mc
+        do k=0,tbMod%hopping(i,j)%l1
+          do k1=0,tbMod%hopping(i,j)%l2
+            do k2=0,min(k,k1)
+              write(io%uout,*) &
+              trim(ccnlm(i,j,k,k1,k2)),tbMod%hopping(i,j)%a(k,k1,k2)
+            enddo
+          enddo
+        enddo
+      enddo
+    enddo
+    write(io%uout,*) &
+      "========================Finish========================="
+
+
+end subroutine print_tb_gsp
+
+ 
+
+!> \brief selects the initialization routine for the Harrison tight binding model
+!> \author Alin M Elena
+!> \date 31/10/07, 15:16:15
+!> \param io type(io_type) contains all the info about I/O files
+!> \param gen type(general_type) contains the info needed by the program to run
+!> \param atomix type(atomic_type) contains all info about the atoms and basis set and some parameters
+!> \param tbMod type(model_type) contains iformation about the tight binding model parameters
+
+  subroutine read_tb_harrison(io,gen,atomix,tbMod)
+    character(len=*), parameter :: sMyName="read_tb_harrison"
+    type(io_type), intent(inout) :: io
+    type(general_type), intent(inout) :: gen
+    type(atomicx_type), intent(inout) :: atomix
+    type(model_type), intent(inout) :: tbMod
+
+    integer i,j,i1,k,k1,k2,p
+    character(len=mw) :: read_var
+    
+    do i=1,atomix%species%nspecies
+      do j=1,atomix%species%nspecies
+        if (i==j) then
+          if (gen%spin) then
+            i1=0
+            p=0
+            do while (i1<=atomix%species%norbs(i)/2-1)
+              read_var="eps"
+              read_var=trim(ccvar(i,i,read_var))
+              tbMod%hopping(i,j)%eps(i1:i1+2*p)=get_real(io,trim(ccvar(i1,i1,read_var)),0.0_pr)
+              tbMod%hopping(i,j)%eps(i1+atomix%species%norbs(i)/2:i1+atomix%species%norbs(i)/2+2*p)=tbMod%hopping(i,j)%eps(i1)
+              i1=i1+2*p+1
+              p=p+1
+            enddo
+          else
+            i1=0
+            p=0
+            do while (i1<=atomix%species%norbs(i)/2-1)
+              read_var="eps"
+              read_var=trim(ccvar(i,i,read_var))
+              tbMod%hopping(i,j)%eps(i1:i1+2*p)=get_real(io,trim(ccvar(i1,i1,read_var)),0.0_pr)
+              i1=i1+2*p+1
+              p=p+1
+            enddo
+          endif
+          if (gen%embedding) then
+            read_var="a1"
+            tbMod%hopping(i,j)%a1=get_real(io,trim(ccvar(i,j,read_var)),0.0_pr)
+            read_var="a2"
+            tbMod%hopping(i,j)%a2=get_real(io,trim(ccvar(i,j,read_var)),0.0_pr)
+            read_var="a3"
+            tbMod%hopping(i,j)%a3=get_real(io,trim(ccvar(i,j,read_var)),0.0_pr)
+            read_var="a4"
+            tbMod%hopping(i,j)%a4=get_real(io,trim(ccvar(i,j,read_var)),0.0_pr)
+          endif
+        endif
+
+        read_var="phi0"
+        tbMod%hopping(i,j)%phi0=get_real(io,trim(ccvar(i,j,read_var)),0.0_pr)
+        read_var="r1"
+        tbMod%hopping(i,j)%r1=get_real(io,trim(ccvar(i,j,read_var)),0.0_pr)
+        read_var="rcut"
+        tbMod%hopping(i,j)%rcut=get_real(io,trim(ccvar(i,j,read_var)),0.0_pr)
+        read_var="n"
+        tbMod%hopping(i,j)%n=get_real(io,trim(ccvar(i,j,read_var)),0.0_pr)
+        read_var="d1"
+        tbMod%hopping(i,j)%d1=get_real(io,trim(ccvar(i,j,read_var)),0.0_pr)
+        read_var="dcut"
+        tbMod%hopping(i,j)%dcut=get_real(io,trim(ccvar(i,j,read_var)),0.0_pr)
+        read_var="m"
+        tbMod%hopping(i,j)%m=get_real(io,trim(ccvar(i,j,read_var)),0.0_pr)
+
+        do k=0,tbMod%hopping(i,j)%l1
+          do k1=k,tbMod%hopping(i,j)%l2
+            do k2=0,k
+              tbMod%hopping(i,j)%a(k,k1,k2)=get_real(io,trim(ccnlm(i,j,k,k1,k2)),0.0_pr)
+            enddo
+          enddo
+        enddo
+      enddo
+    enddo
+
+
+    do i=1,atomix%species%nspecies
+      do j=1,atomix%species%nspecies
+        do k=0,tbMod%hopping(i,j)%l1
+          do k1=0,tbMod%hopping(i,j)%l2
+            do k2=0,min(k,k1)
+              if (k>k1) then
+                tbMod%hopping(i,j)%a(k,k1,k2)=(-1.0_pr)**((k-k1+abs(k-k1))/2.0_pr)*tbMod%hopping(j,i)%a(k1,k,k2)
+              endif
+            enddo
+          enddo
+        enddo
+      enddo
+    enddo
+
+  end subroutine read_tb_harrison
+
+!> \brief prints the initialization routine for the Harrison tight binding model
+!> \author Alin M Elena
+!> \date 31/10/07, 23:20:15
+!> \param io type(io_type) contains all the info about I/O files
+!> \param gen type(general_type) contains the info needed by the program to run
+!> \param atomix type(atomic_type) contains all info about the atoms and basis set and some parameters
+!> \param tbMod type(model_type) contains iformation about the tight binding model parameters
+
+  subroutine print_tb_harrison(io,gen,atomix,tbMod)
+    character(len=*), parameter :: sMyName="print_tb_harrison"
+    type(io_type), intent(inout) :: io
+    type(general_type), intent(inout) :: gen
+    type(atomicx_type), intent(inout) :: atomix
+    type(model_type), intent(inout) :: tbMod
+
+    integer i,j,i1,k,k1,k2,p
+    character(len=mw) :: read_var
+
+    write(io%uout,*)"==Harrison Parameters================================================"
+    write(io%uout,*) &
+        "Using Harrison type tight binding model "
+      do i=1,atomix%species%nspecies
+        do j=1,atomix%species%nspecies
+          write(io%uout,'(a,2i2)')"#",i,j
+          if (i==j) then
+            do i1=0,atomix%species%norbs(i)-1
+              read_var="eps"
+              read_var=trim(ccvar(i,i,read_var))
+              write(io%uout,*) trim(ccvar(i1,i1,read_var)),tbMod%hopping(i,j)%eps(i1)
+            enddo
+            if (gen%embedding) then
+              read_var="a1"
+              write(io%uout,*) &
+                trim(ccvar(i,j,read_var)), tbMod%hopping(i,j)%a1
+              read_var="a2"
+              write(io%uout,*) &
+                trim(ccvar(i,j,read_var)), tbMod%hopping(i,j)%a2
+              read_var="a3"
+              write(io%uout,*) &
+                trim(ccvar(i,j,read_var)), tbMod%hopping(i,j)%a3
+              read_var="a4"
+              write(io%uout,*) &
+                trim(ccvar(i,j,read_var)), tbMod%hopping(i,j)%a4
+            endif
+          endif
+          read_var="phi0"
+          write(io%uout,*) &
+            trim(ccvar(i,j,read_var)),tbMod%hopping(i,j)%phi0
+
+          read_var="r1"
+          write(io%uout,*) &
+            trim(ccvar(i,j,read_var)),tbMod%hopping(i,j)%r1
+          read_var="rcut"
+          write(io%uout,*) &
+              trim(ccvar(i,j,read_var)),tbMod%hopping(i,j)%rcut
+          read_var="n"
+          write(io%uout,*) &
+            trim(ccvar(i,j,read_var)),tbMod%hopping(i,j)%n
+          read_var="d1"
+          write(io%uout,*) &
+            trim(ccvar(i,j,read_var)),tbMod%hopping(i,j)%d1
+          read_var="dcut"
+          write(io%uout,*) &
+            trim(ccvar(i,j,read_var)),tbMod%hopping(i,j)%dcut
+          read_var="m"
+          write(io%uout,*) &
+            trim(ccvar(i,j,read_var)),tbMod%hopping(i,j)%m
+          do k=0,tbMod%hopping(i,j)%l1
+            do k1=0,tbMod%hopping(i,j)%l2
+              do k2=0,min(k,k1)
+                write(io%uout,*) &
+                trim(ccnlm(i,j,k,k1,k2)),tbMod%hopping(i,j)%a(k,k1,k2)
+              enddo
+            enddo
+          enddo
+        enddo
+      enddo
+
+      write(io%uout,*)"==End Harrison Parameters============================================"
+  end subroutine print_tb_harrison
+!> \brief reads the delta block
+!> \details the block is read only if multipoles electrostatics is asked for
+!> \author Alin M Elena
+!> \date 31/10/07, 17:52:20
+!> \param io type(io_type) contains all the info about I/O files
+!> \param gen type(general_type) contains the info needed by the program to run
+!> \param atomix type(atomic_type) contains all info about the atoms and basis set and some parameters
+!> \param tbMod type(model_type) contains iformation about the tight binding model parameters
+!> \remarks Note that: delta (l,l1,l2) with |l1-l2|<=l<=|l1+l2| \n
+!>  we read delta(l,l1,l2) \n
+!> the rules are that we read only l1<l2 if l1=l2 then we read only if l/=0 \n
+!> for each specie we have \n
+!>  we start with a line specifying the specie then first line is delta(1,0,1) second delta(2,1,1) (for a sp specie) \n
+!> if one specie has no element to be read it is mandatory to be present
+!> \verbatim
+!>      block DeltaPol
+!>      1
+!>      1.0
+!>      0.0
+!>      2
+!>      endblock DeltaPol
+!> \endverbatim
+  subroutine read_delta(io,gen,atomix,tbMod)
+    character(len=*), parameter :: sMyName="read_delta"
+    type(io_type), intent(inout) :: io
+    type(general_type), intent(inout) :: gen
+    type(atomicx_type), intent(inout) :: atomix
+    type(model_type), intent(inout) :: tbMod
+    integer :: nt,sp,j,i,k,l,errno
+    character(len=ml) :: saux
+    integer, allocatable :: tmpid(:)
+        
+    if (get_block(io,"DeltaPol",nt)) then
+      allocate(tbMod%delta(1:atomix%species%nspecies))
+      allocate(tmpid(1:atomix%species%nspecies))
+      tmpid=0
+      do i = 1,atomix%species%nspecies
+        read(nt,fmt=*,iostat=errno) sp
+        if (errno/=0) then
+          call error("Specie indicator missing, please fix it!(reading delta)",sMyName,.true.,io)
+        endif
+        if (.not. isInList(sp,atomix%species%id)) then
+          write(saux,"(a,i0)")"undefined specie: ",sp
+          call error(trim(saux),sMyName,.true.,io)
+        endif
+        if (isInList(sp,tmpid)) then
+          write(saux,"(a,i0)")"specie has been already read: ",sp
+          call error(trim(saux),sMyName,.true.,io)
+        endif
+        tmpid(i)=sp
+        tbMod%delta(i)%sp=sp
+        j=maxval(atomix%species_basis(tbMod%delta(i)%sp,1:atomix%species%norbs(tbMod%delta(i)%sp)/2)%l)
+        tbMod%delta(i)%l=j
+        allocate(tbMod%delta(i)%d(0:2*j,0:j,0:j))
+        tbMod%delta(i)%d=0.0_pr
+        do j=0,tbMod%delta(i)%l
+          do k=j,tbMod%delta(i)%l
+            do l=abs(j-k),j+k
+              if (mod(k+j+l,2)==0) then
+                if ((k==j).and.(l==0)) then
+                  tbMod%delta(i)%d(0,k,j)=1.0_pr
+                else
+                  read(nt,*,iostat=errno) tbMod%delta(i)%d(l,j,k)
+                  if (errno/=0) then
+                    write(saux,'(a,i0,a,3i0)')"Error reading delta for specie ",sp," indices: ",l,j,k
+                    call error(trim(saux),sMyName,.true.,io)
+                  endif
+                  tbMod%delta(i)%d(l,k,j)=tbMod%delta(i)%d(l,j,k)
+                endif
+              endif
+            enddo
+          enddo
+        enddo
+      enddo
+      write(io%uout,*) &
+        '==DeltaPol Block====================================================='
+      write(io%uout,*) "Note that: delta (l,l1,l2) with |l1-l2|<=l<=|l1+l2|"
+      do i = 1,atomix%species%nspecies
+        write(io%uout,'(a,i2)') "Species ",tbMod%delta(i)%sp
+        do j=0,tbMod%delta(i)%l
+          do k=j,tbMod%delta(i)%l
+            if (k==j) then
+              write(io%uout,'(100(a,3i3,a,f0.8))')(' delta(',l,j,k,') = ', tbMod%delta(i)%d(l,j,k),l=abs(j-k),abs(j+k))
+            else
+              write(io%uout,'(100(a,3i3,a,3i3,a,f14.8))')(' delta(',l,j,k,') = delta(',l,k,j,') = ', &
+                    tbMod%delta(i)%d(l,j,k),l=abs(j-k),abs(j+k))
+            endif
+          enddo
+        enddo
+      enddo
+      write(io%uout,*) &
+        '==End DeltaPol Block================================================='
+      else
+        call error("DeltaPol block is missing",sMyName,.true.,io)
+      endif
+  end subroutine read_delta
+
 !> \brief deallocates the memory
 !> \author Alin M Elena
 !> \date 29/10/07, 17:38:16
 !> \param atomic type(atomicx_type) contains atomic data
 !> \param general type(general_type) general data that controls the flow of the program
+!> \param tbMod type(model_type) contains iformation about the tight binding model parameters
 
-  subroutine clean_memory(atomic,general)
+  subroutine clean_memory(atomic,general,tbMod)
     character(len=*), parameter :: sMyName="clean_memory"
     type(atomicx_type), intent(inout) :: atomic
     type(general_type), intent(in) :: general
+    type(model_type),intent(in) :: tbMod
+
+    integer :: i,j
 
     deallocate(atomic%species%id)
     deallocate(atomic%species%mass)
@@ -1409,6 +2001,21 @@ end subroutine read_basis
     deallocate(atomic%species_basis)
     deallocate(atomic%basis%orbitals)
     deallocate(atomic%atoms%orbs)
+
+    do i=1,atomic%species%nspecies
+      do j=1,atomic%species%nspecies
+        deallocate(tbMod%hopping(i,j)%a)
+        deallocate(tbMod%hopping(i,j)%eps)
+      enddo
+    enddo
+    deallocate(tbMod%hopping)
+    if(general%electrostatics==electrostatics_multipoles) then
+      do i=1,atomic%species%nspecies
+        deallocate(tbMod%delta(i)%d)
+      enddo
+      deallocate(tbMod%delta)
+    endif
+  
     !internal variables
   end subroutine clean_memory
 end module read_data
