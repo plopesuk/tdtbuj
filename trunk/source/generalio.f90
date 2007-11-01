@@ -79,7 +79,7 @@ contains
     if (io_loc%debug>=medium_debug) call timing(io_loc,gen_loc%time,1)
     call read_general(io_loc,gen_loc)
     if (io_loc%debug>=medium_debug) call timing(io_loc,gen_loc%time,2)
-
+    call initialize_constants(gen_loc%units)
     if (io_loc%debug>=medium_debug) call timing(io_loc,gen_loc%time,1)
     call read_species(io_loc,gen_loc,atomic%species)
     if (io_loc%debug>=medium_debug) call timing(io_loc,gen_loc%time,2)
