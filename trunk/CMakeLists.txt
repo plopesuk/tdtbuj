@@ -1,10 +1,10 @@
-PROJECT(dinamo Fortran)
+PROJECT(tdtbuj Fortran)
 
 ##########################
 ###source files
 
 set(src_dir source)
-
+set(target_name tdtbuj.x)
 ##########################
 
 ######
@@ -62,6 +62,7 @@ ${src_dir}/useful.f90
 
 add_library(linalg 
 ${src_dir}/constants.f90
+${src_dir}/types.f90
 ${src_dir}/useful.f90
 ${src_dir}/linear_algebra.f90
 )
@@ -70,7 +71,9 @@ ${src_dir}/linear_algebra.f90
 
 #################
 ##### adds the main target
-add_executable(tbuj.x 
+add_executable(${target_name} 
+${src_dir}/constants.f90
+${src_dir}/types.f90
 ${src_dir}/generalio.f90
 ${src_dir}/main.f90
 )
@@ -79,7 +82,7 @@ ${src_dir}/main.f90
 ############
 ## sets the linking
 link_directories (${LIBRARY_OUTPUT_PATH})
-target_link_libraries(tbuj.x parser ${LIBS})
+target_link_libraries(${target_name} parser linalg ${LIBS})
 #################
 
 
@@ -99,11 +102,12 @@ set(CMAKE_INSTALL_PREFIX "${PREFIX}")
 endif(NOT ${PREFIX})
 
 
-install(TARGETS tbuj.x parser
+install(TARGETS ${target_name} parser linalg
             RUNTIME DESTINATION bin
-            LIBRARY DESTINATION lib/tbuj.x
-	    ARCHIVE DESTINATION lib/tbuj.x
+            LIBRARY DESTINATION lib/${target_name}
+	    ARCHIVE DESTINATION lib/${target_name}
 	)
+
 
 
 #######################
