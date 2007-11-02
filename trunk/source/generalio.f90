@@ -10,6 +10,7 @@ module read_data
   use parser
   use types
   use ISO_FORTRAN_ENV
+  use linear_algebra
 
 
   implicit none
@@ -317,10 +318,6 @@ subroutine read_general(io_loc,gen_loc)
     write( io_loc%uout,'(a,l1)')"spin polarisation(Spin): "&
       ,gen_loc%spin
 
-    gen_loc%scf=get_logical(io_loc,"SCF",.false.)
-    write( io_loc%uout,'(a,l1)')"Is SCF?(SCF): "&
-      ,gen_loc%scf
-
 !comm_gen Units & AU EV SI & AU & system of units: atomic units(AU), electronVolt-Angstrom(eVA), International(SI)\\
     saux=get_string(io_loc,"Units","AU")
     write( io_loc%uout,'(a,a)')"System of Units (Units): "&
@@ -364,13 +361,89 @@ subroutine read_general(io_loc,gen_loc)
     else
       call error("The requested Electrostatics type is not implemented",name,.true.,io_loc)
     endif
-! 
+
 !comm_gen PrecomputeMultipoles & logical & .true. & on/off precompute multipoles\\
     gen_loc%comp_elec=get_logical(io_loc,"PrecomputeMultipoles",.true.)
     write( io_loc%uout,'(a,l1)')"precompute multipoles(PrecomputeMultipoles): "&
       ,gen_loc%comp_elec
-! 
 
+    gen_loc%scf=get_logical(io_loc,"SCF",.false.)
+    write( io_loc%uout,'(a,l1)')"Is SCF?(SCF): "&
+      ,gen_loc%scf
+ !comm_gen SCFType & TB+UJ & TB+UJ & SCF method\\
+    saux=get_string(io_loc,"SCFType","TB+UJ")
+     write( io_loc%uout,'(a,a)')"SCF type(SCFType): "&
+       ,trim(saux)
+    if (cstr(trim(saux),'TB+UJ')) then
+       gen_loc%scf_type = scf_tbuj
+    else
+       call error("The requested SCFType is not implemented",name,.true.,io_loc)
+    endif
+
+ !comm_gen SCFSteps & integer & 100 & maximum number of steps used for scf\\
+    gen_loc%maxscf=get_integer(io_loc,"SCFSteps",100)
+    write( io_loc%uout,'(a,i0)')"SCF Maximum number of steps(SCFSteps): "&
+      ,gen_loc%maxscf
+  !comm_gen SCFMix & real & 0.85 & mixing parameter\\
+    gen_loc%scfmix=get_real(io_loc,"SCFMix",0.85_pr)
+    write( io_loc%uout,'(a,f0.8)')"SCF Mixing parameter(SCFMix): "&
+      ,gen_loc%scfmix
+
+  !comm_gen SCFMixType & Broyden, Pulay & Broyden & SCF mixing method\\
+    saux=get_string(io_loc,"SCFMixType","Broyden")
+    write( io_loc%uout,'(a,a)')"SCF Mixing type(SCFMixType): "&
+      ,trim(saux)
+    if (cstr(trim(saux),'Broyden')) then
+      gen_loc%scfmixtype = scfmix_broyden
+    elseif (cstr(trim(saux),'Pulay')) then
+      gen_loc%scfmixtype = scfmix_pulay
+    else
+      call error("The requested SCFMixType is not implemented",name,.true.,io_loc)
+    endif
+
+  !comm_gen SCFTol & real & 1e-8 & convergence tolerance\\
+    gen_loc%scftol=get_real(io_loc,"SCFTol",1.0e-8_pr)
+    write( io_loc%uout,'(a,ES12.4)')"SCF convergence tolerance(SCFTol): "&
+      ,gen_loc%scftol
+
+  !comm_gen SCFMixN & integer & 4 & number of iterations to mix\\
+    gen_loc%scfmixn=get_integer(io_loc,"SCFMixN",4)
+    write( io_loc%uout,'(a,i0)')"number of iterations to mix(SCFMixN): "&
+      ,gen_loc%scfmixn
+
+!comm_gen RunType & SinglePoint, BODynamics, Ehrenfest, EhrenfestDamped, Fit, ForceTest, ForceTestX,
+! ForceTestY, ForceTestZ & SinglePoint & Type of calculation\\
+    saux=get_string(io_loc,"RunType","SinglePoint")
+    write( io_loc%uout,'(a,a)')"Calculation type(RunType): "&
+      ,trim(saux)
+    if (cstr(trim(saux),'SinglePoint')) then
+      gen_loc%runtype = run_sp
+    elseif (cstr(trim(saux),'bodynamics')) then
+      gen_loc%runtype = run_bo
+    elseif (cstr(trim(saux),'ehrenfest')) then
+      gen_loc%runtype = run_ehrenfest
+    elseif (cstr(trim(saux),'fit')) then
+      gen_loc%runtype = run_fit
+    elseif (cstr(trim(saux),'forcetest')) then
+      gen_loc%runtype = run_force_test
+    elseif (cstr(trim(saux),'forcetestx')) then
+      gen_loc%runtype = run_force_testx
+    elseif (cstr(trim(saux),'forcetesty')) then
+      gen_loc%runtype = run_force_testy
+    elseif (cstr(trim(saux),'forcetestz')) then
+      gen_loc%runtype = run_force_testz
+    elseif (cstr(trim(saux),'ehrenfestdamped')) then
+      gen_loc%runtype = run_ehrenfest_damped
+    else
+      call error("The requested RunType is not implemented",name,.true.,io_loc)
+    endif
+
+
+
+
+
+
+          
 ! !comm_gen WriteAni & logical & .false. & on/off writing animation file \\
 !   gen_loc%write_ani=get_logical(io_loc,"WriteAni",.false.)
 !   write( io_loc%uout,'(a,l)')"Write animation(WriteAni): "&
@@ -422,75 +495,9 @@ subroutine read_general(io_loc,gen_loc)
 !   write( io_loc%uout,'(a,i0)')"Number of steps(Nsteps): "&
 !     ,gen_loc%nsteps
 ! 
-! !comm_gen RunType & SinglePoint, BODynamics, Ehrenfest, EhrenfestDamped, Fit, ForceTest, ForceTestX,
-!! ForceTestY, ForceTestZ & SinglePoint & Type of calculation\\
-!   saux=get_string(io_loc,"RunType","SinglePoint")
-!   write( io_loc%uout,'(a,a)')"Calculation type(RunType): "&
-!     ,trim(saux)
-!   if (cstr(trim(saux),'SinglePoint')) then
-!     gen_loc%runtype = run_sp
-!   elseif (cstr(trim(saux),'bodynamics')) then
-!     gen_loc%runtype = run_bo
-!   elseif (cstr(trim(saux),'ehrenfest')) then
-!     gen_loc%runtype = run_ehrenfest
-!   elseif (cstr(trim(saux),'fit')) then
-!     gen_loc%runtype = run_fit
-!   elseif (cstr(trim(saux),'forcetest')) then
-!     gen_loc%runtype = run_force_test
-!   elseif (cstr(trim(saux),'forcetestx')) then
-!     gen_loc%runtype = run_force_testx
-!   elseif (cstr(trim(saux),'forcetesty')) then
-!     gen_loc%runtype = run_force_testy
-!   elseif (cstr(trim(saux),'forcetestz')) then
-!     gen_loc%runtype = run_force_testz
-!   elseif (cstr(trim(saux),'ehrenfestdamped')) then
-!     gen_loc%runtype = run_ehrenfest_damped
-!   else 
-!     call error("The requested RunType is not implemented",name,.true.,io_loc)
-!   endif
 ! 
 
 ! 
-! !comm_gen SCFType & TB+UJ & TB+UJ & SCF method\\
-!   saux=get_string(io_loc,"SCFType","TB+UJ")
-!   write( io_loc%uout,'(a,a)')"SCF type(SCFType): "&
-!     ,trim(saux)
-!   if (cstr(trim(saux),'TB+UJ')) then
-!     gen_loc%scf_type = scf_tbuj
-!   else 
-!     call error("The requested SCFType is not implemented",name,.true.,io_loc)
-!   endif
-! 
-! !comm_gen SCFSteps & integer & 100 & maximum number of steps used for scf\\
-!   gen_loc%maxscf=get_integer(io_loc,"SCFSteps",100)
-!   write( io_loc%uout,'(a,i0)')"SCF Maximum number of steps(SCFSteps): "&
-!     ,gen_loc%maxscf
-! !comm_gen SCFMix & real & 0.85 & mixing parameter\\
-!   gen_loc%scfmix=get_real(io_loc,"SCFMix",0.85_pr)
-!   write( io_loc%uout,'(a,g)')"SCF Mixing parameter(SCFMix): "&
-!     ,gen_loc%scfmix
-! 
-! !comm_gen SCFMixType & Broyden, Pulay & Broyden & SCF mixing method\\
-!   saux=get_string(io_loc,"SCFMixType","Broyden")
-!   write( io_loc%uout,'(a,a)')"SCF Mixing type(SCFMixType): "&
-!     ,trim(saux)
-!   if (cstr(trim(saux),'Broyden')) then
-!     gen_loc%scfmixtype = scfmix_broyden
-!   elseif (cstr(trim(saux),'Pulay')) then
-!     gen_loc%scfmixtype = scfmix_pulay
-!   else  
-!     call error("The requested SCFMixType is not implemented",name,.true.,io_loc)
-!   endif
-! 
-! !comm_gen SCFTol & real & 1e-8 & convergence tolerance\\
-!   gen_loc%scftol=get_real(io_loc,"SCFTol",1.0e-8_pr)
-!   write( io_loc%uout,'(a,g)')"SCF convergence tolerance(SCFTol): "&
-!     ,gen_loc%scftol
-! 
-! !comm_gen SCFMixN & integer & 4 & number of iterations to mix\\
-!   gen_loc%scfmixn=get_integer(io_loc,"SCFMixN",4)
-!   write( io_loc%uout,'(a,i0)')"number of iterations to mix(SCFMixN): "&
-!     ,gen_loc%scfmixn
 ! 
 ! !comm_gen VelScale & logical & .false. & on/off scaling velocities\\
 !   gen_loc%velocity_scaling=get_logical(io_loc,"VelScale",.false.)
@@ -1946,12 +1953,16 @@ end subroutine print_tb_gsp
 !> \param atomic type(atomicx_type) contains atomic data
 !> \param general type(general_type) general data that controls the flow of the program
 !> \param tbMod type(model_type) contains iformation about the tight binding model parameters
+!> \param sol type(solution_type) contains information about the solution space
+!> \param io type(io_type) contains all the info about I/O files
 
-  subroutine clean_memory(atomic,general,tbMod)
+  subroutine clean_memory(io,atomic,general,tbMod,Sol)
     character(len=*), parameter :: sMyName="clean_memory"
+    type(io_type), intent(in) :: io
     type(atomicx_type), intent(inout) :: atomic
-    type(general_type), intent(in) :: general
-    type(model_type),intent(in) :: tbMod
+    type(general_type), intent(inout) :: general
+    type(model_type),intent(inout) :: tbMod
+    type(solution_type), intent(inout) :: sol
 
     integer :: i,j
 
@@ -2006,6 +2017,7 @@ end subroutine print_tb_gsp
       do j=1,atomic%species%nspecies
         deallocate(tbMod%hopping(i,j)%a)
         deallocate(tbMod%hopping(i,j)%eps)
+        deallocate(tbMod%hopping(i,j)%hmn_tail)
       enddo
     enddo
     deallocate(tbMod%hopping)
@@ -2015,7 +2027,18 @@ end subroutine print_tb_gsp
       enddo
       deallocate(tbMod%delta)
     endif
-  
-    !internal variables
+
+    call destroy_matrix(sol%h,io)
+    call destroy_matrix(sol%eigenvecs,io)
+    deallocate(sol%eigenvals)
+    if (general%spin) then
+      call destroy_matrix(sol%hdown,io)
+      call destroy_matrix(sol%hup,io)
+    endif
+    call destroy_matrix(sol%rho,io)
+    if ((general%scf).and.(general%scf_type==scf_tbuj)) then
+      deallocate(sol%gcoeff)
+      deallocate(sol%rgc)
+    endif
   end subroutine clean_memory
 end module read_data

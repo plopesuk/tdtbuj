@@ -75,6 +75,9 @@ add_executable(${target_name}
 ${src_dir}/constants.f90
 ${src_dir}/types.f90
 ${src_dir}/generalio.f90
+${src_dir}/tails.f90
+${src_dir}/tight_binding.f90
+${src_dir}/slater_koster.f90
 ${src_dir}/main.f90
 )
 ####################

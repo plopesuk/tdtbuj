@@ -51,14 +51,14 @@ character(len=mw) :: inp_err
 !   real(pr) :: netcharge
 !   real(pr) :: deltat
 !   integer  :: nsteps	
-!   integer  :: runtype
+    integer  :: runtype
     logical  :: scf
-!   integer  :: scf_type
-!   integer  :: maxscf
-!   real(pr) :: scfmix
-!   integer  :: scfmixtype
-!   real(pr) :: scftol
-!   integer  :: scfmixn
+    integer  :: scf_type
+    integer  :: maxscf
+    real(pr) :: scfmix
+    integer  :: scfmixtype
+    real(pr) :: scftol
+    integer  :: scfmixn
 !   logical  :: velocity_scaling
 !   real(pr) :: dm_occupation_tolerance
     integer  :: max_orbitals_per_atom
@@ -137,7 +137,7 @@ character(len=mw) :: inp_err
     real(pr), allocatable :: fxo(:), fyo(:), fzo(:) !< old cartesian forces
     real(pr), allocatable :: vxo(:), vyo(:), vzo(:) !< old cartesian velocities
     real(pr), allocatable :: bias(:) !< bias of the atoms
-integer(pr), allocatable :: norbs(:) !< no of orbitals of atom
+    integer(pr), allocatable :: norbs(:) !< no of orbitals of atom
     integer,  allocatable  :: orbs(:,:) !< orbitals, first index atom, second orbital
     real(pr) :: tdipx,tdipy,tdipz !< total dipole moment, cartesian components
     integer :: nacceptor !< no of atoms in acceptor
@@ -166,7 +166,7 @@ integer(pr), allocatable :: norbs(:) !< no of orbitals of atom
   end type species_type
 
 !> \brief atomic orbital data type
-  type, private :: orbital_type
+  type, public :: orbital_type
     integer :: atom,sp,n,l,m !< atom to which belongs and specie, quantum numbers n,l,m
     logical :: spin !< spin up or down up=.true. down=.false.
     real(pr) :: occup !< occupancy of the orbital
@@ -210,18 +210,14 @@ integer(pr), allocatable :: norbs(:) !< no of orbitals of atom
     real(pr) :: phi0,r0,rc,r1,rcut,n,nc,d0,dc,d1,dcut,m,mc
     real(pr), allocatable  :: eps(:)
     real(pr), allocatable :: a(:,:,:)
-    type(tail_parameters)  :: rep_tail, hmn_tail
+    type(tail_parameters)  :: rep_tail
+    type(tail_parameters),allocatable:: hmn_tail(:,:,:)
   end type hop_matrix
 
 !> \brief data type for tight-binding model
   type, public :: model_type
     type(delta_type), allocatable :: delta(:) !< delta params for each specie
-    type(hop_matrix), allocatable :: hopping(:,:)
-    real(pr),allocatable :: vlm(:,:,:,:,:,:)
-    real(pr), allocatable ::n0(:),hn0(:)
-    real(pr), allocatable :: gcoeff(:,:,:),rgc(:,:,:)
-    real(pr), allocatable :: fact(:)
-    type(qvs), allocatable :: delq(:), vs(:)
+    type(hop_matrix), allocatable :: hopping(:,:) !< hopping parameters
   end type model_type
 
 !> sqaure matrix type it may keep both dense and sparse matrices
@@ -241,4 +237,19 @@ integer(pr), allocatable :: norbs(:) !< no of orbitals of atom
     complex(kind=pr), allocatable :: v(:) !< keeps the data of the array
   end type vector
 
+  type,public :: solution_type
+    type(matrix) :: h !< total hamiltonian
+    type(matrix) :: hdown !< spin down hamiltonian
+    type(matrix) :: hup !< spin up hamiltonian
+    type(matrix) :: eigenvecs !< eigenvectors of h
+    real(pr), allocatable :: eigenvals(:) !< eigenvalues of h
+    real(pr), allocatable :: n0(:) !< n0 initial density matrix in vector representation
+    real(pr), allocatable :: hn0(:) !< hn0 initial hamiltonian in vector representation
+    real(pr), allocatable :: gcoeff(:,:,:) !< precomputed Gaunt Coefficients
+    real(pr), allocatable ::  rgc(:,:,:) !< precomputed real Gaunt coefficients
+    real(pr), allocatable :: fact(:) !< precomputed factorial values
+    type(matrix) :: rho !< density matrix
+    real(pr) :: electronic_entropy !< electronic entropy of the system
+!    type(qvs), allocatable :: delq(:), vs(:)
+  end type solution_type
 end module types

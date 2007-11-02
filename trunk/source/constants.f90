@@ -63,12 +63,12 @@ integer, parameter, public :: electrostatics_multipoles=2
    integer,parameter, public :: units_si=3
    integer,parameter, public :: units_ry=4
 !> units
-   
- 
+
+
  ! mathematics
   real(pr), parameter, public ::   pi = 3.14159265358979323846264338327950_pr !< \f$ \pi \f$
-  real(pr),parameter, public :: infinity = huge(1.0_pr) !< infinity
-  
+  real(pr), parameter, public :: infinity = huge(1.0_pr) !< infinity
+  real(pr), parameter, public :: zero=0.0_pr !< zero
 ! physics
   integer,parameter,public  :: max_orbitals_per_atom = 25
    real(pr),  public :: amu_to_internal !< atomic mass units to internal mass units
