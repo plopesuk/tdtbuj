@@ -9,17 +9,22 @@ program tbuj
   use types
   use read_data
   use useful, only : dateandtime
+  use TightBinding
   implicit none
 
 
   integer :: narguments
   character(len=mw) :: arg
+  character(len=10) :: dt
+  character(len=12) :: tm
+!
   type(io_type) :: io_info
   type(general_type) :: general
   type(atomicx_type) :: atomicx
   type(model_type) :: tb_model
-  character(len=10) :: dt
-  character(len=12) :: tm
+! solution spece variable
+  type(solution_type) :: SolSpace
+
 
   call dateandtime(dt,tm)
   narguments=iargc()
@@ -37,10 +42,11 @@ program tbuj
 
   call initialize(io_info,general,atomicx,tb_model)
 
-!!!!!! closes all the units associated with blocks and deallocated the trees for tokens and blocks
-  
+  call set_solution_space(io_info,general,atomicx,tb_model,SolSpace)
 
-  call clean_memory(atomicx,general,tb_model)
+
+!!!!!! closes all the units associated with blocks and deallocated the trees for tokens and blocks
+  call clean_memory(io_info,atomicx,general,tb_model,SolSpace)
   call cpu_time(general%time%end)
   write(io_info%uout,'(a,a,a,a)',advance="no")"Program has started at ",dt," ",tm
   call dateandtime(dt,tm)
