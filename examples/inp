@@ -1,0 +1,64 @@
+OutputFile output.out
+DebugFile  output.dbg
+OutputLevel 25
+DebugLevel  25
+OnScreen   No
+
+JobName test
+RanSeed 0.142
+Units  RY
+MaxOrbsPerAtom 10
+
+
+
+#RunType SinglePoint
+RunType BODynamics
+
+
+
+NetCharge 0.0
+VBias 1.0
+
+Spin Yes 
+CollinearSpins Yes
+Electrostatics PointCharges
+
+
+SmearingMethod           FD
+ElectronicTemperature    50.1
+
+SCF yes 
+MaxSCFIterations      1000
+SCFTolerance          0.000000000010
+SCFMixing             0.9500
+SCFMixIterations      4
+
+#Time evolution
+DeltaT 0.01
+Nsteps 100
+WriteAnimation Yes
+
+ScaleVelocities  Yes
+IonicTemperature 550.0
+
+BondType GSP
+Embedding No
+SymRefRho Yes
+Screened No 
+ReadVel No
+HElTres 1.0e-10
+
+###################
+block DeltaPol
+1
+0.1
+0.2
+2
+endblock DeltaPol
+###############
+
+include coords.dat
+include species.dat
+include basis.dat
+include gsp.dat
+

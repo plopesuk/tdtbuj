@@ -54,17 +54,17 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 ## adds user libs
 
 add_library(parser 
-${src_dir}/constants.f90
-${src_dir}/parser.f90
-${src_dir}/types.f90
-${src_dir}/useful.f90
+${src_dir}/Constants.f90
+${src_dir}/Parser.f90
+${src_dir}/Types.f90
+${src_dir}/Useful.f90
 )
 
 add_library(linalg 
-${src_dir}/constants.f90
-${src_dir}/types.f90
-${src_dir}/useful.f90
-${src_dir}/linear_algebra.f90
+${src_dir}/Constants.f90
+${src_dir}/Types.f90
+${src_dir}/Useful.f90
+${src_dir}/LinearAlgebra.f90
 )
 
 ####################
@@ -72,12 +72,21 @@ ${src_dir}/linear_algebra.f90
 #################
 ##### adds the main target
 add_executable(${target_name} 
-${src_dir}/constants.f90
-${src_dir}/types.f90
-${src_dir}/generalio.f90
-${src_dir}/tails.f90
-${src_dir}/tight_binding.f90
-${src_dir}/slater_koster.f90
+${src_dir}/Constants.f90
+${src_dir}/Types.f90
+${src_dir}/Useful.f90
+${src_dir}/Gutenberg.f90
+${src_dir}/ReadData.f90
+${src_dir}/TailFunctions.f90
+${src_dir}/TightBinding.f90
+${src_dir}/Electrostatics.f90
+${src_dir}/SlaterKoster.f90
+${src_dir}/DensityMatrix.f90
+${src_dir}/Hamiltonian.f90
+${src_dir}/Mixing.f90
+${src_dir}/SCF.f90
+${src_dir}/Dynamics.f90
+${src_dir}/DriverRoutines.f90
 ${src_dir}/main.f90
 )
 ####################
