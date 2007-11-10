@@ -1,9 +1,0 @@
-atoms 20 //111
-file ion
-debug .true.
-ions 43 #32
-temperature  904 !das
-block atoms 
-2.1 3.4 
-endblock atoms
-
