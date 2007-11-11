@@ -12,8 +12,8 @@ MaxOrbsPerAtom 10
 
 
 #RunType SinglePoint
-RunType BODynamics
-
+#RunType BODynamics
+RunType Ehrenfest
 
 
 NetCharge 0.0

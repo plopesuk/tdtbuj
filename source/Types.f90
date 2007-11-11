@@ -45,6 +45,7 @@ module m_Types
 !> \brief see m_ReadData::ReadGeneral module for the meaning
   type,public :: generalType
     real(k_pr) :: bias
+    integer :: BiasRampSteps
     real(k_pr) :: electronicTemperature
     real(k_pr) :: electronicMu
     real(k_pr) :: ionicTemperature
@@ -66,7 +67,7 @@ module m_Types
     logical  :: spin
     logical  :: collinear
 !   real(k_pr) :: sdu
-!   integer  :: Euler_steps
+    integer  :: EulerSteps
     integer  :: electrostatics
     logical  :: compElec !<precompute the q's and v's for tb+u multipole case if is set to false
     integer  :: units
@@ -80,7 +81,7 @@ module m_Types
     integer :: mpN
     real(k_pr) :: mpW
     integer :: smearMethod
-!   real(k_pr) :: gamma
+    real(k_pr) :: gamma
 ! ! create excitation
 !   integer :: hole
 !   integer :: excite

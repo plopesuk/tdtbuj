@@ -261,9 +261,11 @@ contains
 !> \author Alin M Elena
 !> \date 10/11/07, 15:40:31
 !> \param group array a list of atoms
-  real(k_pr) function ChargeOnGroup(group)
+!> \param atomic type(atomicType) contains all info about the atoms 
+  real(k_pr) function ChargeOnGroup(group,atomic)
     character(len=*), parameter :: myname="ChargeOnGroup"
     integer, intent(in) :: group(:)
+    type(atomicType) :: atomic
     integer :: i
     real(k_pr) :: sacc
 

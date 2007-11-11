@@ -60,6 +60,7 @@ contains
 !> \date 10/11/07, 15:04:53
 !> \param atomic type(atomicxType) contains all info about the atoms and basis set and some parameters
 !> \param sol type(solutionType) contains information about the solution space
+!> \param gen type(generalType) contains the info needed by the program to k_run
   subroutine InitVelocities(gen,atomic,sol)
     character(len=*), parameter :: myname = 'InitVelocities'
     integer :: i,k
