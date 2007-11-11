@@ -27,7 +27,7 @@ module m_Constants
   integer, parameter, public :: k_runForceTestx = 6
   integer, parameter, public :: k_runForceTesty = 7
   integer, parameter, public :: k_runForceTestz = 8
-  integer, parameter, public :: k_runEhrenfestDamped = 9
+  integer, parameter, public :: k_runEhrenfestDumped = 9
   integer, parameter, public :: k_runFragments = 10
   integer, parameter, public :: k_runGeomBFGS = 11
   integer, parameter, public :: k_runSpecial = 99

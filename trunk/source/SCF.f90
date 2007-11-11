@@ -17,6 +17,8 @@ module m_SCF
 
   public :: FullScf
   public :: ScfEnergy
+  public :: ScfForces
+  public :: AddH2
 
 contains
 

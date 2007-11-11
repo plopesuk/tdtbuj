@@ -12,8 +12,6 @@ module m_ReadData
   use m_Gutenberg
   use ISO_FORTRAN_ENV
   use m_LinearAlgebra
-
-
   implicit none
   private
   public :: Initialize
@@ -56,7 +54,6 @@ contains
       write(ioLoc%uerr,*)"I can not open file ", ioLoc%inpFile
       stop
     endif
-
 
 ! parse file and in the same time 
 ! makes a minimal check of corectness
@@ -168,7 +165,6 @@ contains
 !> </TR>
 !> </TABLE>
 !> \endhtmlonly
-
 
 subroutine ReadIo(ioLoc)
 character(len=*),parameter :: myname="ReadIo"
@@ -424,8 +420,8 @@ subroutine ReadGeneral(ioLoc,genLoc)
       genLoc%runType = k_runForceTesty
     elseif (cstr(trim(saux),'forcetestz')) then
       genLoc%runType = k_runForceTestz
-    elseif (cstr(trim(saux),'ehrenfestdamped')) then
-      genLoc%runType = k_runEhrenfestDamped
+    elseif (cstr(trim(saux),'ehrenfestdumped')) then
+      genLoc%runType = k_runEhrenfestDumped
     elseif (cstr(trim(saux),'GeometryOptimization')) then
       genLoc%runType = k_runGeomBFGS
     elseif (cstr(trim(saux),'Special')) then
@@ -524,6 +520,19 @@ subroutine ReadGeneral(ioLoc,genLoc)
   genLoc%ionicTemperature=GetReal(ioLoc,"IonicTemperature",300.0_k_pr)
   write( ioLoc%uout,'(a,g)')"Ionic Temperature(IonicTemperature): "&
      ,genLoc%ionicTemperature
+ !comm_gen BiasRampSteps & integer & 0 & for how many steps to apply bias\\
+  genLoc%BiasRampSteps=GetInteger(ioLoc,"BiasRampSteps",100)
+  write( ioLoc%uout,'(a,i0)')"No of Bias Ramp Steps (BiasRampSteps): "&
+    ,genLoc%BiasRampSteps
+
+ !comm_gen EulerSteps & integer & 100 & after each EulerSteps apply an Euler integration of equations of motions\\
+   genLoc%eulerSteps=GetInteger(ioLoc,"EulerSteps",100)
+   write( ioLoc%uout,'(a,i0)')"Euler steps (EulerSteps): "&
+     ,genLoc%EulerSteps
+ !comm_gen Gamma & real & 0.3 & dumping factor for Ehrenfest equation\\
+   genLoc%gamma=GetReal(ioLoc,"Gamma",0.5_k_pr)
+   write( ioLoc%uout,'(a,g)')"damping factor in Ehrenfest Equation(Gamma): "&
+     ,genLoc%gamma
 
 ! !comm_gen WriteEne & logical & .true. & on/off writing energy file \\
 !   genLoc%write_ene=GetLogical(ioLoc,"WriteEne",.true.)
@@ -546,13 +555,6 @@ subroutine ReadGeneral(ioLoc,genLoc)
 !   write( ioLoc%uout,'(a,g)')"spin down spin up difference(SpinDU): "&
 !     ,genLoc%sdu
 ! 
-! !comm_gen EulerSteps & integer & 100 & after each EulerSteps apply an Euler integration of equations of motions\\
-!   genLoc%euler_Steps=GetInteger(ioLoc,"EulerSteps",100)
-!   write( ioLoc%uout,'(a,i0)')"Euler steps (EulerSteps): "&
-!     ,genLoc%euler_steps
-! 
-
-! 
 ! !comm_gen FSteps & integer & 100 & Number of steps used to test the force/energy consitency\\
 !   genLoc%f_steps=GetInteger(ioLoc,"FSteps",100)
 !   write( ioLoc%uout,'(a,i0)')"force steps (FSteps): "&
@@ -568,7 +570,7 @@ subroutine ReadGeneral(ioLoc,genLoc)
 !   write( ioLoc%uout,'(a,g)')"space step for force(Fdx): "&
 !     ,genLoc%f_dx
 ! 
-! !comm_gen Gamma & real & 0.3 & damping factor for Ehrenfest equation\\
+! !comm_gen Gamma & real & 0.3 & dumping factor for Ehrenfest equation\\
 !   genLoc%gamma=GetReal(ioLoc,"Gamma",0.5_k_pr)
 !   write( ioLoc%uout,'(a,g)')"damping factor in Ehrenfest Equation(Gamma): "&
 !     ,genLoc%gamma
