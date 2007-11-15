@@ -213,17 +213,17 @@ contains
 ! 
             if ( ioLoc%uout /= 6) then
               if (nit>genLoc%maxscf) then
-                write(6,'(a,i0,a,g)')"Warning: it did not converge after ",genLoc%maxscf," the tolerance reached is ",dmax
+                write(6,'(a,i0,a,ES12.4)')"Warning: it did not converge after ",genLoc%maxscf," the tolerance reached is ",dmax
                 genLoc%lIsSCFConverged = .false.
               else
-                write(6,'(a,i0,a,g)') "converged in ",nit, " iterations up to ",dmax
+                write(6,'(a,i0,a,ES12.4)') "converged in ",nit, " iterations up to ",dmax
               endif
             endif
             if (nit>genLoc%maxscf) then
-              write(ioLoc%uout,'(a,i0,a,g)')"Warning: it did not converge after ",nit," the tolerance reached is ",dmax
+              write(ioLoc%uout,'(a,i0,a,ES12.4)')"Warning: it did not converge after ",nit," the tolerance reached is ",dmax
               genLoc%lIsSCFConverged = .false.
             else
-               write(ioLoc%uout,'(a,i0,a,f16.14)') "converged in ",nit, " iterations up to ",dmax
+               write(ioLoc%uout,'(a,i0,a,ES12.4)') "converged in ",nit, " iterations up to ",dmax
             endif
             call CalcExcessCharges(genLoc,atomic,sol)
             call CalcDipoles(genLoc,atomic,sol)

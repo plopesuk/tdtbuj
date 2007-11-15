@@ -3,7 +3,6 @@
 !> should be here
 !> \author Alin M Elena
 !> \date 02/11/07, 18:13:15
-
 module m_Gutenberg
   use m_Constants
   use m_Types
@@ -517,14 +516,14 @@ contains
     write(io%uout,"(a)")"Atom | Specie | Magnetic Moment |"
     if (blocal) then
       do i=1,atomic%atoms%natoms
-        write(io%uout,"(i4,x,i6,x,f16.8)"),i,atomic%atoms%sp(i),atomic%atoms%MagMom(i)
+        write(io%uout,"(i4,1x,i6,1x,f16.8)")i,atomic%atoms%sp(i),atomic%atoms%MagMom(i)
       enddo
       do i=1,atomic%atoms%natoms
         lm=LocalMoment(atomic%atoms%id(i),atomic,.true.,io,sol)
       enddo
     else
       do i=1,atomic%atoms%natoms
-        write(io%uout,"(i4,x,i6,x,f16.8)"),i,atomic%atoms%sp(i),atomic%atoms%MagMom(i)
+        write(io%uout,"(i4,1x,i6,1x,f16.8)")i,atomic%atoms%sp(i),atomic%atoms%MagMom(i)
       enddo
     endif
     write(io%uout,"(a,f16.8)")"Total magnetic moment: ",atomic%atoms%MagneticMoment
@@ -567,7 +566,7 @@ contains
          write(io%uout,'(i12,1x)',advance="no") i
       enddo
       write(io%uout,*)
-      if (present(isComplex).and.isComplex==.true.) then
+      if (present(isComplex).and.isComplex) then
         write(io%uout,*) '==Imaginary part==='
         write(io%uout,'(7x)',advance="no")
         do i=1,m
@@ -681,7 +680,7 @@ contains
     n=atomic%basis%norbitals
     m=n*(n-1)/2
     if (present(i)) then
-      write(io%uout,'(i5,x,i8,x,f16.8,x,f16.8)')i,atomic%atoms%sp(i),atomic%atoms%chrg(i),&
+      write(io%uout,'(i5,1x,i8,1x,f16.8,1x,f16.8)')i,atomic%atoms%sp(i),atomic%atoms%chrg(i),&
           atomic%atoms%chrg(i)+atomic%species%zval(atomic%atoms%sp(i))
     else
       write(io%uout,'(a)')"Atom | Specie | Charge execess |    Total Charge |"
@@ -725,7 +724,7 @@ contains
     write(io%uout,'(a,4f16.8,a)')"dipole moment ",ax,ay,az,ld," Debye"
   !  avoid division by zero
     if (abs(ld) > epsilon(ax)) then
-      write(io%uout,'(a,f9.6,x,f9.6,x,f9.6,a)')"dipole moment orientation (",ax/ld,ay/ld,az/ld, ") unit vector"
+      write(io%uout,'(a,f9.6,1x,f9.6,1x,f9.6,a)')"dipole moment orientation (",ax/ld,ay/ld,az/ld, ") unit vector"
     endif
       write(io%uout,'(a)')" ====================================================================="
   !! dipoles in local units
@@ -753,7 +752,7 @@ contains
     write(io%uout,'(a,4f16.8,a)')"dipole moment ",atomic%atoms%tdipx*u2D,atomic%atoms%tdipy*u2D,&
       atomic%atoms%tdipz*u2D,ld, " Debye"
     if (abs(ld) > epsilon(ax)) then
-    write(io%uout,'(a,f9.6,x,f9.6,x,f9.6,a)')"dipole moment orientation(",&
+    write(io%uout,'(a,f9.6,1x,f9.6,1x,f9.6,a)')"dipole moment orientation(",&
       atomic%atoms%tdipx*u2D/ld,atomic%atoms%tdipy*u2D/ld,atomic%atoms%tdipz*u2D/ld, ") unit vector"
     endif
   end subroutine PrintDipoles

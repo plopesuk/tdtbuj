@@ -85,6 +85,10 @@ ${src_dir}/DensityMatrix.f90
 ${src_dir}/Hamiltonian.f90
 ${src_dir}/Mixing.f90
 ${src_dir}/SCF.f90
+${src_dir}/Simplex.f90
+${src_dir}/SA.f90
+${src_dir}/SimplexSA.f90
+${src_dir}/Fit.f90
 ${src_dir}/Dynamics.f90
 ${src_dir}/DriverRoutines.f90
 ${src_dir}/main.f90
@@ -119,8 +123,6 @@ install(TARGETS ${target_name} parser linalg
             LIBRARY DESTINATION lib/${target_name}
 	    ARCHIVE DESTINATION lib/${target_name}
 	)
-
-
 
 #######################
 ## uninstall target

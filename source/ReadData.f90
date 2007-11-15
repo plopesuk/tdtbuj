@@ -28,7 +28,6 @@ contains
 !> \param genLoc type(generalType) contains the info needed by the program to run
 !> \param atomic type(atomicType) contains all info about the atoms and basis set and some parameters
 !> \param tbMod type(modelType) contains iformation about the tight binding model parameters
-
   subroutine Initialize(ioLoc,genLoc,atomic,tbMod)
     character(len=*), parameter :: myname = 'Initialize'
     type(ioType), intent(inout) :: ioLoc
@@ -112,66 +111,11 @@ contains
 !> \param ioLoc type(ioType)
 !> \details
 !> A short description of the input file ioInfo part
-!> \latexonly
-!>
-!> \begin{tabular}{|c||p{0.2\textwidth}|c||p{0.25\textwidth}|}
-!> \hline
-!> \textbf{VarName} & \textbf{Values} & \textbf{Default Value} & \textbf{Description} \\\
-!> \hline \hline
-!> DebugFile & string & input file name.dbg & Name of the debug file \\ 
-!> \hline
-!> OutputFile & string & input file name.out & Name of the output file \\ 
-!> \hline
-!> OnScreen & logical & .false. & on/off Printing on the screen, on means that nothing will be written in the output file \\ 
-!> \hline
-!> DebugLevel & 5,15,25 & 5 & debug information level (low, medium,high) \\
-!> \hline
-!> OutputLevel & 5,15,25 & 5 & output information level (low, medium,high) \\
-!> \hline
-!> \end{tabular}
-!> \endlatexonly
-!> \htmlonly
-!> <TABLE CELLPADDING=3 BORDER="1">
-!> <TR><TH ALIGN="CENTER"><B>VarName</B></TH>
-!> <TH ALIGN="LEFT" VALIGN="TOP" WIDTH=100><B>Values</B></TH>
-!> <TH ALIGN="CENTER"><B>Default Value</B></TH>
-!> <TH ALIGN="LEFT" VALIGN="TOP" WIDTH=125><B>Description</B></TH>
-!> </TR>
-!> <TR><TD ALIGN="CENTER">DebugFile</TD>
-!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>string</TD>
-!> <TD ALIGN="CENTER">input file name.dbg</TD>
-!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>Name of the debug file</TD>
-!> </TR>
-!> <TR><TD ALIGN="CENTER">OutputFile</TD>
-!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>string</TD>
-!> <TD ALIGN="CENTER">input file name.out</TD>
-!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>Name of the output file</TD>
-!> </TR>
-!> <TR><TD ALIGN="CENTER">OnScreen</TD>
-!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>logical</TD>
-!> <TD ALIGN="CENTER">.false.</TD>
-!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>on/off Printing on the screen, on
-!>      means that nothing will be written in the output file</TD>
-!> </TR>
-!> <TR><TD ALIGN="CENTER">DebugLevel</TD>
-!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>5,15,25</TD>
-!> <TD ALIGN="CENTER">5</TD>
-!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>debug information level (low, medium,high)</TD>
-!> </TR>
-!> <TR><TD ALIGN="CENTER">OutputLevel</TD>
-!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>5,15,25</TD>
-!> <TD ALIGN="CENTER">5</TD>
-!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>output information level (low, medium,high)</TD>
-!> </TR>
-!> </TABLE>
-!> \endhtmlonly
 
 subroutine ReadIo(ioLoc)
 character(len=*),parameter :: myname="ReadIo"
   type(ioType), intent(inout) :: ioLoc
   integer :: errno
-
-
 !comm_io DebugFile & string & input file name.dbg & Name of the debug file \\
 
 ! read the name of output file plus debug (y/n) and output level
@@ -223,9 +167,64 @@ character(len=*),parameter :: myname="ReadIo"
     ,trim(ioLoc%inpErr)
   write( ioLoc%uout,'(a,l1)')"Standard Output(OnScreen): "&
     ,ioLoc%stdout
-
-
 end subroutine ReadIo
+
+
+!> \page ioVars I/O Variables
+!> \latexonly
+!> \begin{tabular}{|c||p{0.2\textwidth}|c||p{0.25\textwidth}|}
+!>\hline
+!> \textbf{VarName} & \textbf{Values} & \textbf{Default Value} & \textbf{Description} \\\
+!>\hline \hline
+!> DebugFile & string & input file name.dbg & Name of the debug file \\\
+!> \hline
+!> OutputFile & string & input file name.out & Name of the output file \\\
+!>\hline
+!> OnScreen & logical & .false. & on/off Printing on the screen, on means that nothing will be written in the output file\\\
+!>\hline
+!> DebugLevel & 5,15,25 & 5 & debug information level (low, medium,high) \\\
+!>\hline
+!> OutputLevel & 5,15,25 & 5 & output information level (low, medium,high) \\\
+!>\hline
+!> \end{tabular}
+!> \endlatexonly
+!> \htmlonly
+!> <TABLE CELLPADDING=3 BORDER="1">
+!> <TR><TH ALIGN="CENTER"><B>VarName</B></TH>
+!> <TH ALIGN="LEFT" VALIGN="TOP" WIDTH=100><B>Values</B></TH>
+!> <TH ALIGN="CENTER"><B>Default Value</B></TH>
+!> <TH ALIGN="LEFT" VALIGN="TOP" WIDTH=125><B>Description</B></TH>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">DebugFile</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>string</TD>
+!> <TD ALIGN="CENTER">input file name.dbg</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>Name of the debug file</TD>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">OutputFile</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>string</TD>
+!> <TD ALIGN="CENTER">input file name.out</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>Name of the output file</TD>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">OnScreen</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>logical</TD>
+!> <TD ALIGN="CENTER">.false.</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>on/off Printing on the screen, on
+!>      means that nothing will be written in the output file</TD>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">DebugLevel</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>5,15,25</TD>
+!> <TD ALIGN="CENTER">5</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>debug information level (low, medium,high)</TD>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">OutputLevel</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>5,15,25</TD>
+!> <TD ALIGN="CENTER">5</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>output information level (low, medium,high)</TD>
+!> </TR>
+!> </TABLE>
+!> \endhtmlonly
+
+
 
 
 !> \brief reads the parameters necessary for running
@@ -235,51 +234,7 @@ end subroutine ReadIo
 !> \param genLoc type(generalType), keeps all the general information about the parameters of the program
 !> \details
 !> A short description of the input file general variables part
-!> \latexonly
-!> \begin{longtable}{|c||p{0.2\textwidth}|c||p{0.25\textwidth}|}
-!> \hline
-!> \textbf{VarName} & \textbf{Values} & \textbf{Default Value} & \textbf{Description} \\\
-!> \hline \hline
-!> JobName & string & no name & a name for the job \\ 
-!> \hline
-!> RanSeed & real(0,1)& 0.5 & A seed for the random number generator \\
-!> \hline
-!> ReadVel & logical & .false. & on/off reading velocity block \\
-!> \hline
-!> SCF & logical & .false. & on/off self consistent field method \\
-!> \hline
-!> \end{longtable}
-!> \endlatexonly
-!> \htmlonly
-!> <TABLE CELLPADDING=3 BORDER="1">
-!> <TR><TH ALIGN="CENTER"><B>VarName</B></TH>
-!> <TH ALIGN="LEFT" VALIGN="TOP" WIDTH=100><B>Values</B></TH>
-!> <TH ALIGN="CENTER"><B>Default Value</B></TH>
-!> <TH ALIGN="LEFT" VALIGN="TOP" WIDTH=125><B>Description</B></TH>
-!> </TR>
-!> <TR><TD ALIGN="CENTER">JobName</TD>
-!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>string</TD>
-!> <TD ALIGN="CENTER">no name</TD>
-!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>a name for the job</TD>
-!> </TR>
-!> <TR><TD ALIGN="CENTER">RanSeed</TD>
-!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real (0,1) </TD>
-!> <TD ALIGN="CENTER">0.5</TD>
-!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>A seed for the random number generator</TD>
-!> </TR>
-!> <TR><TD ALIGN="CENTER">ReadVel</TD>
-!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>logical</TD>
-!> <TD ALIGN="CENTER">.false.</TD>
-!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>on/off reading velocity block</TD>
-!> </TR>
-!> <TR><TD ALIGN="CENTER">Spin</TD>
-!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>logical</TD>
-!> <TD ALIGN="CENTER">.false.</TD>
-!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>on/off spin polarisation</TD>
-!> </TR>
-!> </TABLE>
-!> \endhtmlonly
-
+!>
 subroutine ReadGeneral(ioLoc,genLoc)
   character(len=*),parameter :: name="ReadGeneral"
   type(ioType), intent(inout) :: ioLoc
@@ -301,13 +256,10 @@ subroutine ReadGeneral(ioLoc,genLoc)
     write( ioLoc%uout,'(a,l1)')"Read Velocity(ReadVel): "&
      ,genLoc%ReadVelocity
 
-!comm_gen VBias & real & 0.0 & bias factor\\
     genLoc%bias=GetReal(ioLoc,"VBias",0.0_k_pr)
     write( ioLoc%uout,'(a,f0.8)')"Bias(VBias): "&
      ,genLoc%bias
 
-
-!comm_gen MaxOrbsPerAtom & integer & 8 & maximum number of orbitals per atom\\
     genLoc%maxOrbitalsPerAtom=GetInteger(ioLoc,"MaxOrbsPerAtom",8)
     write( ioLoc%uout,'(a,i0)')"Maximum Orbitals Per Atom (MaxOrbsPerAtom): "&
       ,genLoc%maxOrbitalsPerAtom
@@ -315,8 +267,6 @@ subroutine ReadGeneral(ioLoc,genLoc)
     genLoc%spin=GetLogical(ioLoc,"Spin",.false.)
     write( ioLoc%uout,'(a,l1)')"spin polarisation(Spin): "&
       ,genLoc%spin
-
-!comm_gen Units & AU EV SI & AU & system of units: atomic units(AU), electronVolt-Angstrom(eVA), International(SI)\\
     saux=GetString(ioLoc,"Units","AU")
     write( ioLoc%uout,'(a,a)')"System of Units (Units): "&
       ,trim(saux)
@@ -332,8 +282,6 @@ subroutine ReadGeneral(ioLoc,genLoc)
       call error("The requested system of units is not implemented",name,.true.,ioLoc)
     endif
 
- !comm_gen BondType & Harrison, GSP &Harrison& bond type \\
-! \hline
     saux=GetString(ioLoc,"BondType","Harrison")
     write( ioLoc%uout,'(a,a)')"bond type (BondType): "&
       ,trim(saux)
@@ -345,7 +293,6 @@ subroutine ReadGeneral(ioLoc,genLoc)
       call error("The requested bond type is not implemented",name,.true.,ioLoc)
     endif
 
-   !comm_gen Embedding & logical & .true. & on/off embedding method\\
     genLoc%embedding=GetLogical(ioLoc,"Embedding",.true.)
     write( ioLoc%uout,'(a,l1)')"has embedding(Embedding): "&
      ,genLoc%embedding
@@ -430,27 +377,26 @@ subroutine ReadGeneral(ioLoc,genLoc)
       call error("The requested RunType is not implemented",name,.true.,ioLoc)
     endif
 
-! comm_gen HElThres & real & 1e-10 & hamiltionian element thresold. Any element smaller that the thresold is made zero.\\
     genLoc%hElementThreshold=GetReal(ioLoc,"HElTres",1.0e-10_k_pr)
     write( ioLoc%uout,'(a,ES12.4)')"hamiltionian element thresold(HElThres): "&
       ,genLoc%hElementThreshold
 
-!comm_gen CollinearSpins & logical & .false. & on/off collinear spins\\
       genLoc%collinear=GetLogical(ioLoc,"CollinearSpins",.false.)
       write( ioLoc%uout,'(a,l1)')"collinear spins(CollinearSpins): "&
       ,genLoc%collinear
-!comm_gen MaxIt & integer & 500 & maximum number of iterations used to find Fermi level\\
+
       genLoc%maxIt=GetInteger(ioLoc,"MaxIt",500)
       write( ioLoc%uout,'(a,i0)')"Maximum number of iterations to find Fermi level(MaxIt): "&
       ,genLoc%maxit
-! comm_gen ChargeTol & real & 1e-10 & charge tolerance used to find Fermi level\\
+
     genLoc%qTolerance=GetReal(ioLoc,"ChargeTol",1.0e-10_k_pr)
     write( ioLoc%uout,'(a,ES12.4)')"Charge Tolerance used to find Fermi level(ChargeTol): "&
       ,genLoc%qTolerance
-!comm_gen NetCharge & real & 0.0 & Net charge on the system\\
+
       genLoc%netcharge=GetReal(ioLoc,"NetCharge",0.0_k_pr)
       write( ioLoc%uout,'(a,ES12.4)')"Net charge(NetCharge): "&
       ,genLoc%netcharge
+
     saux=GetString(ioLoc,"SmearingMethod","FD")
     write( ioLoc%uout,'(a,a)')"Smearing Methos used to find Fermi level (SmearingMethod): "&
       ,trim(saux)
@@ -466,74 +412,145 @@ subroutine ReadGeneral(ioLoc,genLoc)
 
     select case(genLoc%smearMethod)
       case(k_smFD)
-!comm_gen ElectronicTemperature & real & 300.0 & Electronic temperature, used to compute occupation numbers if you choose Fermi-Dirac method\\
         genLoc%electronicTemperature=GetReal(ioLoc,"ElectronicTemperature",300.0_k_pr)
         write( ioLoc%uout,'(a,ES12.4)')"Electronic Temperature(ElectronicTemperature): "&
           ,genLoc%electronicTemperature
       case(k_smMP)
-!comm_gen ElectronicW & real & 0.05 & Electronic W, used to compute occupation numbers if you choose Methfessel-Paxton method\\
         genLoc%MPW=GetReal(ioLoc,"ElectronicW",0.05_k_pr)
         write( ioLoc%uout,'(a,ES12.4)')"Electronic W(ElectronicW): "&
           ,genLoc%MPW
-!comm_gen MPN & integer & 2 & the order of Hermite polynomials used to find Fermi level by Methfessel-Paxton method \\
-      genLoc%mpN=GetInteger(ioLoc,"MPN",500)
-      write( ioLoc%uout,'(a,i0)')"Order of Germite polynomials used find Fermi level(MPN): "&
-      ,genLoc%maxit
+        genLoc%mpN=GetInteger(ioLoc,"MPN",500)
+        write( ioLoc%uout,'(a,i0)')"Order of Germite polynomials used find Fermi level(MPN): "&
+          ,genLoc%maxit
       case(k_smCMU)
-!comm_gen ElectronicMu & real & 0.0 & chemical potential, used to compute occupation numbers if you choose constant $\mu$ method\\
         genLoc%electronicMu=GetReal(ioLoc,"ElectronicMu",0.0_k_pr)
         write( ioLoc%uout,'(a,ES12.4)')"Chemical Potential(ElectronicMu): "&
           ,genLoc%electronicMu
     end select
-! !comm_gen DMOccTol & real & 1e-10 & density matrix occupation tolerance\\
    genLoc%dmOccupationTolerance=GetReal(ioLoc,"DMOccTol",1.0e-10_k_pr)
    write( ioLoc%uout,'(a,ES12.4)')"density matrix occupation tolerance(DMOccTol): "&
      ,genLoc%dmOccupationTolerance!
-!comm_gen SymRefRho & logical & .false. & on/off symmetric reference density matrix\\
+
   genLoc%SymRefRho=GetLogical(ioLoc,"SymRefRho",.false.)
   write( ioLoc%uout,'(a,l1)')"Symetric Reference Density Matrix (SymRefRho): "&
    ,genLoc%SymRefRho
-!comm_gen Screened & logical & .false. & on/off bare Coulomb or screened electrostatic interaction \\
+
   genLoc%screened=GetLogical(ioLoc,"Screened",.false.)
   write( ioLoc%uout,'(a,l1)')"Screened Coulomb interation (Screened): "&
     ,genLoc%screened
-!comm_gen WriteAnimation & logical & .true. & on/off writing animation file \\
+
   genLoc%writeAnimation=GetLogical(ioLoc,"WriteAnimation",.true.)
   write( ioLoc%uout,'(a,l1)')"Write animation(WriteAnimation): "&
     ,genLoc%writeAnimation
-!comm_gen DeltaT & real & 0.001 & time step used to evolve equtions of motion\\
+
   genLoc%deltat=GetReal(ioLoc,"DeltaT",0.001_k_pr)
   write( ioLoc%uout,'(a,ES12.4)')"Time step(DeltaT): "&
     ,genLoc%deltat
- 
-!comm_gen Nsteps & integer & 100 & number of steps used to evolve equtions of motion\\
+
   genLoc%nsteps=GetInteger(ioLoc,"Nsteps",100)
   write( ioLoc%uout,'(a,i0)')"Number of steps(Nsteps): "&
     ,genLoc%nsteps
 
-!comm_gen VelScale & logical & .false. & on/off scaling velocities\\
   genLoc%scaleVelocities=GetLogical(ioLoc,"VelScale",.false.)
   write( ioLoc%uout,'(a,l1)')"Scale  Velocities?(VelocitiesScale): "&
      ,genLoc%scaleVelocities
 
-!comm_gen IonicTemperature & real & 300.0 & Ionic temperature\\
   genLoc%ionicTemperature=GetReal(ioLoc,"IonicTemperature",300.0_k_pr)
-  write( ioLoc%uout,'(a,g)')"Ionic Temperature(IonicTemperature): "&
+  write( ioLoc%uout,'(a,ES12.4)')"Ionic Temperature(IonicTemperature): "&
      ,genLoc%ionicTemperature
- !comm_gen BiasRampSteps & integer & 0 & for how many steps to apply bias\\
+
   genLoc%BiasRampSteps=GetInteger(ioLoc,"BiasRampSteps",100)
   write( ioLoc%uout,'(a,i0)')"No of Bias Ramp Steps (BiasRampSteps): "&
     ,genLoc%BiasRampSteps
 
- !comm_gen EulerSteps & integer & 100 & after each EulerSteps apply an Euler integration of equations of motions\\
-   genLoc%eulerSteps=GetInteger(ioLoc,"EulerSteps",100)
-   write( ioLoc%uout,'(a,i0)')"Euler steps (EulerSteps): "&
+  genLoc%eulerSteps=GetInteger(ioLoc,"EulerSteps",100)
+  write( ioLoc%uout,'(a,i0)')"Euler steps (EulerSteps): "&
      ,genLoc%EulerSteps
- !comm_gen Gamma & real & 0.3 & dumping factor for Ehrenfest equation\\
-   genLoc%gamma=GetReal(ioLoc,"Gamma",0.5_k_pr)
-   write( ioLoc%uout,'(a,g)')"damping factor in Ehrenfest Equation(Gamma): "&
+
+  genLoc%gamma=GetReal(ioLoc,"Gamma",0.5_k_pr)
+  write( ioLoc%uout,'(a,ES12.4)')"damping factor in Ehrenfest Equation(Gamma): "&
      ,genLoc%gamma
 
+  if (genLoc%Runtype==k_RunFit) then
+      saux=GetString(ioLoc,"FitMethod","Simplex")
+      write(ioLoc%uout,'(a,a)') &
+       "Fit method = ", trim(saux)
+    if (cstr(trim(saux),"simplex")) then
+      genLoc%fit%fitMethod=k_simplex
+    elseif(cstr(trim(saux),"SA")) then
+      genLoc%fit%fitMethod=k_sa
+    elseif (cstr(trim(saux),"simplexSA")) then
+      genLoc%fit%fitMethod=k_simplexSA
+    else
+      call error("The requested fitting method is not implemented",name,.true.,ioLoc)
+    endif
+    genLoc%fit%iNoParams = GetInteger(ioLoc,"NoFitParams",0)
+    write(ioLoc%uout,'(a,i0)') &
+        "No of parameters to fit = ", genLoc%fit%iNoParams
+    if (genLoc%fit%iNoParams <= 0 ) then
+      call error("NoFitParams has to be positive", name, .true.,ioLoc)
+    endif
+
+    genLoc%fit%fitTol=GetReal(ioLoc,"FitTol",1.0e-4_k_pr)
+    write(ioLoc%uout,'(a,ES12.4)') &
+      "Fit Tolerance = ",genLoc%fit%fitTol
+
+    genLoc%fit%restartFit=GetLogical(ioLoc,"RestartFit",.false.)
+    write(ioLoc%uout,'(a,l1)') &
+      "Restart Fit = ",genLoc%fit%restartFit
+
+    genLoc%fit%neps=GetInteger(ioLoc,"FitNeps",4)
+      write(ioLoc%uout,'(a,i8)') &
+      "Number of terms used to compute termination criteria= ",genLoc%fit%neps
+    select case(genLoc%fit%fitMethod)
+      case(k_simplex)
+
+        genLoc%fit%iter=GetInteger(ioLoc,"SimplexMaxIter",10000)
+        write(ioLoc%uout,'(a,i8)') &
+          "MAximum number of iterations for simplex = ",genLoc%fit%iter
+      case(k_SA)
+
+        genLoc%fit%feval=GetInteger(ioLoc,"SAMaxFeval",100000)
+        write(ioLoc%uout,'(a,i8)') &
+               "Maximum number of cost function evaluations = ",genLoc%fit%feval
+
+        genLoc%fit%ns=GetInteger(ioLoc,"SACycles",20)
+        write(ioLoc%uout,'(a,i8)') &
+               "Maximum number of cycles before step adjustment  = ",genLoc%fit%ns
+
+        genLoc%fit%nt=GetInteger(ioLoc,"SAnBefRed",5)
+        write(ioLoc%uout,'(a,i8)') &
+               "Number of iterations before temperature reduction = ",genLoc%fit%nt
+
+        genLoc%fit%temp=GetReal(ioLoc,"SATemp",100.0_k_pr)
+        write(ioLoc%uout,'(a,f8.3)') &
+               "SA temperature = ",genLoc%fit%temp
+
+        genLoc%fit%step=GetReal(ioLoc,"SAstep",1.0_k_pr)
+        write(ioLoc%uout,'(a,f8.3)') &
+               "SA initial step = ",genLoc%fit%step
+
+        genLoc%fit%stepAd=GetReal(ioLoc,"SAStepAdj",2.0_k_pr)
+        write(ioLoc%uout,'(a,f8.3)') &
+               "SA step adjustment = ",genLoc%fit%stepAd
+
+        genLoc%fit%rt=GetReal(ioLoc,"SATempRed",0.5_k_pr)
+        write(ioLoc%uout,'(a,f8.3)') &
+               "SA temperature reduction factor = ",genLoc%fit%rt
+      case(k_simplexSA)
+        genLoc%fit%iter=GetInteger(ioLoc,"SimplexMaxIter",10000)
+        write(ioLoc%uout,'(a,i8)') &
+           "MAximum number of iterations for simplex = ",genLoc%fit%iter
+
+        genLoc%fit%rt=GetReal(ioLoc,"SATempRed",0.5_k_pr)
+        write(ioLoc%uout,'(a,f8.3)') &
+           "SA temperature reduction factor = ",genLoc%fit%rt
+
+        genLoc%fit%temp=GetReal(ioLoc,"SATemp",100.0_k_pr)
+        write(ioLoc%uout,'(a,f8.3)') &
+           "SA temperature = ",genLoc%fit%temp
+    end select
+  endif
 ! !comm_gen WriteEne & logical & .true. & on/off writing energy file \\
 !   genLoc%write_ene=GetLogical(ioLoc,"WriteEne",.true.)
 !   write( ioLoc%uout,'(a,l)')"Write Energy(WriteEne): "&
@@ -614,6 +631,399 @@ subroutine ReadGeneral(ioLoc,genLoc)
 
 end subroutine ReadGeneral
 
+!> \page control 
+!> \latexonly
+!> \begin{longtable}{|c||p{0.2\textwidth}|c||p{0.25\textwidth}|}
+!> \hline
+!> \textbf{VarName} & \textbf{Values} & \textbf{Default Value} & \textbf{Description} \\\
+!> \hline \hline
+!> JobName & string & no name & a name for the job \\\
+!> \hline
+!> RanSeed & real(0,1)& 0.5 & A seed for the random number generator \\\
+!> \hline
+!> ReadVel & logical & .false. & on/off reading velocity block \\\
+!> \hline
+!> SCF & logical & .false. & on/off self consistent field method \\\
+!> \hline
+!> VBias & real & 0.0 & bias factor\\\
+!> \hline
+!> MaxOrbsPerAtom & integer & 8 & maximum number of orbitals per atom\\\
+!> \hline
+!> Units & AU, EVA, SI, RY & AU & system of units: atomic units(AU), electronVolt-Angstrom(eVA),
+!> International(SI) Rydeberg Atomic Units (RY)\\\
+!> \hline
+!> BondType & Harrison, GSP &Harrison& bond type \\\
+!> \hline
+!> Embedding & logical & .true. & on/off embedding method\\\
+!> \hline
+!> Electrostatics & PointCharges, Multipoles & PointCharges & method use to compute electrostatic interaction\\\
+!> \hline
+!> PrecomputeMultipoles & logical & .true. & on/off precompute multipoles\\\
+!> \hline
+!> SCFType & TB+UJ & TB+UJ & SCF method\\\
+!> \hline
+!> SCFSteps & integer & 100 & maximum number of steps used for scf\\\
+!> \hline
+!> SCFMix & real & 0.85 & mixing parameter\\\
+!> \hline
+!> SCFTol & real & 1e-8 & convergence tolerance\\\
+!> \hline
+!> SCFMixN & integer & 4 & number of iterations to mix\\\
+!> \hline
+!> RunType & SinglePoint, BODynamics, Ehrenfest, EhrenfestDumped, Fit & SinglePoint & Type of calculation\\\
+!> \hline
+!> HElThres & real & 1e-10 & hamiltionian element thresold. Any element smaller that the thresold is made zero.\\\
+!> \hline
+!> CollinearSpins & logical & .false. & on/off collinear spins\\\
+!> \hline
+!> MaxIt & integer & 500 & maximum number of iterations used to find Fermi level\\\
+!> \hline
+!> ChargeTol & real & 1e-10 & charge tolerance used to find Fermi level\\\
+!> \hline
+!> NetCharge & real & 0.0 & Net charge on the system\\\
+!> \hline
+!> ElectronicTemperature & real & 300.0 & Electronic temperature, used to compute occupation numbers
+!> if you choose Fermi-Dirac method\\\
+!> \hline
+!> ElectronicW & real & 0.05 & Electronic W, used to compute occupation numbers if you choose Methfessel-Paxton method\\\
+!>  \hline
+!> MPN & integer & 2 & the order of Hermite polynomials used to find Fermi level by Methfessel-Paxton method \\\
+!> \hline
+!> ElectronicMu & real & 0.0 & chemical potential, used to compute occupation numbers if you choose constant $\mu$ method\\\
+!>  \hline
+!> DMOccTol & real & 1e-10 & density matrix occupation tolerance\\\
+!> \hline
+!> SymRefRho & logical & .false. & on/off symmetric reference density matrix\\\
+!> \hline
+!> Screened & logical & .false. & on/off bare Coulomb or screened electrostatic interaction \\\
+!> \hline
+!> WriteAnimation & logical & .true. & on/off writing animation file \\\
+!> \hline
+!> DeltaT & real & 0.001 & time step used to evolve equtions of motion\\\
+!> \hline
+!> Nsteps & integer & 100 & number of steps used to evolve equtions of motion\\\
+!> \hline
+!> VelScale & logical & .false. & on/off scaling velocities\\\
+!> \hline
+!> IonicTemperature & real & 300.0 & Ionic temperature\\\
+!> \hline
+!> BiasRampSteps & integer & 0 & for how many steps to apply bias\\\
+!> \hline
+!> EulerSteps & integer & 100 & after each EulerSteps apply an Euler integration of equations of motions\\\
+!>  \hline
+!> Gamma & real & 0.3 & dumping factor for Ehrenfest equation\\\
+!> \hline
+!> FitType & Simplex,SA, SimplexSA & Simplex & fitting method (Simplex, Simplex-Simulated Annealing, Simulated Annealing)\\\
+!> \hline
+!> NoFitParams & integer & 0 & numbers of parameters to fit\\\
+!> \hline
+!> FitTol & real & 1.0e-4 & the tolerance accepted in fit\\\
+!> \hline
+!> RestartFit & logical & .false. & on/off restarting the fit from a previous point\\\
+!> \hline
+!> FitNeps & integer & 4 & number of terms used to compute the termination criteria\\\
+!> \hline
+!> SimplexMaxIter & integer & 10000 & maximum number of iterations in the simplex method\\\
+!> \hline
+!> SAMaxFeval & integer & 100000 & maximum number of cost function evaluations in SA method\\\
+!> \hline
+!> SACyscles & integer & 20 & maximum number of cycles in SA method\\\
+!> \hline
+!> SAnBefRed & integer & 5 & number of iterations before temperature reduction in SA method\\\
+!> \hline
+!> SATemp & real & 100.0 & iinitial temperature in SA method\\\
+!> \hline
+!> SAStep & real & 1.0 & SA initial step\\\
+!> \hline
+!> SAStepAdj & real & 2.0 & SA step adjustment\\\
+!> \hline
+!> SATempRed & real & 0.5 & SA temperature reduction factor\\\
+!> \hline
+!> SimplexMaxIter & integer & 10000 & maximum number of iterations in the simplex method\\\
+!> \hline
+!> SATempRed & real & 0.5 & SA temperature reduction factor\\\
+!> \hline
+!> SATemp & real & 100.0 & iinitial temperature in SA method\\\
+!> \hline
+!> \end{longtable}
+!> \endlatexonly
+!> \htmlonly
+!><TABLE CELLPADDING=3 BORDER="1">
+!><TR><TH ALIGN="CENTER"><B>VarName</B></TH>
+!><TH ALIGN="LEFT" VALIGN="TOP" WIDTH=100><B>Values</B></TH>
+!><TH ALIGN="CENTER"><B>Default Value</B></TH>
+!><TH ALIGN="LEFT" VALIGN="TOP" WIDTH=125><B>Description</B></TH>
+!></TR>
+!><TR><TD ALIGN="CENTER">JobName</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>string</TD>
+!><TD ALIGN="CENTER">no name</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>a name for the job</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">RanSeed</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real(0,1)</TD>
+!><TD ALIGN="CENTER">0.5</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>A seed for the random number generator</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">ReadVel</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>logical</TD>
+!><TD ALIGN="CENTER">.false.</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>on/off reading velocity block</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">SCF</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>logical</TD>
+!><TD ALIGN="CENTER">.false.</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>on/off self consistent field method</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">VBias</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real</TD>
+!><TD ALIGN="CENTER">0.0</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>bias factor</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">MaxOrbsPerAtom</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>integer</TD>
+!><TD ALIGN="CENTER">8</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>maximum number of orbitals per atom</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">Units</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>AU, eVA, SI, RY</TD>
+!><TD ALIGN="CENTER">AU</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>system of units: atomic units(AU), electronVolt-Angstrom(eVA),
+!> International(SI), Rydberg Atomic Units(RY)</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">BondType</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>Harrison, GSP</TD>
+!><TD ALIGN="CENTER">Harrison</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>bond type</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">Embedding</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>logical</TD>
+!><TD ALIGN="CENTER">.true.</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>on/off embedding method</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">Electrostatics</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>PointCharges, Multipoles</TD>
+!><TD ALIGN="CENTER">PointCharges</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>method use to compute electrostatic interaction</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">PrecomputeMultipoles</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>logical</TD>
+!><TD ALIGN="CENTER">.true.</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>on/off precompute multipoles</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">SCFType</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>TB+UJ</TD>
+!><TD ALIGN="CENTER">TB+UJ</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>SCF method</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">SCFSteps</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>integer</TD>
+!><TD ALIGN="CENTER">100</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>maximum number of steps used for scf</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">SCFMix</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real</TD>
+!><TD ALIGN="CENTER">0.85</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>mixing parameter</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">SCFTol</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real</TD>
+!><TD ALIGN="CENTER">1e-8</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>convergence tolerance</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">SCFMixN</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>integer</TD>
+!><TD ALIGN="CENTER">4</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>number of iterations to mix</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">RunType</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>SinglePoint, BODynamics, Ehrenfest, EhrenfestDumped, Fit</TD>
+!><TD ALIGN="CENTER">SinglePoint</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>Type of calculation</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">HElThres</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real</TD>
+!><TD ALIGN="CENTER">1e-10</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>hamiltionian element thresold. Any element smaller that the thresold is made zero.</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">CollinearSpins</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>logical</TD>
+!><TD ALIGN="CENTER">.false.</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>on/off collinear spins</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">MaxIt</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>integer</TD>
+!><TD ALIGN="CENTER">500</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>maximum number of iterations used to find Fermi level</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">ChargeTol</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real</TD>
+!><TD ALIGN="CENTER">1e-10</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>charge tolerance used to find Fermi level</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">NetCharge</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real</TD>
+!><TD ALIGN="CENTER">0.0</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>Net charge on the system</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">ElectronicTemperature</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real</TD>
+!><TD ALIGN="CENTER">300.0</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>Electronic temperature, used to compute occupation numbers if you
+!> choose Fermi-Dirac method</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">ElectronicW</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real</TD>
+!><TD ALIGN="CENTER">0.05</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>Electronic W, used to compute occupation numbers if you choose
+!> Methfessel-Paxton method</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">MPN</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>integer</TD>
+!><TD ALIGN="CENTER">2</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>the order of Hermite polynomials used to find Fermi level by Methfessel-Paxton method</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">ElectronicMu</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real</TD>
+!><TD ALIGN="CENTER">0.0</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>chemical potential, used to compute occupation numbers if you choose constant  method</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">DMOccTol</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real</TD>
+!><TD ALIGN="CENTER">1e-10</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>density matrix occupation tolerance</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">SymRefRho</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>logical</TD>
+!><TD ALIGN="CENTER">.false.</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>on/off symmetric reference density matrix</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">Screened</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>logical</TD>
+!><TD ALIGN="CENTER">.false.</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>on/off bare Coulomb or screened electrostatic interaction</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">WriteAnimation</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>logical</TD>
+!><TD ALIGN="CENTER">.true.</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>on/off writing animation file</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">DeltaT</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real</TD>
+!><TD ALIGN="CENTER">0.001</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>time step used to evolve equtions of motion</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">Nsteps</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>integer</TD>
+!><TD ALIGN="CENTER">100</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>number of steps used to evolve equtions of motion</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">VelScale</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>logical</TD>
+!><TD ALIGN="CENTER">.false.</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>on/off scaling velocities</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">IonicTemperature</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real</TD>
+!><TD ALIGN="CENTER">300.0</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>Ionic temperature</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">BiasRampSteps</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>integer</TD>
+!><TD ALIGN="CENTER">0</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>for how many steps to apply bias</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">EulerSteps</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>integer</TD>
+!><TD ALIGN="CENTER">100</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>after each EulerSteps apply an Euler integration of equations of motions</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">Gamma</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real</TD>
+!><TD ALIGN="CENTER">0.3</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>dumping factor for Ehrenfest equation</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">FitType</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>Simplex,SA, SimplexSA</TD>
+!><TD ALIGN="CENTER">Simplex</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>fitting method (Simplex, Simplex-Simulated Annealing, Simulated Annealing)</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">NoFitParams</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>integer</TD>
+!><TD ALIGN="CENTER">0</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>numbers of parameters to fit</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">FitTol</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real</TD>
+!><TD ALIGN="CENTER">1.0e-4</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>the tolerance accepted in fit</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">RestartFit</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>logical</TD>
+!><TD ALIGN="CENTER">.false.</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>on/off restarting the fit from a previous point</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">FitNeps</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>integer</TD>
+!><TD ALIGN="CENTER">4</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>number of terms used to compute the termination criteria</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">SimplexMaxIter</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>integer</TD>
+!><TD ALIGN="CENTER">10000</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>maximum number of iterations in the simplex method</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">SAMaxFeval</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>integer</TD>
+!><TD ALIGN="CENTER">100000</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>maximum number of cost function evaluations in SA method</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">SACyscles</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>integer</TD>
+!><TD ALIGN="CENTER">20</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>maximum number of cycles in SA method</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">SAnBefRed</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>integer</TD>
+!><TD ALIGN="CENTER">5</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>number of iterations before temperature reduction in SA method</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">SATemp</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real</TD>
+!><TD ALIGN="CENTER">100.0</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>iinitial temperature in SA method</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">SAStep</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real</TD>
+!><TD ALIGN="CENTER">1.0</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>SA initial step</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">SAStepAdj</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real</TD>
+!><TD ALIGN="CENTER">2.0</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>SA step adjustment</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">SATempRed</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real</TD>
+!><TD ALIGN="CENTER">0.5</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>SA temperature reduction factor</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">SimplexMaxIter</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>integer</TD>
+!><TD ALIGN="CENTER">10000</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>maximum number of iterations in the simplex method</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">SATempRed</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real</TD>
+!><TD ALIGN="CENTER">0.5</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>SA temperature reduction factor</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">SATemp</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real</TD>
+!><TD ALIGN="CENTER">100.0</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>iinitial temperature in SA method</TD>
+!></TR>
+!></TABLE>
+!> \endhtmlonly
 
 !> \brief closes all the I/O units
 !> \author Alin M Elena
@@ -673,50 +1083,6 @@ end subroutine CloseIoGeneral
 !> \param io type(ioType) i/o units
 !> \param general type(generalType) general data
 !> \param atomix type(atomicxType) contains info about atoms
-!> \remarks
-!> The strucure of a typical block will be
-!> \verbatim
-!> NumberOfAtoms 1
-!> block AtomsData
-!> 1 0.0 0.0 0.0 0.0 T F
-!> endblock AtomsData
-!> \endverbatim
-!> NumberOfAtoms specifies the number of Atoms to be read from the block AtomsData\n
-!> each atom has a line with 7 entities\n
-!> <1> is the id of the specie of the atom (integer)\n
-!> <2-4> carteasian coordinates (reals)\n
-!> <5> local bias (real) gets multiplied internal with the values speciefied by \c Bias \n
-!> <6> should the atom be treated scf in a scf calculation (logical)\n
-!> <7> should the atom move in a molecular dynamics simulation (logical)\n
-!> The velocities block
-!> \verbatim
-!> block VelocitiesData
-!> 1 0.0 0.0 3.0
-!> endblock VelocitiesData
-!> \endverbatim
-!> VelocitiesData block allows to specify initial velocties for atoms. Not all the atoms have to be present.
-!> The missing ones have the velocities Initialized with k_zero. Each atom has a line\n
-!> <1> the id of the atom (integer) \n 
-!> <2-4> the carteasian components of the velocity (reals) \n
-!> AcceptorAtoms and DonorAtoms blocks specify which atoms belong to the acceptor and which to the donor.
-!> The rest of the atoms are considered to be part of the spacer. Each block waits for a line with a
-!> list of atoms in between the \c block \c endblock. \c Ndonor and \c NAcceptor specify how many atoms to be
-!> expected in each list
-!>\verbatim
-!> NDonor 1
-!> block DonorAtoms
-!> 3
-!> endblock DonorAtoms
-!>
-!> NAcceptor 2
-!> block AcceptorAtoms
-!> 2 1 
-!> endblock AcceptorAtoms
-!>\endverbatim
-!> - if you read the VelocitiesData block not all the exceptions are caught.
-!> check the output to be sure that it read the proper stuff. (fortran will automatically convert an integer to real
-!> so will generate a valid entry when is not the case)
-!> - atoms ids are set according to theri position in the AtomsData block
 
   subroutine ReadAtoms(io,general,atomix)
     character(len=*), parameter :: sMyName="ReadAtoms"
@@ -935,9 +1301,52 @@ end subroutine CloseIoGeneral
     endif
   end subroutine ReadAtoms
 
+  !> \page atoms Atoms data
+  !> The strucure of a typical block will be
+  !> \verbatim
+  !> NumberOfAtoms 1
+  !> block AtomsData
+  !> 1 0.0 0.0 0.0 0.0 T F
+  !> endblock AtomsData
+  !> \endverbatim
+  !> NumberOfAtoms specifies the number of Atoms to be read from the block AtomsData\n
+  !> each atom has a line with 7 entities\n
+  !> <1> is the id of the specie of the atom (integer)\n
+  !> <2-4> carteasian coordinates (reals)\n
+  !> <5> local bias (real) gets multiplied internal with the values speciefied by \c Bias \n
+  !> <6> should the atom be treated scf in a scf calculation (logical)\n
+  !> <7> should the atom move in a molecular dynamics simulation (logical)\n
+  !> The velocities block
+  !> \verbatim
+  !> block VelocitiesData
+  !> 1 0.0 0.0 3.0
+  !> endblock VelocitiesData
+  !> \endverbatim
+  !> VelocitiesData block allows to specify initial velocties for atoms. Not all the atoms have to be present.
+  !> The missing ones have the velocities Initialized with k_zero. Each atom has a line\n
+  !> <1> the id of the atom (integer) \n 
+  !> <2-4> the carteasian components of the velocity (reals) \n
+  !> AcceptorAtoms and DonorAtoms blocks specify which atoms belong to the acceptor and which to the donor.
+  !> The rest of the atoms are considered to be part of the spacer. Each block waits for a line with a
+  !> list of atoms in between the \c block \c endblock. \c Ndonor and \c NAcceptor specify how many atoms to be
+  !> expected in each list
+  !>\verbatim
+  !> NDonor 1
+  !> block DonorAtoms
+  !> 3
+  !> endblock DonorAtoms
+  !>
+  !> NAcceptor 2
+  !> block AcceptorAtoms
+  !> 2 1 
+  !> endblock AcceptorAtoms
+  !>\endverbatim
+  !> - if you read the VelocitiesData block not all the exceptions are caught.
+  !> check the output to be sure that it read the proper stuff. (fortran will automatically convert an integer to real
+  !> so will generate a valid entry when is not the case)
+  !> - atoms ids are set according to their position in the AtomsData block
 
-
-!> \brief reads and allocates the info about species of atoms 
+!> \brief reads and allocates the info about species of atoms
 !> \details this is all that should be done in this module.
 !> the rest should happen in a specialized module
 !> \author Alin M Elena
@@ -945,23 +1354,6 @@ end subroutine CloseIoGeneral
 !> \param io type(ioType) i/o units
 !> \param general type(generalType) general data
 !> \param specs type(speciesType) contains info about atoms
-!> \remarks
-!> The structure of the SpeciesData block
-!> \verbatim
-!> NumberOfSpecies 2
-!> block SpeciesData
-!> 1 2 0.0 1.0 2.0 3.0
-!> 3 3 4.0 2.0 3.0 4.0
-!> endblock SpeciesData
-!> \endverbatim
-!> It expects to read a number NumberofSpecies lines in beetween the \c block \c endblock
-!> The structue of a line is\n
-!> <1> id of the specie (integer). It has to be unique. \n
-!> <2> Z the atomic number (integer) \n
-!> <3> atomic mass (in a.m.u.) it gets converted internally to the chosen system of units \n
-!> <4-5> U J (reals) U,J for the SCF calculation \n
-!> <6> the screening factor for tha electrostatic interaction if the option is chosen. \n
-!> \f[ V_I=\frac{e^2}{4\pi\epsilon_0}\cfrac{q_J}{\sqrt{r_{IJ}^2+\left ( \cfrac{1}{U_I}+\cfrac{1}{U_J}\right )^2}} \f]
 
   subroutine ReadSpecies(io,general,specs)
     character(len=*), parameter :: sMyName="ReadSpecies"
@@ -1008,10 +1400,26 @@ end subroutine CloseIoGeneral
     else
       call error("Specie block is missing!!!",sMyName,.true.,io)
     endif
-    
   end subroutine ReadSpecies
 
-
+  !> \page species "Atomic Species Data"
+  !> The structure of the SpeciesData block
+  !> \verbatim
+  !> NumberOfSpecies 2
+  !> block SpeciesData
+  !> 1 2 0.0 1.0 2.0 3.0
+  !> 3 3 4.0 2.0 3.0 4.0
+  !> endblock SpeciesData
+  !> \endverbatim
+  !> It expects to read a number NumberofSpecies lines in beetween the \c block \c endblock
+  !> The structue of a line is\n
+  !> <1> id of the specie (integer). It has to be unique. \n
+  !> <2> Z the atomic number (integer) \n
+  !> <3> atomic mass (in a.m.u.) it gets converted internally to the chosen system of units \n
+  !> <4-5> U J (reals) U,J for the SCF calculation \n
+  !> <6> the screening factor for tha electrostatic interaction if the option is chosen. \n
+  !> \f[ V_I=\frac{e^2}{4\pi\epsilon_0}\cfrac{q_J}{\sqrt{r_{IJ}^2+\left ( \cfrac{1}{U_I}+\cfrac{1}{U_J}\right )^2}} \f]
+  
 
 !> \brief reads and Initializes the basis set
 !> \author Alin M Elena
@@ -1019,27 +1427,6 @@ end subroutine CloseIoGeneral
 !> \param io type(ioType) i/o units
 !> \param gen type(generalType) general data
 !> \param atomix type(atomicxType) contains info about atoms
-!> \remarks
-!> The \c basis block
-!> \verbatim
-!> block Basis
-!> 1 4
-!> 0 0  0 1.0 1.0
-!> 0 1  1 0.2 0.2
-!> 0 1 -1 0.3 0.3
-!> 0 1  0 0.4 0.4
-!> 2 1
-!> 0 0  0 0.5 0.5
-!> endblock Basis
-!> \endverbatim
-!> The structure for each specie is:\n
-!> A line with two integers is expected. First is the id of the specie, second the number of orbitals for that specie.
-!> A number of lines equal with the number of orbitals specified previously is expected.
-!> the structure of each line is \n
-!> <1-3> n,l,m (integers) n principal quantum number, l angular quantum number m magnetic quantum number
-!> n is not used at anything for the moment
-!> <4-5> occupation numbers for the orbital. In the case of a spin polarised calculation (\c Spin T) both o them are read
-!> for (\c Spin F) only the first one is read. They are used to compute \c Zval
   subroutine ReadBasis(io,gen,atomix)
     character(len=*), parameter :: sMyName="ReadBasis"
     type(ioType), intent(inout) :: io
@@ -1176,7 +1563,27 @@ end subroutine CloseIoGeneral
     deallocate(tmpid)
 end subroutine ReadBasis
 
-
+!> \page basis Basis Set
+!> The \c basis block
+!> \verbatim
+!> block Basis
+!> 1 4
+!> 0 0  0 1.0 1.0
+!> 0 1  1 0.2 0.2
+!> 0 1 -1 0.3 0.3
+!> 0 1  0 0.4 0.4
+!> 2 1
+!> 0 0  0 0.5 0.5
+!> endblock Basis
+!> \endverbatim
+!> The structure for each specie is:\n
+!> A line with two integers is expected. First is the id of the specie, second the number of orbitals for that specie.
+!> A number of lines equal with the number of orbitals specified previously is expected.
+!> the structure of each line is \n
+!> <1-3> n,l,m (integers) n principal quantum number, l angular quantum number m magnetic quantum number
+!> n is not used at anything for the moment
+!> <4-5> occupation numbers for the orbital. In the case of a spin polarised calculation (\c Spin T) both o them are read
+!> for (\c Spin F) only the first one is read. They are used to compute \c Zval
 
 !> \brief selects the initialization routine for the tight binding model
 !> \author Alin M Elena
@@ -1272,7 +1679,7 @@ end subroutine ReadBasis
     type(atomicxType), intent(inout) :: atomix
     type(modelType), intent(inout) :: tbMod
     integer :: i,j,i1,k,k1,k2,p
-    character(len=k_mw) :: read_var
+    character(len=k_mw) :: readVar
 
     do i=1,atomix%species%nspecies
       do j=1,atomix%species%nspecies
@@ -1281,9 +1688,9 @@ end subroutine ReadBasis
             i1=0
             p=0
             do while (i1<=atomix%species%norbs(i)/2-1)
-              read_var="eps"
-              read_var=trim(ccvar(i,i,read_var))
-              tbMod%hopping(i,j)%eps(i1:i1+2*p)=GetReal(io,trim(ccvar(i1,i1,read_var)),0.0_k_pr)
+              readVar="eps"
+              readVar=trim(ccvar(i,i,readVar))
+              tbMod%hopping(i,j)%eps(i1:i1+2*p)=GetReal(io,trim(ccvar(i1,i1,readVar)),0.0_k_pr)
               tbMod%hopping(i,j)%eps(i1+atomix%species%norbs(i)/2:i1+atomix%species%norbs(i)/2+2*p)=tbMod%hopping(i,j)%eps(i1)
               i1=i1+2*p+1
               p=p+1
@@ -1292,50 +1699,50 @@ end subroutine ReadBasis
             i1=0
             p=0
             do while (i1<=atomix%species%norbs(i)-1)
-              read_var="eps"
-              read_var=trim(ccvar(i,i,read_var))
-              tbMod%hopping(i,j)%eps(i1:i1+2*p)=GetReal(io,trim(ccvar(i1,i1,read_var)),0.0_k_pr)
+              readVar="eps"
+              readVar=trim(ccvar(i,i,readVar))
+              tbMod%hopping(i,j)%eps(i1:i1+2*p)=GetReal(io,trim(ccvar(i1,i1,readVar)),0.0_k_pr)
               i1=i1+2*p+1
               p=p+1
             enddo
           endif
           if (gen%embedding) then
-            read_var="a1"
-            tbMod%hopping(i,j)%a1=GetReal(io,trim(ccvar(i,j,read_var)),0.0_k_pr)
-            read_var="a2"
-            tbMod%hopping(i,j)%a2=GetReal(io,trim(ccvar(i,j,read_var)),0.0_k_pr)
-            read_var="a3"
-            tbMod%hopping(i,j)%a3=GetReal(io,trim(ccvar(i,j,read_var)),0.0_k_pr)
-            read_var="a4"
-            tbMod%hopping(i,j)%a4=GetReal(io,trim(ccvar(i,j,read_var)),0.0_k_pr)
+            readVar="a1"
+            tbMod%hopping(i,j)%a1=GetReal(io,trim(ccvar(i,j,readVar)),0.0_k_pr)
+            readVar="a2"
+            tbMod%hopping(i,j)%a2=GetReal(io,trim(ccvar(i,j,readVar)),0.0_k_pr)
+            readVar="a3"
+            tbMod%hopping(i,j)%a3=GetReal(io,trim(ccvar(i,j,readVar)),0.0_k_pr)
+            readVar="a4"
+            tbMod%hopping(i,j)%a4=GetReal(io,trim(ccvar(i,j,readVar)),0.0_k_pr)
           endif
         endif
-        read_var="phi0"
-        tbMod%hopping(i,j)%phi0=GetReal(io,trim(ccvar(i,j,read_var)),0.0_k_pr)
-        read_var="r0"
-        tbMod%hopping(i,j)%r0=GetReal(io,trim(ccvar(i,j,read_var)),0.0_k_pr)
-        read_var="rc"
-        tbMod%hopping(i,j)%rc=GetReal(io,trim(ccvar(i,j,read_var)),0.0_k_pr)
-        read_var="r1"
-        tbMod%hopping(i,j)%r1=GetReal(io,trim(ccvar(i,j,read_var)),0.0_k_pr)
-        read_var="rcut"
-        tbMod%hopping(i,j)%rcut=GetReal(io,trim(ccvar(i,j,read_var)),0.0_k_pr)
-        read_var="n"
-        tbMod%hopping(i,j)%n=GetReal(io,trim(ccvar(i,j,read_var)),0.0_k_pr)
-        read_var="nc"
-        tbMod%hopping(i,j)%nc=GetReal(io,trim(ccvar(i,j,read_var)),0.0_k_pr)
-        read_var="d0"
-        tbMod%hopping(i,j)%d0=GetReal(io,trim(ccvar(i,j,read_var)),0.0_k_pr)
-        read_var="dc"
-        tbMod%hopping(i,j)%dc=GetReal(io,trim(ccvar(i,j,read_var)),0.0_k_pr)
-        read_var="d1"
-        tbMod%hopping(i,j)%d1=GetReal(io,trim(ccvar(i,j,read_var)),0.0_k_pr)
-        read_var="dcut"
-        tbMod%hopping(i,j)%dcut=GetReal(io,trim(ccvar(i,j,read_var)),0.0_k_pr)
-        read_var="m"
-        tbMod%hopping(i,j)%m=GetReal(io,trim(ccvar(i,j,read_var)),0.0_k_pr)
-        read_var="mc"
-        tbMod%hopping(i,j)%mc=GetReal(io,trim(ccvar(i,j,read_var)),0.0_k_pr)
+        readVar="phi0"
+        tbMod%hopping(i,j)%phi0=GetReal(io,trim(ccvar(i,j,readVar)),0.0_k_pr)
+        readVar="r0"
+        tbMod%hopping(i,j)%r0=GetReal(io,trim(ccvar(i,j,readVar)),0.0_k_pr)
+        readVar="rc"
+        tbMod%hopping(i,j)%rc=GetReal(io,trim(ccvar(i,j,readVar)),0.0_k_pr)
+        readVar="r1"
+        tbMod%hopping(i,j)%r1=GetReal(io,trim(ccvar(i,j,readVar)),0.0_k_pr)
+        readVar="rcut"
+        tbMod%hopping(i,j)%rcut=GetReal(io,trim(ccvar(i,j,readVar)),0.0_k_pr)
+        readVar="n"
+        tbMod%hopping(i,j)%n=GetReal(io,trim(ccvar(i,j,readVar)),0.0_k_pr)
+        readVar="nc"
+        tbMod%hopping(i,j)%nc=GetReal(io,trim(ccvar(i,j,readVar)),0.0_k_pr)
+        readVar="d0"
+        tbMod%hopping(i,j)%d0=GetReal(io,trim(ccvar(i,j,readVar)),0.0_k_pr)
+        readVar="dc"
+        tbMod%hopping(i,j)%dc=GetReal(io,trim(ccvar(i,j,readVar)),0.0_k_pr)
+        readVar="d1"
+        tbMod%hopping(i,j)%d1=GetReal(io,trim(ccvar(i,j,readVar)),0.0_k_pr)
+        readVar="dcut"
+        tbMod%hopping(i,j)%dcut=GetReal(io,trim(ccvar(i,j,readVar)),0.0_k_pr)
+        readVar="m"
+        tbMod%hopping(i,j)%m=GetReal(io,trim(ccvar(i,j,readVar)),0.0_k_pr)
+        readVar="mc"
+        tbMod%hopping(i,j)%mc=GetReal(io,trim(ccvar(i,j,readVar)),0.0_k_pr)
         do k=0,tbMod%hopping(i,j)%l1
           do k1=k,tbMod%hopping(i,j)%l2
             do k2=0,k
@@ -1377,7 +1784,7 @@ end subroutine ReadBasis
     type(modelType), intent(inout) :: tbMod
 
     integer i,j,i1,k,k1,k2,p
-    character(len=k_mw) :: read_var
+    character(len=k_mw) :: readVar
     
     do i=1,atomix%species%nspecies
       do j=1,atomix%species%nspecies
@@ -1386,9 +1793,9 @@ end subroutine ReadBasis
             i1=0
             p=0
             do while (i1<=atomix%species%norbs(i)/2-1)
-              read_var="eps"
-              read_var=trim(ccvar(i,i,read_var))
-              tbMod%hopping(i,j)%eps(i1:i1+2*p)=GetReal(io,trim(ccvar(i1,i1,read_var)),0.0_k_pr)
+              readVar="eps"
+              readVar=trim(ccvar(i,i,readVar))
+              tbMod%hopping(i,j)%eps(i1:i1+2*p)=GetReal(io,trim(ccvar(i1,i1,readVar)),0.0_k_pr)
               tbMod%hopping(i,j)%eps(i1+atomix%species%norbs(i)/2:i1+atomix%species%norbs(i)/2+2*p)=tbMod%hopping(i,j)%eps(i1)
               i1=i1+2*p+1
               p=p+1
@@ -1397,39 +1804,39 @@ end subroutine ReadBasis
             i1=0
             p=0
             do while (i1<=atomix%species%norbs(i)/2-1)
-              read_var="eps"
-              read_var=trim(ccvar(i,i,read_var))
-              tbMod%hopping(i,j)%eps(i1:i1+2*p)=GetReal(io,trim(ccvar(i1,i1,read_var)),0.0_k_pr)
+              readVar="eps"
+              readVar=trim(ccvar(i,i,readVar))
+              tbMod%hopping(i,j)%eps(i1:i1+2*p)=GetReal(io,trim(ccvar(i1,i1,readVar)),0.0_k_pr)
               i1=i1+2*p+1
               p=p+1
             enddo
           endif
           if (gen%embedding) then
-            read_var="a1"
-            tbMod%hopping(i,j)%a1=GetReal(io,trim(ccvar(i,j,read_var)),0.0_k_pr)
-            read_var="a2"
-            tbMod%hopping(i,j)%a2=GetReal(io,trim(ccvar(i,j,read_var)),0.0_k_pr)
-            read_var="a3"
-            tbMod%hopping(i,j)%a3=GetReal(io,trim(ccvar(i,j,read_var)),0.0_k_pr)
-            read_var="a4"
-            tbMod%hopping(i,j)%a4=GetReal(io,trim(ccvar(i,j,read_var)),0.0_k_pr)
+            readVar="a1"
+            tbMod%hopping(i,j)%a1=GetReal(io,trim(ccvar(i,j,readVar)),0.0_k_pr)
+            readVar="a2"
+            tbMod%hopping(i,j)%a2=GetReal(io,trim(ccvar(i,j,readVar)),0.0_k_pr)
+            readVar="a3"
+            tbMod%hopping(i,j)%a3=GetReal(io,trim(ccvar(i,j,readVar)),0.0_k_pr)
+            readVar="a4"
+            tbMod%hopping(i,j)%a4=GetReal(io,trim(ccvar(i,j,readVar)),0.0_k_pr)
           endif
         endif
 
-        read_var="phi0"
-        tbMod%hopping(i,j)%phi0=GetReal(io,trim(ccvar(i,j,read_var)),0.0_k_pr)
-        read_var="r1"
-        tbMod%hopping(i,j)%r1=GetReal(io,trim(ccvar(i,j,read_var)),0.0_k_pr)
-        read_var="rcut"
-        tbMod%hopping(i,j)%rcut=GetReal(io,trim(ccvar(i,j,read_var)),0.0_k_pr)
-        read_var="n"
-        tbMod%hopping(i,j)%n=GetReal(io,trim(ccvar(i,j,read_var)),0.0_k_pr)
-        read_var="d1"
-        tbMod%hopping(i,j)%d1=GetReal(io,trim(ccvar(i,j,read_var)),0.0_k_pr)
-        read_var="dcut"
-        tbMod%hopping(i,j)%dcut=GetReal(io,trim(ccvar(i,j,read_var)),0.0_k_pr)
-        read_var="m"
-        tbMod%hopping(i,j)%m=GetReal(io,trim(ccvar(i,j,read_var)),0.0_k_pr)
+        readVar="phi0"
+        tbMod%hopping(i,j)%phi0=GetReal(io,trim(ccvar(i,j,readVar)),0.0_k_pr)
+        readVar="r1"
+        tbMod%hopping(i,j)%r1=GetReal(io,trim(ccvar(i,j,readVar)),0.0_k_pr)
+        readVar="rcut"
+        tbMod%hopping(i,j)%rcut=GetReal(io,trim(ccvar(i,j,readVar)),0.0_k_pr)
+        readVar="n"
+        tbMod%hopping(i,j)%n=GetReal(io,trim(ccvar(i,j,readVar)),0.0_k_pr)
+        readVar="d1"
+        tbMod%hopping(i,j)%d1=GetReal(io,trim(ccvar(i,j,readVar)),0.0_k_pr)
+        readVar="dcut"
+        tbMod%hopping(i,j)%dcut=GetReal(io,trim(ccvar(i,j,readVar)),0.0_k_pr)
+        readVar="m"
+        tbMod%hopping(i,j)%m=GetReal(io,trim(ccvar(i,j,readVar)),0.0_k_pr)
 
         do k=0,tbMod%hopping(i,j)%l1
           do k1=k,tbMod%hopping(i,j)%l2
@@ -1459,27 +1866,13 @@ end subroutine ReadBasis
   end subroutine ReadTbHarrison
 
 !> \brief reads the delta block
-!> \details the block is read only if multipoles k_electrostatics is asked for
+!> \details the block is read only if multipoles electrostatics is asked for
 !> \author Alin M Elena
 !> \date 31/10/07, 17:52:20
 !> \param io type(ioType) contains all the info about I/O files
 !> \param gen type(generalType) contains the info needed by the program to k_run
 !> \param atomix type(atomicType) contains all info about the atoms and basis set and some parameters
 !> \param tbMod type(modelType) contains iformation about the tight binding model parameters
-!> \remarks Note that: delta (l,l1,l2) with |l1-l2|<=l<=|l1+l2| \n
-!>  we read delta(l,l1,l2) \n
-!> the rules are that we read only l1<l2 if l1=l2 then we read only if l/=0 \n
-!> for each specie we have \n
-!>  we start with a line specifying the specie then first line is delta(1,0,1) second delta(2,1,1) (for a sp specie) \n
-!> if one specie has no element to be read it is mandatory to be present
-!> \verbatim
-!>      block DeltaPol
-!>      1
-!>      1.0
-!>      0.0
-!>      2
-!>      endblock DeltaPol
-!> \endverbatim
   subroutine ReadDelta(io,gen,atomix,tbMod)
     character(len=*), parameter :: sMyName="ReadDelta"
     type(ioType), intent(inout) :: io
@@ -1537,8 +1930,21 @@ end subroutine ReadBasis
       endif
   end subroutine ReadDelta
 
-
-
+  !> \page delta DeltaPol Block
+  !> Note that: delta (l,l1,l2) with |l1-l2|<=l<=|l1+l2| \n
+  !>  we read delta(l,l1,l2) \n
+  !> the rules are that we read only l1<l2 if l1=l2 then we read only if l/=0 \n
+  !> for each specie we have \n
+  !>  we start with a line specifying the specie then first line is delta(1,0,1) second delta(2,1,1) (for a sp specie) \n
+  !> if one specie has no element to be read it is mandatory to be present
+  !> \verbatim
+  !>      block DeltaPol
+  !>      1
+  !>      1.0
+  !>      0.0
+  !>      2
+  !>      endblock DeltaPol
+  !> \endverbatim
 
 !> \brief deallocates the memory
 !> \author Alin M Elena

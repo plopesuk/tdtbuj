@@ -1,5 +1,15 @@
 !> \mainpage TDTB+UJ Manual
-!> Time-Dependent Tight-Binding+UJ
+!> Time-Dependent Tight-Binding+UJ \n
+!> \section run Run methods
+!> \section inp Input Variables
+!> - \subpage ioVars "I/O Variables"
+!> - \subpage control "Program Flow Control Variables"
+!> \section format Format specifiers
+!> - \subpage atoms "Atoms"
+!> - \subpage species "Atomic Species Data"
+!> - \subpage basis "Basis Set"
+!> - \subpage delta "Multipoles parameters(Delta Block)"
+!> \section tb Tight Binding Parameters
 !> \page code Coding Style Document
 !> \section general General Style
 !>- You \em SHOULD use the Object Oriented features of Fotran as much as possible.
@@ -111,6 +121,7 @@ program tbuj
   use m_Useful, only : DateAndTime, error
   use m_TightBinding
   use m_DriverRoutines
+  use m_Fit
   implicit none
 
 
@@ -153,7 +164,7 @@ program tbuj
   elseif (general%runType == k_runEhrenfest) then
     call EhrenfestDynamics(ioInfo,general,atomicx,tbModel,SolSpace)
   elseif (general%runType==k_runFit) then
-!     call fitting
+    call Fitting(ioInfo,general,atomicx,tbModel,SolSpace)
   elseif (general%runType==k_runForceTest) then
 !     call forceTest
   elseif (general%runType==k_runForceTestx) then

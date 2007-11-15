@@ -32,6 +32,20 @@ module m_Useful
   public :: aidx
   public :: norm
   public :: VectorModulus
+  public :: iMaxLoc
+  public :: iMinLoc
+  public :: Swap
+  public :: AssertEq
+  public :: ExpRep
+
+  interface Swap
+    module procedure SwapScalar,SwapVector
+  end interface
+
+  interface AssertEq
+    module procedure AssertEq3, AssertEq4
+  end interface
+
 contains
 
 !> \brief logical function compares two strings 
@@ -87,7 +101,7 @@ contains
     logical, intent(in)   :: critical
     type(ioType), intent(in) :: ioLoc
     
-    if (critical== .true.) then
+    if (critical) then
       write(ioLoc%uout,*) &
         "Critical error in subroutine: ", routine
     else
@@ -97,7 +111,7 @@ contains
     
     write(ioLoc%uout,*) routine,": ", message
     
-    if (critical==.true.) then
+    if (critical) then
       write(ioLoc%uout,*)routine,": User stop."
       write(*,*)routine," User stop."
       stop
@@ -163,13 +177,13 @@ contains
     logical :: aux
 
     n=size(x)
-    if (present(pos)==.true.) pos = -1
+    if (present(pos)) pos = -1
     aux=.false.
     if (n>=1) then
       do i=1,n
         if (y == x(i)) then
           aux = .true.
-          if (present(pos)==.true.) pos = i
+          if (present(pos)) pos = i
         endif
       enddo
     endif
@@ -255,7 +269,8 @@ contains
 
     if( ij < 0  .or.  ij > 31328  .or. &
         kl < 0  .or.  kl > 30081 ) then
-      write(saux,'(a,i0,a,i0)')"first seed must be between 0 and 31328 the second seed must be between 0 and  30081! you supplied ",ij," and ",kl
+      write(saux,'(a,i0,a,i0)')"first seed must be between 0 and 31328 the second seed must be between 0 and  30081! you supplied "&
+         ,ij," and ",kl
       call error(trim(saux),myname,.true.,io)
     endif
     i = mod(ij/177, 177) + 2
@@ -648,6 +663,102 @@ contains
     real(k_pr) ::x,y,z
     VectorModulus=sqrt(x*x+y*y+z*z)
   end function VectorModulus
+!> \brief returns the position in an array of the maximum
+!> \author Alin M Elena
+!> \date 12/11/07, 13:25:12
+!> \param arr theh array
+  function imaxloc(arr)
+    real(k_pr), dimension(:), intent(in) :: arr
+    integer :: imaxloc
+    integer, dimension(1) :: imax
+    imax=maxloc(arr(:))
+    imaxloc=imax(1)
+  end function imaxloc
 
+!> \brief returns the position in an array of the minimum
+!> \author Alin M Elena
+!> \date 12/11/07, 13:26:12
+!> \param arr theh array
+  function iminloc(arr)
+    real(k_pr), dimension(:), intent(in) :: arr
+    integer, dimension(1) :: imin
+    integer :: iminloc
+    imin=minloc(arr(:))
+    iminloc=imin(1)
+  end function iminloc
+
+!> \brief asserts if 3 integers are equal
+!> \author Alin M Elena
+!> \date 12/11/07, 13:23:47
+!> \param n1,n2,n3 the integers
+!> \param io type(ioType) i/o units
+
+  integer function AssertEq3(n1,n2,n3,io)
+    character(len=*), parameter :: myname="AssertEq3"
+    integer, intent(in) :: n1,n2,n3
+    type(ioType), intent(inout) :: io
+ 
+    if (n1 == n2 .and. n2 == n3) then
+      AssertEq3=n1
+    else
+     call  error("AssertEq failed:",myname,.true.,io)
+   end if
+  end function AssertEq3
+
+!> \brief asserts if 4 integers are equal
+!> \author Alin M Elena
+!> \date 12/11/07, 13:23:47
+!> \param n1,n2,n3,n4 the integers
+!> \param io type(ioType) i/o units
+  integer function AssertEq4(n1,n2,n3,n4,io)
+    character(len=*), parameter :: myname="AssertEq4"
+    integer, intent(in) :: n1,n2,n3,n4
+    type(ioType), intent(inout) :: io
+    if (n1 == n2 .and. n2 == n3 .and. n3 == n4) then
+      AssertEq4=n1
+    else
+      call  error("AssertEq failed:",myname,.true.,io)
+    end if
+  end function AssertEq4
+
+!> \brief swaps two scalars
+!> \author Alin M Elena
+!> \date 12/11/07, 13:23:20
+!> \param a,b reals the scalars
+  subroutine SwapScalar(a,b)
+    real(k_pr), intent(inout) :: a,b
+    real(k_pr) :: dum
+    dum=a
+    a=b
+    b=dum
+  end subroutine SwapScalar
+
+!> \brief swaps two vectors
+!> \author Alin M Elena
+!> \date 12/11/07, 13:22:37
+!> \param a,b the vectors
+  subroutine SwapVector(a,b)
+    real(k_pr), dimension(:), intent(inout) :: a,b
+    real(k_pr), dimension(size(a)) :: dum
+    dum=a
+    a=b
+    b=dum
+  end subroutine SwapVector
+!> \brief retunr the exponential of a number
+!> \details it takes care that the exponential has a resonable big or small value
+!> \author Alin M Elena
+!> \date 12/11/07, 15:14:16
+!> \param rdum real the exponent of the exponential
+
+  real(k_pr) function  ExpRep(rdum)
+    real(k_pr),intent(in) ::  rdum
+    if (rdum > 100._k_pr) then
+      ExpRep = 3.69+50_k_pr
+    else if (rdum < -100._k_pr) then
+      ExpRep = 0.0_k_pr
+    else
+        ExpRep = exp(rdum)
+    end if
+  end function ExpRep
+      
 end module m_Useful
-

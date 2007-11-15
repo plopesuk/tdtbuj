@@ -18,7 +18,6 @@ module m_Constants
   integer, parameter,public :: k_mediumDebug=15
   integer, parameter,public :: k_highDebug=25
 !> debug levels
-
   integer, parameter, public :: k_runSp = 1
   integer, parameter, public :: k_runBO = 2
   integer, parameter, public :: k_runEhrenfest = 3
@@ -51,12 +50,15 @@ module m_Constants
   integer, parameter, public :: k_smMP=2
   integer, parameter, public :: k_smCMU=3
 !> smearing methods
-
   integer,parameter, public :: k_unitsEV=1
   integer,parameter, public :: k_unitsAU=2
   integer,parameter, public :: k_unitsSI=3
   integer,parameter, public :: k_unitsRY=4
 !> units
+  integer, parameter, public :: k_simplex=1
+  integer, parameter, public :: k_SA=2
+  integer, parameter, public :: k_simplexSA=3
+!> fitting methods
 
  ! mathematics
   real(k_pr), parameter, public ::   k_pi = 3.14159265358979323846264338327950_k_pr !< \f$ \pi \f$
