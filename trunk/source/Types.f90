@@ -42,6 +42,22 @@ module m_Types
   real(k_pr) :: int !< interk_mediate time
   end type timeType
 
+!> \brief fitting data type
+!> \todo point to more explanations
+  type, public :: fitType
+    integer :: neps,feval,ns
+    integer ::iter,nt
+    real(k_pr) :: fitTol
+    logical :: restartFit
+    integer :: fitMethod
+    real(k_pr):: temp
+    real(k_pr) :: step
+    real(k_pr) ::stepAd
+    real(k_pr) :: rt
+    integer :: iNoParams !< no of parameters in optimization
+  end type fitType
+
+
 !> \brief see m_ReadData::ReadGeneral module for the meaning
   type,public :: generalType
     real(k_pr) :: bias
@@ -101,23 +117,8 @@ module m_Types
     integer :: maxIt !< no of iterations to use in bisection method
     real(k_pr) :: qTolerance !< charge tolerance used to find Fermi level
     type(timeType):: time
-  
+    type(fitType)  :: fit
   end type generalType
-  
-!> \brief fitting data type
-!> \todo complete documentation
-  type, public :: fitType
-    integer :: neps,feval,ns,ik_pr
-    integer ::iter,nt
-    real(k_pr) :: fitFtol
-    logical :: restartFit
-    character(15) :: fitType
-    real(k_pr):: temp
-    real(k_pr) :: step
-    real(k_pr) ::stepAd
-    real(k_pr) :: rt
-    integer :: iNoParams !< no of parameters in optimization
-  end type fitType
 
 !> \brief data type for atoms properties
   type, public :: atomicType

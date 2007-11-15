@@ -477,7 +477,7 @@ module m_DriverRoutines
     donUnit=GetUnit()
     spacUnit=GetUnit()
     write(io%uout,'(/a/)')&
-         '--Velocity Verlet Ehrenfest Dynamics----------------------------'
+         '--Velocity Verlet Ehrenfest Dynamics Dumped----------------------------'
     gamma=-gen%Gamma
     if (gen%writeAnimation) then
       open(file='eh_dyn.xyz',unit=aniunit)
@@ -685,8 +685,9 @@ module m_DriverRoutines
     call DestroyMatrix(rhodot,io)
     call DestroyMatrix(rhonew,io)
     call DestroyMatrix(rho0,io)
+    call DestroyMatrix(deltaRho,io)
 
     write(io%uout,'(/a/)')&
-      'End Velocity Verlet-------------------------------------------------------------'
+      'End Ehrenfest Dumped-------------------------------------------------------------'
   end subroutine EhrenfestDynamicsDumped
 end module m_DriverRoutines

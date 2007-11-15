@@ -26,6 +26,7 @@ module m_TightBinding
   public :: EmbeddingPp
   public :: InitMagneticMoment
   public :: ComputeMagneticMoment
+  public :: SetTails
 
 contains
 !> \brief Initializes the solution space
@@ -116,6 +117,7 @@ contains
     allocate(sol%density(1:l+sol%h%dim))
     call setTails(ioLoc,genLoc,atomic,tbMod,sol)
     call rmarin(int((cr-int(cr))*3132),int(genLoc%ranseed*30081),sol%seed,ioLoc)
+
   end subroutine SetSolutionSpace
 
 
@@ -141,7 +143,7 @@ contains
     integer :: k,k1,k2
 !     real(k_pr) :: r
 !     integer :: z,y
-  ! calculate the tail function parameters
+!    calculate the tail function parameters
     do i=1,atomic%species%nspecies
       do j=1,atomic%species%nspecies
           ! repulsions
@@ -151,7 +153,9 @@ contains
         tbMod%hopping(i,j)%repTail=makeTailType(f,fp,fpp,tbMod%hopping(i,j)%d1,tbMod%hopping(i,j)%dcut,ioLoc)
 
           ! hoppings
-        allocate(tbMod%hopping(i,j)%hmnTail(0:tbMod%hopping(i,j)%l1,0:tbMod%hopping(i,j)%l2,0:tbMod%hopping(i,j)%ll))
+        if (.not.allocated(tbMod%hopping(i,j)%hmnTail)) then
+          allocate(tbMod%hopping(i,j)%hmnTail(0:tbMod%hopping(i,j)%l1,0:tbMod%hopping(i,j)%l2,0:tbMod%hopping(i,j)%ll))
+        endif
         do k=0,tbMod%hopping(i,j)%l1
           do k1=0,tbMod%hopping(i,j)%l2
             do k2=0,min(k,k1)
@@ -382,7 +386,6 @@ end subroutine setTails
     integer, intent(in) :: l1,l2,m
     real(k_pr)             :: rad
     !-------------------------------------------------!
-
     if (r<=(tb%hopping(sp1,sp2)%r1)) then
       rad=tb%hopping(sp1,sp2)%a(l1,l2,m)*RadNoTail(r,sp1,sp2,gen,tb)
     elseif (r<=(tb%hopping(sp1,sp2)%rcut)) then

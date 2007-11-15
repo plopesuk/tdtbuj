@@ -1,6 +1,6 @@
 OutputFile output.out
 DebugFile  output.dbg
-OutputLevel 25
+OutputLevel 5
 DebugLevel  25
 OnScreen   No
 
@@ -14,6 +14,8 @@ MaxOrbsPerAtom 10
 #RunType SinglePoint
 #RunType BODynamics
 RunType Ehrenfest
+#RunType EhrenfestDumped
+#RunType Fit
 
 
 NetCharge 0.0
@@ -35,11 +37,31 @@ SCFMixIterations      4
 
 #Time evolution
 DeltaT 0.01
-Nsteps 100
+Nsteps 100000
 WriteAnimation Yes
 
 ScaleVelocities  Yes
 IonicTemperature 550.0
+Gamma 0.8
+### Fit
+FitMethod  SimplexSA
+NoFitParams  1
+FitTol                0.0001000000000000 
+RestartFit  F 
+FitNeps  4 
+# simplex specific
+SimplexMaxIter  10000 
+# SA specific
+SAMaxFeval  100000 default
+SACycles  20 
+SAnBefRed 5 
+SATemp    100.00 
+SAstep    1.000
+SAStepAdj 2.000
+SATempRed 0.50
+
+# simplexSA
+
 
 BondType GSP
 Embedding No
