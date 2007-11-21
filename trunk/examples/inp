@@ -12,8 +12,8 @@ MaxOrbsPerAtom 10
 
 
 #RunType SinglePoint
-#RunType BODynamics
-RunType Ehrenfest
+RunType BODynamics
+#RunType Ehrenfest
 #RunType EhrenfestDumped
 #RunType Fit
 
@@ -36,13 +36,15 @@ SCFMixing             0.9500
 SCFMixIterations      4
 
 #Time evolution
-DeltaT 0.01
-Nsteps 100000
+DeltaT 0.001
+Nsteps 100000 
 WriteAnimation Yes
 
-ScaleVelocities  Yes
+ScaleVelocities  No
 IonicTemperature 550.0
-Gamma 0.8
+
+Gamma 1.4
+EulerSteps 50
 ### Fit
 FitMethod  SimplexSA
 NoFitParams  1
@@ -56,18 +58,17 @@ SAMaxFeval  100000 default
 SACycles  20 
 SAnBefRed 5 
 SATemp    100.00 
-SAstep    1.000
-SAStepAdj 2.000
+SAstep    1.00
+SAStepAdj 2.00
 SATempRed 0.50
 
 # simplexSA
-
 
 BondType GSP
 Embedding No
 SymRefRho Yes
 Screened No 
-ReadVel No
+ReadVel Yes
 HElTres 1.0e-10
 
 ###################

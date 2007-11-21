@@ -18,7 +18,7 @@ contains
 !> \date 12/11/07, 13:44:21
 !> \remarks     Goffe, Ferrier and Rogers, J. Econometrics, 60:1/2,65-100 (Jan/Feb 1994)
 !> "Global Optimization of Statistical Functions with Simulated Annealing"
-!> \todo add the science citation + document parameters
+!> \internal add the science citation + document parameters
   subroutine SimulAnnealing(n,x,max,rt,eps,ns,nt,neps,maxevl,lb,ub,c,&
             t,vm,xopt,fopt,nacc,nfcnev,nobds,ier,&
             fstar,xp,nacp,func,gen,atomic,sol,tb,io)

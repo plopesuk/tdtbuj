@@ -115,7 +115,7 @@ contains
 !> \param io type(ioType) contains all the info about I/O files
 !> \param gen type(generalType) contains the info needed by the program to k_run
 !> \param sol type(solutionType) contains information about the solution space
-!> \todo zherk should be called in Linearalgebra, implement MP
+!> \internal zherk should be called in Linearalgebra, implement MP
   subroutine GenerateRho(gen,sol,io)
     character(len=*), parameter :: myname = 'GenerateRho'
     type(generalType), intent(in) :: gen
@@ -237,8 +237,8 @@ contains
 !> \param gen type(generalType) contains the info needed by the program to k_run
 !> \param sol type(solutionType) contains information about the solution space
 !> \param atomic type(atomicxType) contains all info about the atoms and basis set and some parameters
-!> \todo the call too zherk should be done via LinearAlgebra
-!> \todo activate MP smearing method
+!> \internal the call too zherk should be done via LinearAlgebra
+!> \internal activate MP smearing method
   subroutine CreateDensityMatrixNoSpin(gen,atomic,sol,io)
     character(len=*), parameter :: MyName="CreateDensityMatrixNoSpin"
     type(atomicxType), intent(inout) :: atomic

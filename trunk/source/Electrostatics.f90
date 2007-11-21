@@ -65,7 +65,6 @@ contains
     endif
   end subroutine CalcExcessCharges
 
-
 !> \brief computes the dipole moment
 !> \author Alin M Elena
 !> \date 08/11/07, 10:11:26
@@ -80,13 +79,13 @@ contains
     integer :: i
 
     select case(gen%electrostatics)
-      case (k_electrostaticsMultipoles)
+      case (k_electrostaticsPoint)
         do i=1,atomic%atoms%natoms
           atomic%atoms%dx(i)= atomic%atoms%x(i)*atomic%atoms%chrg(i)
           atomic%atoms%dy(i)= atomic%atoms%y(i)*atomic%atoms%chrg(i)
           atomic%atoms%dz(i)= atomic%atoms%z(i)*atomic%atoms%chrg(i)
         enddo
-      case(k_electrostaticsPoint)
+      case(k_electrostaticsMultipoles)
         do i=1,atomic%atoms%natoms
             if (GetLmax(i,atomic)>0) then
   !              atomic%dx(i)= atomic%x(i)*atomic%chrg(i)+qlmr(i,1,1,density)
@@ -99,19 +98,15 @@ contains
             endif
         enddo
     end select
-
     atomic%atoms%tdipx=0.0_k_pr
     atomic%atoms%tdipy=0.0_k_pr
     atomic%atoms%tdipz=0.0_k_pr
-
     do i=1,atomic%atoms%natoms
       atomic%atoms%tdipx=atomic%atoms%tdipx+atomic%atoms%dx(i)
       atomic%atoms%tdipy=atomic%atoms%tdipy+atomic%atoms%dy(i)
       atomic%atoms%tdipz=atomic%atoms%tdipz+atomic%atoms%dz(i)
     enddo
   end subroutine CalcDipoles
-
-
 
 !> \brief builds the electrostatics potential for all the atoms
 !> \details there are two kinds of electrostatics potential screened or bare Coulomb
@@ -121,7 +116,7 @@ contains
 !> \param gen type(generalType) contains the info needed by the program to k_run
 !> \param atomic type(atomicxType) contains all info about the atoms and basis set and some parameters
 !> \param sol type(solutionType) contains information about the solution space
-!> \todo add reference
+!> \internal add reference
   subroutine BuildPotential(gen,atomic,sol)
     character(len=*), parameter :: myname = 'BuildPotential'
     type(solutionType),intent(inout) :: sol
@@ -134,8 +129,7 @@ contains
     if (gen%screened) then
       do k=1,atomic%atoms%nscf
         i=atomic%atoms%scf(k)
-        do l=1,atomic%atoms%nscf
-          j=atomic%atoms%scf(l)
+        do j=1,atomic%atoms%natoms
           if (i/=j) then
             rij = Distance(atomic%atoms,i,j)
             ua=atomic%species%uinter(atomic%atoms%sp(i))
@@ -154,12 +148,11 @@ contains
     else
       do k=1,atomic%atoms%nscf
         i=atomic%atoms%scf(k)
-        do l=1,atomic%atoms%nscf
-          j=atomic%atoms%scf(l)
+        do j=1,atomic%atoms%natoms
           if (i/=j) then
             rij = Distance(atomic%atoms,i,j)
             sol%potential(i) = sol%potential(i) + &
-              k_e2*charge(j,gen,atomic,sol)/(4.0_k_pr*k_pi*k_epsilon0*rij)
+            k_e2*charge(j,gen,atomic,sol)/(4.0_k_pr*k_pi*k_epsilon0*rij)
           endif
         end do
       enddo

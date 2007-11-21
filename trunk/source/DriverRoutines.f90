@@ -97,7 +97,7 @@ module m_DriverRoutines
     real(k_pr) :: eenergy,renergy,kenergy,penergy,scfE,minusts
     integer  :: i,istep,m,n,k
     real(k_pr) :: dt,mi,currTime
-
+    character(len=k_ml) :: saux
     aniunit=GetUnit()
     eneunit=GetUnit()
     xunit=GetUnit()
@@ -111,10 +111,11 @@ module m_DriverRoutines
 !          call write_header(xunit,gen%nsteps,gen%deltat,atomic%natoms)
 !          open(unit=runit,file="bo_dyn.rho",form="UNFORMATTED",status="unknown",action="write")
 !          call write_header_rho(runit,gen%nsteps,gen%deltat,n)
+    call PrintXYZ(aniunit,atomic,.false.,"T = 0.0")
     endif
     open(file='bo_dyn.ENE',unit=eneunit)
     ! initialize forces and velocities
-    call FullSCF(io,gen,atomic,tb,sol)
+    call SinglePoint(io,gen,atomic,tb,sol)
     call InitVelocities(gen,atomic,sol)
     dt = gen%deltat
     !write out the initial vels, forces and energies
@@ -137,10 +138,15 @@ module m_DriverRoutines
          'Total energy      = ',eenergy+renergy+scfE+minusts
     sol%totalEnergy=eenergy+renergy+minusts+scfE
     ! this is the time loop
+    write(eneunit,'(a1,a28,5a29)')"#","Time",  "Repuilsive Energy ",  "Electronic Energy",  "SCF Energy",&
+      "-TS","Kinetic Energy",  "Total Energy"
     do istep=1,gen%nsteps
       !set global time variable
       currTime = (istep-1)*dt
        ! calculates positions at t+dt
+!       write(io%uout,*)"timestep"
+!       call PrintCoordinates(io,atomic)
+!       call PrintForces(atomic%atoms,io)
       do k=1,atomic%atoms%nmoving
         i=atomic%atoms%moving(k)
         mi = atomic%species%mass(atomic%atoms%sp(i))
@@ -154,6 +160,8 @@ module m_DriverRoutines
           + dt * atomic%atoms%vz(i) &
           + 0.5_k_pr * dt*dt * atomic%atoms%fz(i) / mi
       enddo
+!       call PrintVelocities(io,atomic)
+!       call PrintCoordinates(io,atomic)
       ! store forces at t in fold
       do k=1,atomic%atoms%nmoving
         i=atomic%atoms%moving(k)
@@ -162,7 +170,7 @@ module m_DriverRoutines
         atomic%atoms%fzo(i) = atomic%atoms%fz(i)
       enddo
       ! calculate forces at t+dt
-      call FullSCF(io,gen,atomic,tb,sol)
+      call SinglePoint(io,gen,atomic,tb,sol)
       ! calculate velocities at t+dt
       do k=1,atomic%atoms%nmoving
         i=atomic%atoms%moving(k)
@@ -189,20 +197,23 @@ module m_DriverRoutines
       endif
       penergy = eenergy + renergy + scfE + minusts
       kenergy = KineticEnergy(atomic)
-!         if (gen%writeAnimation) then
+      if (gen%writeAnimation) then
 !             call BuildDensity(density)
 !             call calc_charges(rho)
 !             call calc_dipoles(density)
 !             call write_frame(xunit)          
 !             call writeAnimation_frame(aniunit)
 ! !           call write_frame_rho(runit)
-!          endif
-
-      call PrintCoordinates(io,atomic)
-      call PrintForces(atomic%atoms,io)
+        write(saux,'(a,f0.8)')"Time = ",istep*dt
+        call PrintXYZ(aniunit,atomic,.false.,trim(saux))
+      endif
+      if (io%Verbosity >= k_HighVerbos) then
+        call PrintCoordinates(io,atomic)
+        call PrintForces(atomic%atoms,io)
+      endif
       write(io%uout,'(i5,a,f13.6,a,f13.6,a,f13.6)')&
             istep,' P = ',penergy,' K = ',kenergy,' E = ',penergy+kenergy
-      write(eneunit,'(7f29.18)')currTime,renergy,eenergy,scfE,minusts,kenergy,penergy+kenergy
+      write(eneunit,'(7f29.18)')istep*dt,renergy,eenergy,scfE,minusts,kenergy,penergy+kenergy
     enddo
 
     if (gen%writeAnimation) then
@@ -242,6 +253,7 @@ module m_DriverRoutines
     complex(k_pr) :: ihbar,trrho,st
     type(matrixType) :: rhoold,rhodot,rhonew,rho0
     real(k_pr) ::biasFactor,bfa
+    character(len=k_ml) :: saux
 
     aniunit=GetUnit()
     eneunit=GetUnit()
@@ -279,6 +291,7 @@ module m_DriverRoutines
       call BuildDensity(atomic,sol)
       call CalcExcessCharges(gen,atomic,sol)
       call CalcDipoles(gen,atomic,sol)
+      call PrintXYZ(aniunit,atomic,.false.,"T=0.0")
 !      call write_frame(xunit) 
 !        call write_frame_rho(runit,rho0) 
 !            call writeAnimation_frame(aniunit)
@@ -304,7 +317,7 @@ module m_DriverRoutines
 !             if (gen%electrostatics==tbu_multi) call init_qvs(density)
 !          endif 
     call AddH2(gen,atomic,sol,tb,io)
-    ihbar = cmplx(0.0_k_pr,-1.0_k_pr/hbar,k_pr)
+    ihbar = cmplx(0.0_k_pr,-1.0_k_pr/k_hbar,k_pr)
     ! go back in time one step for the DM integration
     call Commutator(rhodot,sol%h,sol%rho,io)
     st = cmplx(-dt,0.0_k_pr,k_pr)
@@ -320,7 +333,8 @@ module m_DriverRoutines
     ! now we are ready to start the dynamics,
     ! we have the forces, velocities, positions
     ! and rho at time t
-
+    write(eneunit,'(a1,a24,6a25)')"#","Time",  "Repuilsive Energy ",  "Electronic Energy",  "SCF Energy",&
+      "Kinetic Energy",  "Total Energy",  "No of Electrons"
     st = cmplx(2.0_k_pr*dt,0.0_k_pr,k_pr)
     do istep=1,gen%nsteps
    !set global time variable
@@ -420,6 +434,8 @@ module m_DriverRoutines
         write(accUnit,*) istep*dt, ChargeOnGroup(atomic%atoms%acceptor,atomic%atoms)
         write(donUnit,*) istep*dt, ChargeOnGroup(atomic%atoms%donor,atomic%atoms)
         write(spacUnit,*) istep*dt, ChargeOnGroup(atomic%atoms%spacer,atomic%atoms)
+        write(saux,'(a,f0.8)')"Time = ", istep*dt
+        call PrintXYZ(aniunit,atomic,.false.,trim(saux))
       endif
 !            call write_currents(h,rho)
 !            if (mod(istep,50).eq.1) call write_rho_eigenvalues(rho)
@@ -467,6 +483,7 @@ module m_DriverRoutines
     complex(k_pr) :: ihbar,trrho,st
     type(matrixType) :: rhoold,rhodot,rhonew,rho0,deltaRho
     real(k_pr) ::biasFactor,bfa,gamma
+    character(len=k_ml) :: saux
 
     aniunit=GetUnit()
     eneunit=GetUnit()
@@ -502,10 +519,8 @@ module m_DriverRoutines
     call CreateMatrix(rhonew,sol%h%dim,.true.)
     call CreateMatrix(rho0,sol%h%dim,.true.)
     call CreateMatrix(deltaRho,sol%h%dim,.true.)
-    
     call CopyMatrix(rho0,sol%rho,io)
 !   call create_dm_spin_altered(eigenvec,eigenval)
-    
     if (gen%writeAnimation) then
       call BuildDensity(atomic,sol)
       call CalcExcessCharges(gen,atomic,sol)
@@ -516,6 +531,7 @@ module m_DriverRoutines
       write(accUnit,*) "0.0", ChargeOnGroup(atomic%atoms%acceptor,atomic%atoms)
       write(donUnit,*) "0.0", ChargeOnGroup(atomic%atoms%donor,atomic%atoms)
       write(spacUnit,*) "0.0", ChargeOnGroup(atomic%atoms%spacer,atomic%atoms)
+      call PrintXYZ(aniunit,atomic,.false.,"T = 0.0")
     endif
 
     ! now build a hamiltonian with no bias
@@ -535,7 +551,7 @@ module m_DriverRoutines
 !             if (gen%electrostatics==tbu_multi) call init_qvs(density)
 !          endif 
     call AddH2(gen,atomic,sol,tb,io)
-    ihbar = cmplx(0.0_k_pr,-1.0_k_pr/hbar,k_pr)
+    ihbar = cmplx(0.0_k_pr,-1.0_k_pr/k_hbar,k_pr)
     ! go back in time one step for the DM integration
     call Commutator(rhodot,sol%h,sol%rho,io)
     st = cmplx(-dt,0.0_k_pr,k_pr)
@@ -555,6 +571,8 @@ module m_DriverRoutines
     ! and rho at time t
 
     st = cmplx(2.0_k_pr*dt,0.0_k_pr,k_pr)
+    write(eneunit,'(a1,a24,6a25)')"#","Time",  "Repuilsive Energy ",  "Electronic Energy",  "SCF Energy",&
+      "Kinetic Energy",  "Total Energy",  "No of Electrons"
     do istep=1,gen%nsteps
    !set global time variable
       currTime = (istep-1)*dt
@@ -566,7 +584,6 @@ module m_DriverRoutines
 
       call ZeroMatrix(rhodot,io)
       call Commutator(rhodot,sol%h,sol%rho,io)
-      
       if (mod(istep,gen%EulerSteps)==0) then
         !euler step
         call ScalarTMatrix(ihbar*cmplx(dt,0.0_k_pr,k_pr),rhodot,io)
@@ -579,7 +596,6 @@ module m_DriverRoutines
       end if
       call MatrixCeaApbB(rhonew,rhoold,rhodot,k_cone,k_cone,io)
       call MatrixCeaApbB(rhonew,rhonew,deltaRho,k_cone,k_cone,io)
-      
       ! at this point rho contains the rho at time=t
        ! propagate the positions 
        ! calculates positions at t+dt
@@ -665,6 +681,8 @@ module m_DriverRoutines
         write(accUnit,*) istep*dt, ChargeOnGroup(atomic%atoms%acceptor,atomic%atoms)
         write(donUnit,*) istep*dt, ChargeOnGroup(atomic%atoms%donor,atomic%atoms)
         write(spacUnit,*) istep*dt, ChargeOnGroup(atomic%atoms%spacer,atomic%atoms)
+        write(saux,'(a,f0.8)')"Time = ", istep*dt
+        call PrintXYZ(aniunit,atomic,.false.,trim(saux))
       endif
 !            call write_currents(h,rho)
 !            if (mod(istep,50).eq.1) call write_rho_eigenvalues(rho)

@@ -1,5 +1,8 @@
 !> \mainpage TDTB+UJ Manual
 !> Time-Dependent Tight-Binding+UJ \n
+!>  \section intro Introduction
+!>  The tight binding method is implemented in the spirit of Mike Finnis' book\n
+!>  \em Interatomic \em forces \em in \em condensed \em matter, Oxford University Press, 2003\n
 !> \section run Run methods
 !> \section inp Input Variables
 !> - \subpage ioVars "I/O Variables"
@@ -10,6 +13,12 @@
 !> - \subpage basis "Basis Set"
 !> - \subpage delta "Multipoles parameters(Delta Block)"
 !> \section tb Tight Binding Parameters
+!> \section source Source code
+!> The code can be obtained from here
+!>  http://titus.phy.qub.ac.uk/Programs/TDTB+UJ/tdtbuj.tar.bz2 or by svn using \n
+!> \code svn checkout http://tdtbuj.googlecode.com/svn/trunk/ tdtbuj-read-only \endcode
+!> a pdf version of the manual can be found at
+!>  http://titus.phy.qub.ac.uk/Programs/TDTB+UJ/refman.pdf
 !> \page code Coding Style Document
 !> \section general General Style
 !>- You \em SHOULD use the Object Oriented features of Fotran as much as possible.

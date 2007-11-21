@@ -33,7 +33,7 @@ module m_Simplex
 !> \param tb type(modelType) contains information about the tight binding model parameters
 !> \param sol type(solutionType) contains information about the solution space
 !> \remarks all the job is done by AmoebaPrivate
-!> \todo add citation to the original paper
+!> \internal add citation to the original paper
   subroutine Amoeba(p,y,ftol,func,iter,bounds,itmax,gen,atomic,tb,sol,io)
     character(len=*), parameter :: myname="Amoeba" 
     integer, intent(out) :: iter 

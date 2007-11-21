@@ -70,7 +70,7 @@ module m_Constants
    real(k_pr),  public :: k_kb  !< Boltzmann constant \f$ k_B \f$
    real(k_pr), parameter,  public ::  k_evToHartree = 0.03674932600434263_k_pr !< electron volt to Hartree conversion factor
    real(k_pr), parameter, public ::   k_hartreeToEv = 27.211383411_k_pr !< hartree to electron volt conversion factor
-   real(k_pr),  public :: hbar !< Plank's constant \f$ \hbar \f$  
+   real(k_pr),  public :: k_hbar !< Plank's constant \f$ \hbar \f$  
    real(k_pr), parameter, public ::   k_bohrToAng = 0.5291772083_k_pr !< bohr to  Angstroms conversion factor
    real(k_pr), parameter, public ::    k_efsToMicroamps = 160.2176462_k_pr
    real(k_pr),  public :: k_epsilon0 !< \f$ \epsilon_0 \f$ vacuum permiability
@@ -105,7 +105,7 @@ contains
       case(k_unitsEV)
          k_amuToInternal = 103.6426867_k_pr
          k_kb = 8.61734215D-5 ! in eV / K
-         hbar = 0.65821188926_k_pr ! in eV fs
+         k_hbar = 0.65821188926_k_pr ! in eV fs
          k_epsilon0 = 5.526349954D-3
          k_e2=1.0_k_pr
          k_me=1.0_k_pr ! 
@@ -114,7 +114,7 @@ contains
       case(k_unitsAU)
          k_amuToInternal =  1836.15267247_k_pr
          k_kb = 3.1668154D-6 !Eh/K
-         hbar = 1.0_k_pr 
+         k_hbar = 1.0_k_pr 
          k_epsilon0 = 1/(4.0_k_pr*k_pi)
          k_e2=1.0_k_pr
          k_me=1.0_k_pr
@@ -123,7 +123,7 @@ contains
       case(k_unitsSI)
          k_amuToInternal = 1.66053886D-27 !kg
          k_kb= 1.3806505D-23 !J/K
-         hbar = 1.05457168D-34 !J s 
+         k_hbar = 1.05457168D-34 !J s 
          k_epsilon0 = 8.854187817D-12 !F/m
          k_e2=1.60217653D-19**2 !C^2
          k_me= 9.1093826D-31! kg
@@ -133,7 +133,7 @@ contains
         !!!!!!!!!! to be checked
          k_amuToInternal =  1836.15267247_k_pr
          k_kb = 6.3361921D-6 !Rydberg/K
-         hbar = 1.0_k_pr 
+         k_hbar = 1.0_k_pr 
          k_epsilon0 = 1.0_k_pr/(4.0_k_pr*k_pi)
          k_e2=2.0_k_pr
          k_me=0.5_k_pr
@@ -270,7 +270,7 @@ contains
 !> \author Alin M Elena
 !> \date 29/10/07, 23:15:58
 !> \param iz integer Z of the atom
-!> \todo complete the electronic configuration
+!> \internal complete the electronic configuration
   character(len=k_mw) function ElConfig(iz)
     !--subroutine name--------------------------------!   
     character(len=*), parameter :: myname = 'ElConfig'

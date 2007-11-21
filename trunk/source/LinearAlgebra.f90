@@ -6,7 +6,7 @@
 !> \remarks
 !> changed by Alin M Elena: the routines do not depend on global variables
 !> changed to comply with the coding style document
-!> \todo the calls to blas/lapack should be replaced with the f95 form
+!> \internal the calls to blas/lapack should be replaced with the f95 form
 module m_LinearAlgebra
    use m_Constants
    use m_Useful
@@ -869,7 +869,6 @@ contains
   ! Copy Sparse Matrix a into b !
   !-------------------------------------------------!
    subroutine CopySparseMatrix(b,a,io)
-      implicit none
     !--subroutine name--------------------------------!
       character(len=*), parameter :: myname = 'CopySparseMatrix'
     !--subroutine parameters -------------------------!
@@ -1234,7 +1233,7 @@ contains
         call error("Dimensions are different",myname,.true.,io)
     endif
     if (b%dim/=a%dim) then
-        call error("Dimensions are different",myname,.true.,io)
+        call error("Dimensions of the input matrices are different",myname,.true.,io)
     endif
     if (.not.c%created) then
         call error("The result matrix does not exist!",myname,.true.,io)
@@ -1284,11 +1283,7 @@ contains
     endif
   end subroutine MatrixCeaApbB
 
-
-!-------------------------------------------------!
-  !-------------------------------------------------!
   ! Matrix Addition (in place) A=A+B !
-  !-------------------------------------------------!
    subroutine MatrixAddInPlace(a,b,alpha,beta,io)
       implicit none
     !--subroutine name--------------------------------!

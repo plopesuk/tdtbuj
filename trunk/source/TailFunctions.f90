@@ -2,8 +2,6 @@
 !> integrals and repulsive potentials
 !> \author Cristian G. Sanchez and Alin M Elena (Queen's University Belfast)
 !> date 1st of November 2007
-
-
 module m_TailFunctions
   use m_Constants
   use m_Types
@@ -11,15 +9,12 @@ module m_TailFunctions
   implicit none
   private
 
-
   public :: makeTailType
   public :: tailFunction
   public :: TailFunctionP
   public :: TailFunctionPp
 
 contains
-
-
 !> \brief returns  tailType
 !> given the cutoffs and values of the function
 !> derivatives at the inner cutoff

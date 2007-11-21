@@ -31,7 +31,7 @@ contains
 !> \param tb type(modelType) contains information about the tight binding model parameters
 !> \param sol type(solutionType) contains information about the solution space
 !> \remarks all the job is done by AmebsaPrivate
-!> \todo add citation to the original paper
+!> \internal add citation to the original paper
 subroutine amebsa(p,y,pb,yb,ftol,func,iter,temptr,bounds,gen,atomic,tb,sol,io)
     integer, intent(inout) :: iter
     real(k_pr), intent(inout) :: yb
