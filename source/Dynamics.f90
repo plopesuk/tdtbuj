@@ -32,7 +32,7 @@ contains
   end function KineticEnergy
 
 !> \brief scales velocities to correspond to a certain temperature
-!> \author Alin M Elena
+!> \author Cristian Sanchez, Alin M Elena
 !> \date 10/11/07, 14:36:02
 !> \param atomic type(atomicxType) contains all info about the atoms and basis set and some parameters
 !> \param gen type(generalType) contains the info needed by the program to k_run
@@ -56,11 +56,13 @@ contains
   end subroutine ScaleVelocities
 
 !> \brief initializes velocities according to the ionic temperature
-!> \author Alin M Elena
+!> \author Cristian Sanchez, Alin M Elena
 !> \date 10/11/07, 15:04:53
 !> \param atomic type(atomicxType) contains all info about the atoms and basis set and some parameters
 !> \param sol type(solutionType) contains information about the solution space
-!> \param gen type(generalType) contains the info needed by the program to k_run
+!> \param gen type(generalType) contains the info needed by the program to run
+!> \internal for only one particle moving you get division by zero. a better scheme
+!> or a correct scheme should be found
   subroutine InitVelocities(gen,atomic,sol)
     character(len=*), parameter :: myname = 'InitVelocities'
     integer :: i,k
@@ -68,47 +70,57 @@ contains
     type(atomicxType), intent(inout) :: atomic
     type(solutionType), intent(inout) :: sol
     real(k_pr) :: kt,mi,kex,key,kez
-    real(k_pr) :: vcmx,vcmy,vcmz
+    real(k_pr) :: vcmx,vcmy,vcmz,mt
 
-    kt = real(atomic%atoms%nmoving,k_pr) * 0.5_k_pr * gen%ionicTemperature * k_kb
-    vcmx = 0.0_k_pr
-    vcmy = 0.0_k_pr
-    vcmz = 0.0_k_pr
-    do k=1,atomic%atoms%nmoving
-      i=atomic%atoms%moving(k)
-            ! generate random vector
-      atomic%atoms%vx(i) = ranmar(sol%seed) - 0.5_k_pr
-      atomic%atoms%vy(i) = ranmar(sol%seed) - 0.5_k_pr
-      atomic%atoms%vz(i) = ranmar(sol%seed) - 0.5_k_pr
-            ! accumulate in centre of mass velocity
-      vcmx = vcmx + atomic%atoms%vx(i)
-      vcmy = vcmy + atomic%atoms%vy(i)
-      vcmz = vcmz + atomic%atoms%vz(i)
-    end do
-
-    do k=1,atomic%atoms%nmoving
-      i=atomic%atoms%moving(k)
-              ! substract centre of mass velocity
-      atomic%atoms%vx(i) = atomic%atoms%vx(i) - vcmx/real(atomic%atoms%nmoving,k_pr)
-      atomic%atoms%vy(i) = atomic%atoms%vy(i) - vcmy/real(atomic%atoms%nmoving,k_pr)
-      atomic%atoms%vz(i) = atomic%atoms%vz(i) - vcmz/real(atomic%atoms%nmoving,k_pr)
-    end do
-    kex = 0.0_k_pr
-    key = 0.0_k_pr
-    kez = 0.0_k_pr
-    do k=1,atomic%atoms%nmoving
-      i=atomic%atoms%moving(k)
-            ! accumulate the kinetic energy
-      mi = atomic%species%mass(atomic%atoms%sp(i))
-      kex = kex + 0.5_k_pr * mi * atomic%atoms%vx(i)**2
-      key = key + 0.5_k_pr * mi * atomic%atoms%vy(i)**2
-      kez = kez + 0.5_k_pr * mi * atomic%atoms%vz(i)**2
-    enddo
-    do k=1,atomic%atoms%nmoving
-      i=atomic%atoms%moving(k)
-      atomic%atoms%vx(i) = atomic%atoms%vx(i) * sqrt(kt/kex)
-      atomic%atoms%vy(i) = atomic%atoms%vy(i) * sqrt(kt/key)
-      atomic%atoms%vz(i) = atomic%atoms%vz(i) * sqrt(kt/kez)
-    enddo
+    if (.not.gen%ReadVelocity) then
+      kt =  gen%ionicTemperature * k_kb
+      vcmx = 0.0_k_pr
+      vcmy = 0.0_k_pr
+      vcmz = 0.0_k_pr
+      mt = 0.0_k_pr
+      do i=1,atomic%atoms%natoms
+        mi = atomic%species%mass(atomic%atoms%sp(i))
+        mt=mt+mi
+      enddo
+      do k=1,atomic%atoms%nmoving
+        i=atomic%atoms%moving(k)
+        mi = atomic%species%mass(atomic%atoms%sp(i))
+              ! generate random vector
+        atomic%atoms%vx(i) = (ranmar(sol%seed) - 0.5_k_pr)*sqrt(kt/mi)
+        atomic%atoms%vy(i) = (ranmar(sol%seed) - 0.5_k_pr)*sqrt(kt/mi)
+        atomic%atoms%vz(i) = (ranmar(sol%seed) - 0.5_k_pr)*sqrt(kt/mi)
+              ! accumulate in centre of mass velocity
+        vcmx = vcmx + atomic%atoms%vx(i)*mi
+        vcmy = vcmy + atomic%atoms%vy(i)*mi
+        vcmz = vcmz + atomic%atoms%vz(i)*mi
+      end do
+      vcmx=vcmx/mt
+      vcmy=vcmy/mt
+      vcmz=vcmz/mt
+      do k=1,atomic%atoms%nmoving
+        i=atomic%atoms%moving(k)
+                ! substract centre of mass velocity
+        atomic%atoms%vx(i) = atomic%atoms%vx(i) - vcmx
+        atomic%atoms%vy(i) = atomic%atoms%vy(i) - vcmy
+        atomic%atoms%vz(i) = atomic%atoms%vz(i) - vcmz
+      end do
+      kex = 0.0_k_pr
+      key = 0.0_k_pr
+      kez = 0.0_k_pr
+      do k=1,atomic%atoms%nmoving
+        i=atomic%atoms%moving(k)
+              ! accumulate the kinetic energy
+        mi = atomic%species%mass(atomic%atoms%sp(i))
+        kex = kex + 0.5_k_pr * mi * atomic%atoms%vx(i)**2
+        key = key + 0.5_k_pr * mi * atomic%atoms%vy(i)**2
+        kez = kez + 0.5_k_pr * mi * atomic%atoms%vz(i)**2
+      enddo
+      do k=1,atomic%atoms%nmoving
+        i=atomic%atoms%moving(k)
+        atomic%atoms%vx(i) = atomic%atoms%vx(i) * sqrt(kt/kex)
+        atomic%atoms%vy(i) = atomic%atoms%vy(i) * sqrt(kt/key)
+        atomic%atoms%vz(i) = atomic%atoms%vz(i) * sqrt(kt/kez)
+        enddo
+    endif
   end subroutine InitVelocities
 end module m_Dynamics

@@ -62,12 +62,14 @@ contains
           endif
           n=atomic%basis%norbitals
           m=(n-1)*n/2
-          allocate(dins(m+n,genLoc%scfMixn))
-          allocate(douts(m+n,genLoc%scfMixn))
-          allocate(res(m+n,genLoc%scfMixn))
-          allocate(densityin(m+n))
-          allocate(densityout(m+n))
-          allocate(densitynext(m+n))
+          if (.not.allocated(dins)) then
+            allocate(dins(m+n,genLoc%scfMixn))
+            allocate(douts(m+n,genLoc%scfMixn))
+            allocate(res(m+n,genLoc%scfMixn))
+            allocate(densityin(m+n))
+            allocate(densityout(m+n))
+            allocate(densitynext(m+n))
+          endif
 !           if((.not.genLoc%compElec).and.(genLoc%k_electrostatics==k_electrostaticsMultipoles)) then
 !             call allocate_qvs
 !           endif
@@ -140,6 +142,10 @@ contains
 !               endif
               call AddH2(genLoc,atomic,sol,tbMod,ioLoc)
               call DiagHamiltonian(ioLoc,genLoc,atomic,sol)
+              if (ioLoc%Verbosity >= k_highVerbos) then
+                call PrintMatrix(sol%hdown,"Hamiltonian Matrix Spin Down:",ioLoc,.false.)
+                call PrintMatrix(sol%hup,"Hamiltonian Matrix Spin Up:",ioLoc,.false.)
+              endif
 !               if (genLoc%alter_dm) then
 !                   call create_dm_spin_altered(eigenvec,eigenval)
 !               endif

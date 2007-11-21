@@ -315,7 +315,7 @@ contains
             call AtomDistance(atomic%atoms,j,i,rij,l,m,n)
             do k=1,atomic%species%norbs(atomic%atoms%sp(i))
                do o=1,atomic%species%norbs(atomic%atoms%sp(j))
-                 fact = -DhmnXYZ(alpha,rij,l,m,n,&
+                  fact = -DhmnXYZ(alpha,rij,l,m,n,&
                                 atomic%basis%orbitals(atomic%atoms%orbs(i,k)),&
                                 atomic%basis%orbitals(atomic%atoms%orbs(j,o)),&
                                 gen,tb,sol)

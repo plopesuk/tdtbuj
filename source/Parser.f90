@@ -2,7 +2,7 @@
 !> \author Alin M. Elena
 !> \date 14th of January 2006
 !> \remark 17th of July 2007 removed the save attribute from variables
-!> \todo suspected memory leak
+!> \internal suspected memory leak
 module m_Parser
   use m_Constants
   use m_Useful

@@ -43,7 +43,7 @@ module m_Types
   end type timeType
 
 !> \brief fitting data type
-!> \todo point to more explanations
+!> \internal point to more explanations
   type, public :: fitType
     integer :: neps,feval,ns
     integer ::iter,nt

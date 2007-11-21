@@ -2,12 +2,11 @@ NumberOfAtoms 3
 block AtomsData
 1  -5.21095  0.2327   0.125053 0.0 T T  
 2  -6.10334  1.8985  -0.247941 0.0 T T
-2  -6.18691 -1.3762  -0.223509 0.0 T T
+2  -6.18691 -1.3762  -0.223509 0.0 T F
 endblock AtomsData
 
 block VelocitiesData
 1 0.0 0.0 0.0
-3 0.0 0.0 0.0  
 endblock VelocitiesData
 
 NDonor 0

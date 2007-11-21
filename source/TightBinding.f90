@@ -418,7 +418,7 @@ end subroutine setTails
       RadNoTail=(r0/r)**n*exp(n*(-(r/rc)**nc+(r0/rc)**nc))
     case (k_bondHarrison)
        n=tb%hopping(sp1,sp2)%n
-      RadNoTail = hbar**2/k_me/r**(n)
+      RadNoTail = k_hbar**2/k_me/r**(n)
     end select
 
   end function RadNoTail
@@ -486,7 +486,7 @@ end subroutine setTails
       select case(alpha)
       case (3)
         n    = tb%hopping(sp1,sp2)%n
-        RadPNoTail = -n/r**(n+1)*hbar**2/k_me
+        RadPNoTail = -n/r**(n+1)*k_hbar**2/k_me
       case default
         RadPNoTail=0.0_k_pr
       end select
@@ -552,7 +552,7 @@ end subroutine setTails
     case(k_bondHarrison)
       if ((alpha==3).and.(beta==3)) then
         n    = tb%hopping(sp1,sp2)%n
-        RadPpNoTail = n*(n+1.0_k_pr)/r**(n+2)*hbar**2/k_me
+        RadPpNoTail = n*(n+1.0_k_pr)/r**(n+2)*k_hbar**2/k_me
       else
         RadPpNoTail = 0.0_k_pr
       endif

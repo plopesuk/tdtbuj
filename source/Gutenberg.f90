@@ -27,7 +27,7 @@ module m_Gutenberg
   public :: PrintAtomMatrix
   public :: PrintCoordinates
   public :: PrintVelocities
-
+  public :: PrintXYZ
 contains
 
 !> \brief Prints the tail parameters
@@ -502,7 +502,7 @@ contains
 !> \param io type(ioType) contains all the info about I/O files
 !> \param atomic type(atomicType) contains all info about the atoms and basis set and some parameters
 !> \param sol type(solutionType) contains information about the solution space
-!> \param blocal logical \todo complete the description of parameters
+!> \param blocal logical \internal complete the description of parameters
   subroutine PrintMagneticMoment(atomic,sol,blocal,io)
     character(len=*), parameter :: myname="PrintMagneticMoment"
 
@@ -726,9 +726,9 @@ contains
     if (abs(ld) > epsilon(ax)) then
       write(io%uout,'(a,f9.6,1x,f9.6,1x,f9.6,a)')"dipole moment orientation (",ax/ld,ay/ld,az/ld, ") unit vector"
     endif
-      write(io%uout,'(a)')" ====================================================================="
+    write(io%uout,'(a)')" ====================================================================="
   !! dipoles in local units
-      write(io%uout,'(a)')"  Atom |Specie|  Dipole x    |  Dipole y   |    Dipole z     | Units |"
+    write(io%uout,'(a)')"  Atom |Specie|  Dipole x    |  Dipole y   |    Dipole z     | Units |"
     do at=1, atomic%atoms%natoms
       write(io%uout,'(2i7,3g16.8,a)')at,atomic%atoms%sp(at),atomic%atoms%dx(at),atomic%atoms%dy(at),atomic%atoms%dz(at)
     enddo
@@ -752,8 +752,8 @@ contains
     write(io%uout,'(a,4f16.8,a)')"dipole moment ",atomic%atoms%tdipx*u2D,atomic%atoms%tdipy*u2D,&
       atomic%atoms%tdipz*u2D,ld, " Debye"
     if (abs(ld) > epsilon(ax)) then
-    write(io%uout,'(a,f9.6,1x,f9.6,1x,f9.6,a)')"dipole moment orientation(",&
-      atomic%atoms%tdipx*u2D/ld,atomic%atoms%tdipy*u2D/ld,atomic%atoms%tdipz*u2D/ld, ") unit vector"
+      write(io%uout,'(a,f9.6,1x,f9.6,1x,f9.6,a)')"dipole moment orientation(",&
+          atomic%atoms%tdipx*u2D/ld,atomic%atoms%tdipy*u2D/ld,atomic%atoms%tdipz*u2D/ld, ") unit vector"
     endif
   end subroutine PrintDipoles
 
@@ -824,5 +824,36 @@ contains
       write(io%uout,*)
     endif
     write(io%uout,*) "==End ",trim(label),"======"
-   end subroutine PrintAtomMatrix
+    end subroutine PrintAtomMatrix
+
+!> \brief prints to the unit the atoms in xyz format
+!> \author Alin M Elena
+!> \date 15/11/07, 10:15:42
+!> \param unit output unit
+!> \param atomic type(atomicxType) contains all info about the atoms and basis set and some parameters
+!> \param lIsVelocity logical if set to true prints the velocities also
+!> \param label characters if present will be printed in the comment line
+  subroutine PrintXYZ(unit,atomic,lIsVelocity,label)
+    character(len=*), parameter :: sMyName="PrintXYZ"
+    type(atomicxType), intent(in) :: atomic
+    logical, intent(in) :: lIsVelocity
+    character(len=*), intent(in),optional :: label
+    integer, intent(in) :: unit
+    integer :: i
+    write(unit,'(i0)')atomic%atoms%natoms
+    if (present(label)) then
+      write(unit,'(a)')trim(label)
+    else
+      write(unit,'(a)')""
+    endif
+    do i=1,atomic%atoms%natoms
+    if (lIsVelocity) then
+      write(unit,'(a2,1x,6f16.8)') symbol(atomic%atoms%sp(i)),atomic%atoms%x(i),atomic%atoms%y(i),atomic%atoms%z(i),&
+        atomic%atoms%vx(i),atomic%atoms%vy(i),atomic%atoms%vz(i)
+    else
+      write(unit,'(a2,1x,3f16.8)')  &
+        symbol(atomic%species%z(atomic%atoms%sp(i))),atomic%atoms%x(i),atomic%atoms%y(i),atomic%atoms%z(i)
+    endif
+    enddo
+  end subroutine PrintXYZ
 end module m_Gutenberg

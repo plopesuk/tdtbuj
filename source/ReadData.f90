@@ -1090,7 +1090,7 @@ end subroutine CloseIoGeneral
     type(generalType), intent(in)  :: general
     type(atomicxType), intent(inout) :: atomix
     ! arguments of the subroutine
-    integer :: nt, errno,i,k, atom_id
+    integer :: nt, errno,i,k, atomId
     character(len=k_ml) :: saux
     integer, allocatable :: ids(:)
     real(k_pr) :: vx,vy,vz
@@ -1212,7 +1212,7 @@ end subroutine CloseIoGeneral
         ids=0
         do 
           read(nt,fmt=*,iostat=errno)&
-            atom_id,vx,vy,vz
+            atomId,vx,vy,vz
           if ((errno/=0).and.(errno/=IOSTAT_END)) then
             call error("block VelocitiesData is not in the right format",sMyName,.true.,io)
           endif
@@ -1220,24 +1220,24 @@ end subroutine CloseIoGeneral
             exit
           endif
           write(io%udeb,'(i6,1x,f0.8,1x,f0.8,1x,f0.8)')&
-              atom_id,vx,vy,vz
+              atomId,vx,vy,vz
           k=k+1
           if (k>atomix%atoms%natoms) then
             write(saux,'(a,i0,a)')"block VelocitiesData contains more than ", atomix%atoms%natoms, " entries"
             call error(trim(saux),sMyName,.true.,io)
           endif
-          if(isInList(atom_id,ids)) then
-            write(saux,*)"block VelocitiesData contains duplicated atom ", atom_id
+          if(isInList(atomId,ids)) then
+            write(saux,*)"block VelocitiesData contains duplicated atom ", atomId
             call error(trim(saux),sMyName,.true.,io)
           endif
-          ids(k)=atom_id
-          if(.not.isInList(atom_id,atomix%atoms%id)) then
+          ids(k)=atomId
+          if(.not.isInList(atomId,atomix%atoms%id)) then
             write(saux,*)"block VelocitiesData contains undefined atom: ", atomix%atoms%id(i)
             call error(trim(saux),sMyName,.true.,io)
           endif
-          atomix%atoms%vx(atom_id)=vx
-          atomix%atoms%vy(atom_id)=vy
-          atomix%atoms%vz(atom_id)=vz
+          atomix%atoms%vx(atomId)=vx
+          atomix%atoms%vy(atomId)=vy
+          atomix%atoms%vz(atomId)=vz
         enddo
         deallocate(ids)
       else
