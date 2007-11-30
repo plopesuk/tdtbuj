@@ -44,7 +44,7 @@ contains
     if (errno /= 0) then
       write(*,*)"I can not create error file ", trim(ioLoc%inpFile)//".err"
       stop
-    endif 
+    endif
     ioLoc%uinp=GetUnit()
     open(unit=ioLoc%uinp,file=ioLoc%inpFile,status='old',&
       action='read',iostat=errno)
@@ -54,7 +54,7 @@ contains
       stop
     endif
 
-! parse file and in the same time 
+! parse file and in the same time
 ! makes a minimal check of corectness
     call cpu_time(genLoc%time%int)
 
@@ -229,7 +229,7 @@ end subroutine ReadIo
 
 !> \brief reads the parameters necessary for running
 !> \author Alin M Elena
-!> \date 21st of January, 2007 
+!> \date 21st of January, 2007
 !> \param  ioLoc type(ioType) I/O details (see m_Types::ioType)
 !> \param genLoc type(generalType), keeps all the general information about the parameters of the program
 !> \details
@@ -367,8 +367,8 @@ subroutine ReadGeneral(ioLoc,genLoc)
       genLoc%runType = k_runForceTesty
     elseif (cstr(trim(saux),'forcetestz')) then
       genLoc%runType = k_runForceTestz
-    elseif (cstr(trim(saux),'ehrenfestdumped')) then
-      genLoc%runType = k_runEhrenfestDumped
+    elseif (cstr(trim(saux),'ehrenfestdamped')) then
+      genLoc%runType = k_runEhrenfestDamped
     elseif (cstr(trim(saux),'GeometryOptimization')) then
       genLoc%runType = k_runGeomBFGS
     elseif (cstr(trim(saux),'Special')) then
@@ -555,7 +555,7 @@ subroutine ReadGeneral(ioLoc,genLoc)
 !   genLoc%write_ene=GetLogical(ioLoc,"WriteEne",.true.)
 !   write( ioLoc%uout,'(a,l)')"Write Energy(WriteEne): "&
 !     ,genLoc%write_ene
-! 
+!
 ! !comm_gen WriteDen & logical & .false. & on/off writing density file \\
 !   genLoc%write_density=GetLogical(ioLoc,"WriteDen",.false.)
 !   write( ioLoc%uout,'(a,l)')"Write density(WriteDen): "&
@@ -564,40 +564,40 @@ subroutine ReadGeneral(ioLoc,genLoc)
 !   genLoc%read_density=GetLogical(ioLoc,"ReadDen",.false.)
 !   write( ioLoc%uout,'(a,l)')"Read Density(ReadDen): "&
 !     ,genLoc%read_density
-! 
+!
 !
 
 ! !comm_gen SpinDU & real & 0.0 & spin down spin up difference\\
 !   genLoc%sdu=GetReal(ioLoc,"SpinDU",0.0_k_pr)
 !   write( ioLoc%uout,'(a,g)')"spin down spin up difference(SpinDU): "&
 !     ,genLoc%sdu
-! 
+!
 ! !comm_gen FSteps & integer & 100 & Number of steps used to test the force/energy consitency\\
 !   genLoc%f_steps=GetInteger(ioLoc,"FSteps",100)
 !   write( ioLoc%uout,'(a,i0)')"force steps (FSteps): "&
 !     ,genLoc%f_steps
-! 
+!
 ! !comm_gen FStart & real & 0.0 & position at which the force/energy consistency test starts\\
 !   genLoc%f_start=GetReal(ioLoc,"FStart",0.0_k_pr)
 !   write( ioLoc%uout,'(a,g)')"initial position for force(FStart): "&
 !     ,genLoc%f_start
-! 
+!
 ! !comm_gen Fdx & real & 0.001 & space step for the force/energy consistency test starts\\
 !   genLoc%f_dx=GetReal(ioLoc,"FStart",0.001_k_pr)
 !   write( ioLoc%uout,'(a,g)')"space step for force(Fdx): "&
 !     ,genLoc%f_dx
-! 
+!
 ! !comm_gen Gamma & real & 0.3 & dumping factor for Ehrenfest equation\\
 !   genLoc%gamma=GetReal(ioLoc,"Gamma",0.5_k_pr)
 !   write( ioLoc%uout,'(a,g)')"damping factor in Ehrenfest Equation(Gamma): "&
 !     ,genLoc%gamma
-! 
- 
+!
+
 ! !comm_gen Hole & integer & 0 & no of level to create hole\\
 !   genLoc%hole=GetInteger(ioLoc,"Hole",0)
 !   write( ioLoc%uout,'(a,i0)')"Hole level(Hole): "&
 !     ,genLoc%hole
-! 
+!
 ! !comm_gen Excite & integer & 0 & no of level to create excitation\\
 !   genLoc%excite=GetInteger(ioLoc,"Excite",0)
 !   write( ioLoc%uout,'(a,i0)')"Excitation level(Excite): "&
@@ -610,11 +610,11 @@ subroutine ReadGeneral(ioLoc,genLoc)
 !     genLoc%hole_spin = spin_down
 !   elseif (cstr(trim(saux),'U')) then
 !     genLoc%hole_spin = spin_up
-!   else  
+!   else
 !     call error("The requested spin type is not implemented",name,.true.,ioLoc)
 !   endif
-! 
-! 
+!
+!
 ! !comm_gen ExciteSpin & D,U & D & spin of the excitation\\
 !   saux=GetString(ioLoc,"ExciteSpin","D")
 !   write( ioLoc%uout,'(a,a)')"Spin of the excitation (ExciteSpin): "&
@@ -623,15 +623,15 @@ subroutine ReadGeneral(ioLoc,genLoc)
 !     genLoc%excite_spin = spin_down
 !   elseif (cstr(trim(saux),'U')) then
 !     genLoc%excite_spin = spin_up
-!   else  
+!   else
 !     call error("The requested spin type is not implemented",name,.true.,ioLoc)
 !   endif
-! 
-! 
+!
+!
 
 end subroutine ReadGeneral
 
-!> \page control 
+!> \page control
 !> \latexonly
 !> \begin{longtable}{|c||p{0.2\textwidth}|c||p{0.25\textwidth}|}
 !> \hline
@@ -670,7 +670,7 @@ end subroutine ReadGeneral
 !> \hline
 !> SCFMixN & integer & 4 & number of iterations to mix\\\
 !> \hline
-!> RunType & SinglePoint, BODynamics, Ehrenfest, EhrenfestDumped, Fit & SinglePoint & Type of calculation\\\
+!> RunType & SinglePoint, BODynamics, Ehrenfest, EhrenfestDamped, Fit & SinglePoint & Type of calculation\\\
 !> \hline
 !> HElThres & real & 1e-10 & hamiltionian element thresold. Any element smaller that the thresold is made zero.\\\
 !> \hline
@@ -836,7 +836,7 @@ end subroutine ReadGeneral
 !><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>number of iterations to mix</TD>
 !></TR>
 !><TR><TD ALIGN="CENTER">RunType</TD>
-!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>SinglePoint, BODynamics, Ehrenfest, EhrenfestDumped, Fit</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>SinglePoint, BODynamics, Ehrenfest, EhrenfestDamped, Fit</TD>
 !><TD ALIGN="CENTER">SinglePoint</TD>
 !><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>Type of calculation</TD>
 !></TR>
@@ -1050,7 +1050,7 @@ end subroutine CloseIoGeneral
 
 
 !> \brief times different events
-!> \details it should be called in pairs with stage = 1 to Initialize 
+!> \details it should be called in pairs with stage = 1 to Initialize
 !> and stage = 2 to write down the info
 !> \author Alin M Elena
 !> \date 29th of October 2007
@@ -1210,7 +1210,7 @@ end subroutine CloseIoGeneral
         k=0
         allocate(ids(1:atomix%atoms%natoms))
         ids=0
-        do 
+        do
           read(nt,fmt=*,iostat=errno)&
             atomId,vx,vy,vz
           if ((errno/=0).and.(errno/=IOSTAT_END)) then
@@ -1244,7 +1244,7 @@ end subroutine CloseIoGeneral
         call error("Block VelocitiesData is missing even if ReadVel=T!",sMyName,.true.,io)
       endif
     endif
-    
+
 !! donor acceptor spacer atoms
     atomix%atoms%nacceptor=GetInteger(io,"NAcceptor",0)
     atomix%atoms%ndonor=GetInteger(io,"Ndonor",0)
@@ -1324,7 +1324,7 @@ end subroutine CloseIoGeneral
   !> \endverbatim
   !> VelocitiesData block allows to specify initial velocties for atoms. Not all the atoms have to be present.
   !> The missing ones have the velocities Initialized with k_zero. Each atom has a line\n
-  !> <1> the id of the atom (integer) \n 
+  !> <1> the id of the atom (integer) \n
   !> <2-4> the carteasian components of the velocity (reals) \n
   !> AcceptorAtoms and DonorAtoms blocks specify which atoms belong to the acceptor and which to the donor.
   !> The rest of the atoms are considered to be part of the spacer. Each block waits for a line with a
@@ -1338,7 +1338,7 @@ end subroutine CloseIoGeneral
   !>
   !> NAcceptor 2
   !> block AcceptorAtoms
-  !> 2 1 
+  !> 2 1
   !> endblock AcceptorAtoms
   !>\endverbatim
   !> - if you read the VelocitiesData block not all the exceptions are caught.
@@ -1419,7 +1419,7 @@ end subroutine CloseIoGeneral
   !> <4-5> U J (reals) U,J for the SCF calculation \n
   !> <6> the screening factor for tha electrostatic interaction if the option is chosen. \n
   !> \f[ V_I=\frac{e^2}{4\pi\epsilon_0}\cfrac{q_J}{\sqrt{r_{IJ}^2+\left ( \cfrac{1}{U_I}+\cfrac{1}{U_J}\right )^2}} \f]
-  
+
 
 !> \brief reads and Initializes the basis set
 !> \author Alin M Elena
@@ -1482,7 +1482,7 @@ end subroutine CloseIoGeneral
             atomix%speciesBasis(i,j)%l=l
             atomix%speciesBasis(i,j)%m=m
             atomix%speciesBasis(i,j)%occup=qd
-! spin up   
+! spin up
             atomix%speciesBasis(i,j+norbitals)%sp = sp
             atomix%speciesBasis(i,j+norbitals)%atom = 0
             atomix%speciesBasis(i,j+norbitals)%spin=.true.
@@ -1656,7 +1656,7 @@ end subroutine ReadBasis
       case (k_bondHarrison)
         call ReadTbHarrison(io,gen,atomix,tbMod)
         call PrintTbHarrison(io,gen,atomix,tbMod)
-    end select  
+    end select
 
   end subroutine ReadTBModel
 
@@ -1785,7 +1785,7 @@ end subroutine ReadBasis
 
     integer i,j,i1,k,k1,k2,p
     character(len=k_mw) :: readVar
-    
+
     do i=1,atomix%species%nspecies
       do j=1,atomix%species%nspecies
         if (i==j) then
@@ -1882,7 +1882,7 @@ end subroutine ReadBasis
     integer :: nt,sp,j,i,k,l,errno
     character(len=k_ml) :: saux
     integer, allocatable :: tmpid(:)
-        
+
     if (GetBlock(io,"DeltaPol",nt)) then
       allocate(tbMod%delta(1:atomix%species%nspecies))
       allocate(tmpid(1:atomix%species%nspecies))
@@ -1956,7 +1956,7 @@ end subroutine ReadBasis
 !> \param io type(ioType) contains all the info about I/O files
 
 
-        
+
   subroutine CleanMemory(io,atomic,general,tbMod,Sol)
     character(len=*), parameter :: sMyName="CleanMemory"
     type(ioType), intent(in) :: io
@@ -2030,6 +2030,7 @@ end subroutine ReadBasis
     endif
 
     call DestroyMatrix(sol%h,io)
+    call DestroyMatrix(sol%forceOp,io)
     call DestroyMatrix(sol%eigenvecs,io)
     deallocate(sol%eigenvals)
 

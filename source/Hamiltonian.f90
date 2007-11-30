@@ -186,7 +186,7 @@ contains
       call DiagonalizeMatrix(sol%h,sol%eigenvecs,sol%eigenvals,io)
       call CreateDensityMatrixNoSpin(gen,atomic,sol,io)
     endif
-    
+
    end subroutine DiagHamiltonian
 
 !> \brief resets the forces
@@ -211,7 +211,7 @@ contains
 !> \param gen type(generalType) contains the info needed by the program to k_run
 !> \param tb type(modelType) contains information about the tight binding model parameters
   subroutine RepulsiveForces(gen,atomic,tb)
-    !--subroutine name--------------------------------!   
+    !--subroutine name--------------------------------!
       character(len=*), parameter :: myname = 'RepulsiveForces'
       type(atomicType),intent(inout) :: atomic
       type(generalType),intent(inout) :: gen
@@ -287,43 +287,43 @@ contains
 !> \date ~2005
 !> \param alpha integer the direction 1-2-3 ->x-y-z
 !> \param j integer the atom
-!> \param minusGradh type(matrixType) - the gradient matrix
 !> \param gen type(generalType) contains the info needed by the program to k_run
 !> \param atomic type(atomicType) contains all info about the atoms and basis set and some parameters
 !> \param tb type(modelType) contains information about the tight binding model parameters
 !> \param sol type(solutionType) contains information about the solution space
-  subroutine ForceOperator(alpha,j,minusGradh,atomic,gen,tb,sol)
-    !--subroutine name--------------------------------!   
-      character(len=*), parameter :: myname = 'force_op'
+  subroutine ForceOperator(alpha,j,atomic,gen,tb,sol)
+    !--subroutine name--------------------------------!
+      character(len=*), parameter :: myname = 'ForceOperator'
     !--subroutine parameters -------------------------!
-      type(matrixType),intent(inout)  :: minusGradh
       integer,intent(inout)          :: alpha,j
       type(generalType), intent(inout) :: gen
       type(atomicxType), intent(inout) :: atomic
       type(modelType), intent(inout) :: tb
       type(solutionType), intent(inout) :: sol
-    !--internal variables ----------------------------!  
+    !--internal variables ----------------------------!
       real(k_pr) :: rij
       integer       :: i,k,o
       real(k_pr) :: fact,l,m,n!,fact2,ff2,
     !-------------------------------------------------!
 
-      call ResetSparseMatrix(minusGradh)
-
+      call ResetSparseMatrix(sol%forceOp)
       do i=1,atomic%atoms%natoms
         if (i/=j) then
-            call AtomDistance(atomic%atoms,j,i,rij,l,m,n)
-            do k=1,atomic%species%norbs(atomic%atoms%sp(i))
-               do o=1,atomic%species%norbs(atomic%atoms%sp(j))
-                  fact = -DhmnXYZ(alpha,rij,l,m,n,&
-                                atomic%basis%orbitals(atomic%atoms%orbs(i,k)),&
-                                atomic%basis%orbitals(atomic%atoms%orbs(j,o)),&
-                                gen,tb,sol)
-                  call SpmPut(minusGradh,atomic%atoms%orbs(i,k),atomic%atoms%orbs(j,o),cmplx(fact,0.0_k_pr,k_pr))
-                  call SpmPut(minusGradh,atomic%atoms%orbs(j,o),atomic%atoms%orbs(i,k),cmplx(fact,0.0_k_pr,k_pr))
-               enddo
+          call AtomDistance(atomic%atoms,j,i,rij,l,m,n)
+!           print *,gen%CurrSimTime,atomic%atoms%x(i),atomic%atoms%y(i),atomic%atoms%z(i)
+!           print *,gen%CurrSimTime,atomic%atoms%x(j),atomic%atoms%y(j),atomic%atoms%z(j)
+          do k=1,atomic%species%norbs(atomic%atoms%sp(i))
+            do o=1,atomic%species%norbs(atomic%atoms%sp(j))
+              fact = -DhmnXYZ(alpha,rij,l,m,n,&
+                  atomic%basis%orbitals(atomic%atoms%orbs(i,k)),&
+                  atomic%basis%orbitals(atomic%atoms%orbs(j,o)),&
+                  gen,tb,sol)
+!                   print *,gen%CurrSimTime,alpha,l,m,n,fact
+                  call SpmPut(sol%forceOp,atomic%atoms%orbs(i,k),atomic%atoms%orbs(j,o),cmplx(fact,0.0_k_pr,k_pr))
+                  call SpmPut(sol%forceOp,atomic%atoms%orbs(j,o),atomic%atoms%orbs(i,k),cmplx(fact,0.0_k_pr,k_pr))
             enddo
-         endif
+          enddo
+        endif
       enddo
    end subroutine ForceOperator
 
@@ -335,46 +335,40 @@ contains
 !> \param atomic type(atomicxType) contains all info about the atoms and basis set and some parameters
 !> \param tb type(modelType) contains information about the tight binding model parameters
 !> \param sol type(solutionType) contains information about the solution space
-    subroutine ElectronicForces(atomic,gen,tb,sol,io)
+  subroutine ElectronicForces(atomic,gen,tb,sol,io)
     character(len=*), parameter :: myname = 'ElectronicForces'
-
     type(generalType), intent(inout) :: gen
     type(atomicxType), intent(inout) :: atomic
     type(modelType), intent(inout) :: tb
     type(solutionType), intent(inout) :: sol
     type(ioType), intent(inout) :: io
     integer       :: i,k
-    type(matrixType)  :: forceop
     integer :: one, two, three
     one=1
     two=2
     three=3
-    !-------------------------------------------------!
 
-      call CreateSparseMatrix(forceop,sol%h%dim,.false.)
-      if (gen%spin) then
-
-         do k=1,atomic%atoms%nmoving
-            i=atomic%atoms%moving(k)
-            call ForceOperator(one,i,forceop,atomic,gen,tb,sol)
-           atomic%atoms%fx(i) = atomic%atoms%fx(i) + ProductTrace(sol%rho,forceop,io)
-            call ForceOperator(two,i,forceop,atomic,gen,tb,sol)
-           atomic%atoms%fy(i) = atomic%atoms%fy(i) + ProductTrace(sol%rho,forceop,io)
-            call ForceOperator(three,i,forceop,atomic,gen,tb,sol)
-           atomic%atoms%fz(i) = atomic%atoms%fz(i) + ProductTrace(sol%rho,forceop,io)
-         end do
-      else
-        do k=1,atomic%atoms%nmoving
-          i=atomic%atoms%moving(k)
-          call ForceOperator(one,i,forceop,atomic,gen,tb,sol)
-          atomic%atoms%fx(i) = atomic%atoms%fx(i) + 2.0_k_pr * ProductTrace(sol%rho,forceop,io)
-          call ForceOperator(two,i,forceop,atomic,gen,tb,sol)
-          atomic%atoms%fy(i) = atomic%atoms%fy(i) + 2.0_k_pr * ProductTrace(sol%rho,forceop,io)
-          call ForceOperator(three,i,forceop,atomic,gen,tb,sol)
-          atomic%atoms%fz(i) = atomic%atoms%fz(i) + 2.0_k_pr * ProductTrace(sol%rho,forceop,io)
-         end do
-      endif
-      call DestroyMatrix(forceop,io)
+    if (gen%spin) then
+      do k=1,atomic%atoms%nmoving
+        i=atomic%atoms%moving(k)
+         call ForceOperator(one,i,atomic,gen,tb,sol)
+        atomic%atoms%fx(i) = atomic%atoms%fx(i) + ProductTrace(sol%rho,sol%forceop,io)
+         call ForceOperator(two,i,atomic,gen,tb,sol)
+        atomic%atoms%fy(i) = atomic%atoms%fy(i) + ProductTrace(sol%rho,sol%forceop,io)
+         call ForceOperator(three,i,atomic,gen,tb,sol)
+        atomic%atoms%fz(i) = atomic%atoms%fz(i) + ProductTrace(sol%rho,sol%forceop,io)
+      end do
+    else
+      do k=1,atomic%atoms%nmoving
+        i=atomic%atoms%moving(k)
+        call ForceOperator(one,i,atomic,gen,tb,sol)
+        atomic%atoms%fx(i) = atomic%atoms%fx(i) + 2.0_k_pr * ProductTrace(sol%rho,sol%forceop,io)
+        call ForceOperator(two,i,atomic,gen,tb,sol)
+        atomic%atoms%fy(i) = atomic%atoms%fy(i) + 2.0_k_pr * ProductTrace(sol%rho,sol%forceop,io)
+        call ForceOperator(three,i,atomic,gen,tb,sol)
+        atomic%atoms%fz(i) = atomic%atoms%fz(i) + 2.0_k_pr * ProductTrace(sol%rho,sol%forceop,io)
+        end do
+    endif
 
    end subroutine ElectronicForces
 
@@ -407,7 +401,7 @@ contains
 !> \param atomic type(atomicType) contains all info about the atoms and basis set and some parameters
 !> \param tb type(modelType) contains information about the tight binding model parameters
   real(k_pr) function RepulsiveEnergy(gen,atomic,tb)
-    !--subroutine name--------------------------------!   
+    !--subroutine name--------------------------------!
     character(len=*), parameter :: myname = 'RepulsiveEnergy'
     real(k_pr) :: renergy, phi
     real(k_pr) :: rij

@@ -19,7 +19,7 @@ module m_SlaterKoster
 contains
 
   function hmn(r,l,m,n,orba,orbb,gen,tb,sol)
-    !--subroutine name--------------------------------!   
+    !--subroutine name--------------------------------!
     character(len=*), parameter :: myname = 'hmn'
     !--subroutine parameters -------------------------!
     real(k_pr) :: hmn
@@ -29,7 +29,7 @@ contains
     type(solutionType), intent(inout) :: sol
     type(generalType), intent(inout) :: gen
 
-    !--internal variables ----------------------------!  
+    !--internal variables ----------------------------!
     real(k_pr) ::auxs,cg1,sg1,cg2,sg2
     integer :: mp,ls,ss,sb,m1,m2,l1,l2
     real(k_pr) :: am1,am2,d1,d2,s1,s2,t1,t2,h1
@@ -58,7 +58,7 @@ contains
     mp=0
 
     am1 = am(cg1,sg1,orba%m)
-    am2 = am(cg2,sg2,orbb%m)  
+    am2 = am(cg2,sg2,orbb%m)
     d1 = rotmmpl(m1,0,l1,n,sol)
     d2 = rotmmpl(m2,0,l2,n,sol)
     h1 = rad(r,ss,sb,gen,tb,l1,l2,mp)
@@ -76,7 +76,7 @@ contains
   end function hmn
 
   function HmnP(r,l,m,n,orba,orbb,alpha,gen,tb,sol,pole)
-    !--subroutine name--------------------------------!   
+    !--subroutine name--------------------------------!
     character(len=*), parameter :: myname = 'sppna_HmnP'
     !--subroutine parameters -------------------------!
     real(k_pr) :: HmnP
@@ -87,7 +87,7 @@ contains
     type(solutionType), intent(inout) :: sol
     type(generalType), intent(inout) :: gen
     integer, optional :: pole
-    !--internal variables ----------------------------!  
+    !--internal variables ----------------------------!
     real(k_pr) :: cg1,cg2,sg1,sg2,auxs
     integer :: mp,ls,ss,sb,m1,m2,l1,l2
     real(k_pr) :: am1,am2,d1,d2,s1,s2,t1,t2,h1
@@ -126,13 +126,13 @@ contains
     case (1)
 
       am1 = am(cg1,sg1,orba%m)
-      am2 = am(cg2,sg2,orbb%m)  
+      am2 = am(cg2,sg2,orbb%m)
       d1 = rotmmpl(m1,0,l1,n,sol)
       d2 = rotmmpl(m2,0,l2,n,sol)
       h1 = rad(r,ss,sb,gen,tb,l1,l2,mp)
 
       am1a = AmP(alpha,cg1,sg1,orba%m)
-      am2a = AmP(alpha,cg2,sg2,orbb%m)  
+      am2a = AmP(alpha,cg2,sg2,orbb%m)
       auxs = 2.0_k_pr*am1a*am2*d1*d2*h1+2.0_k_pr*am1*am2a*d1*d2*h1
       do mp=1,ls
         s1 = smmpl(orba%m,mp,l1,n,cg1,sg1,sol)
@@ -150,7 +150,7 @@ contains
 
     case (2)
       am1 = am(cg1,sg1,orba%m)
-      am2 = am(cg2,sg2,orbb%m)  
+      am2 = am(cg2,sg2,orbb%m)
       d1 = rotmmpl(m1,0,l1,n,sol)
       d2 = rotmmpl(m2,0,l2,n,sol)
       h1 = rad(r,ss,sb,gen,tb,l1,l2,mp)
@@ -173,7 +173,7 @@ contains
 
     case (3)
       am1 = am(cg1,sg1,orba%m)
-      am2 = am(cg2,sg2,orbb%m)  
+      am2 = am(cg2,sg2,orbb%m)
       d1 = rotmmpl(m1,0,l1,n,sol)
       d2 = rotmmpl(m2,0,l2,n,sol)
       h1a = RadP(alpha,r,ss,sb,gen,tb,l1,l2,mp)
@@ -198,7 +198,7 @@ contains
        !----------------------------------------------------!
        ! vsg gives you sin(mx) knowing sin(x) and cos(x)    !
        ! input an integer mp and n,l,m direction cosines    !
-       !                                                    ! 
+       !                                                    !
        ! 18th of January, 2005                              !
        ! Alin M. Elena,Queen's University Belfast, UK       !
        ! Modified by                                        !
@@ -226,7 +226,7 @@ contains
        !----------------------------------------------------!
        ! vsg gives you sin(mx) knowing sin(x),cos(x)        !
        ! input an integer mp and n,l,m direction cosines    !
-       !                                                    ! 
+       !                                                    !
        ! 18th of January, 2005                              !
        ! Alin M. Elena,Queen's University Belfast, UK       !
        ! Modified by                                        !
@@ -278,7 +278,7 @@ contains
   function AmP(alpha,cg,sg,m)
        !----------------------------------------------------!
        ! AmP implements the derivatives of am with respect !
-       ! polar coordinates                                  ! 
+       ! polar coordinates                                  !
        ! the same as am plus an integer alpha meaning       !
        ! variable of derivative                             !
        !                                                    !
@@ -291,7 +291,7 @@ contains
     real(k_pr), intent(in) ::cg,sg
     real(k_pr) :: AmP
 
-    
+
     if (alpha == 1) then
       AmP=abs(m)*bm(cg,sg,m)
     else
@@ -315,7 +315,7 @@ contains
     real(k_pr), intent(in) :: cg,sg
     real(k_pr) :: bm
     logical :: l=.true.
-      
+
     if (m/=0) then
       bm = (-1.0_k_pr)**abs(m)*(cg*h(-m,l)-sg*h(m,l))
     else
@@ -327,7 +327,7 @@ contains
   function BmP(alpha,cg,sg,m)
        !----------------------------------------------------!
        ! BmP implements the derivatives of am with respect !
-       ! polar coordinates                                  ! 
+       ! polar coordinates                                  !
        ! the same as am plus an integer alpha meaning       !
        ! variable of derivative                             !
        !                                                    !
@@ -349,7 +349,7 @@ contains
   end function BmP
 
   function rotmmpl(m,mp,l,n,sol)
-    !--subroutine name--------------------------------!   
+    !--subroutine name--------------------------------!
     character(len=*), parameter :: myname = 'rotmmpl'
     !--subroutine parameters -------------------------!
        !----------------------------------------------------!
@@ -468,14 +468,14 @@ contains
     case (1)
       if (m==0) then
         TmmplP=0.0_k_pr
-      else   
+      else
         TmmplP=-absm*am(cg,sg,m)*(((-1)**mp)*rotmmpl(absm,mp,l,n,sol)&
           -rotmmpl(absm,-mp,l,n,sol))
       endif
     case(2)
       if (m==0) then
         TmmplP=0.0_k_pr
-      else 
+      else
         TmmplP=bm(cg,sg,m)*(((-1)**mp)*RotmmplP(alpha,absm,mp,l,n,sol)&
           -RotmmplP(alpha,absm,-mp,l,n,sol))
       endif
@@ -545,7 +545,7 @@ contains
 
 !==hoppings==========================================================
   real(k_pr) function DhmnXYZ(alpha,r,l,m,n,orba,orbb,gen,tb,sol)
-    !--subroutine name--------------------------------!   
+    !--subroutine name--------------------------------!
       character(len=*), parameter :: myname = 'DhmnXYZ'
     !--subroutine parameters -------------------------!
     real(k_pr)           :: r,l,m,n
@@ -568,7 +568,7 @@ contains
       DhmnXYZ = da*jx(alpha,r,l,m,n)-&
         db*jy(alpha,r,l,m,n)+dr*jz(alpha,l,m,n)
     else
-   ! the north-south pole case 
+   ! the north-south pole case
       select case(alpha)
       case(1)
         DhmnXYZ=sign(1.0_k_pr,n)*HmnP(r,l,m,n,orba,orbb,two,gen,tb,sol,1)/r
@@ -576,16 +576,14 @@ contains
         DhmnXYZ=sign(1.0_k_pr,n)*HmnP(r,l,m,n,orba,orbb,two,gen,tb,sol,2)/r
       case(3)
         DhmnXYZ=sign(1.0_k_pr,n)*HmnP(r,l,m,n,orba,orbb,three,gen,tb,sol,1)
-      end select   
+      end select
 
     endif
-
+!      write(*,'(a,f8.4,4f24.16)')"DhmnXYZ ",gen%currSimTime,l,m,n,DhmnXYZ
     end function DhmnXYZ
 
   real(k_pr) function jx(alpha,r,l,m,n)
-    !--subroutine name--------------------------------!   
     character(len=*), parameter :: myname = 'jx'
-    !--subroutine parameters -------------------------!
     real(k_pr)           :: r,l,m,n
     integer            :: alpha
 
@@ -597,11 +595,10 @@ contains
     case(3)
       jx = 0.0_k_pr
     end select
-
   end function jx
 
   real(k_pr) function jy(alpha,r,l,m,n)
-    !--subroutine name--------------------------------!   
+    !--subroutine name--------------------------------!
     character(len=*), parameter :: myname = 'jy'
     !--subroutine parameters -------------------------!
     real(k_pr)           :: r,l,m,n
@@ -621,7 +618,7 @@ contains
 
 
   real(k_pr) function jz(alpha,l,m,n)
-    !--subroutine name--------------------------------!   
+    !--subroutine name--------------------------------!
     character(len=*), parameter :: myname = 'jz'
     !--subroutine parameters -------------------------!
     real(k_pr)           :: l,m,n
