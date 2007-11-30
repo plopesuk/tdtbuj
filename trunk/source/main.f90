@@ -182,8 +182,8 @@ program tbuj
 !     call forceTesty
   elseif (general%runType==k_runForceTestz) then
 !     call forceTestz
-  elseif (general%runType==k_runEhrenfestDumped) then
-    call EhrenfestDynamicsDumped(ioInfo,general,atomicx,tbModel,SolSpace) 
+  elseif (general%runType==k_runEhrenfestDamped) then
+    call EhrenfestDynamicsDamped(ioInfo,general,atomicx,tbModel,SolSpace) 
   elseif (general%runType==k_runFragments) then
 !     call fragments_k_run
   elseif (general%runType==k_runSpecial) then

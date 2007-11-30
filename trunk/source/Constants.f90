@@ -7,7 +7,7 @@ module m_Constants
 
   integer, parameter, public :: k_pr=kind(1.0d0) !< define precision for reals
   integer, parameter, public :: k_ml=255 !< number of character per line
-  integer, parameter, public :: k_mw=40 !< number of character per word 
+  integer, parameter, public :: k_mw=40 !< number of character per word
 
   integer, parameter,public :: k_lowVerbos=5
   integer, parameter,public :: k_mediumVerbos=15
@@ -26,7 +26,7 @@ module m_Constants
   integer, parameter, public :: k_runForceTestx = 6
   integer, parameter, public :: k_runForceTesty = 7
   integer, parameter, public :: k_runForceTestz = 8
-  integer, parameter, public :: k_runEhrenfestDumped = 9
+  integer, parameter, public :: k_runEhrenfestDamped = 9
   integer, parameter, public :: k_runFragments = 10
   integer, parameter, public :: k_runGeomBFGS = 11
   integer, parameter, public :: k_runSpecial = 99
@@ -41,7 +41,7 @@ module m_Constants
 
   integer, parameter, public :: k_spinDown=0
   integer, parameter, public :: k_spinUp=1
-!>spins 
+!>spins
   integer, parameter, public :: k_bondGSP=1
   integer, parameter, public :: k_bondHarrison=2
 !> bond type
@@ -69,15 +69,16 @@ module m_Constants
    real(k_pr),  public :: k_amuToInternal !< atomic mass units to internal mass units
    real(k_pr),  public :: k_kb  !< Boltzmann constant \f$ k_B \f$
    real(k_pr), parameter,  public ::  k_evToHartree = 0.03674932600434263_k_pr !< electron volt to Hartree conversion factor
-   real(k_pr), parameter, public ::   k_hartreeToEv = 27.211383411_k_pr !< hartree to electron volt conversion factor
-   real(k_pr),  public :: k_hbar !< Plank's constant \f$ \hbar \f$  
-   real(k_pr), parameter, public ::   k_bohrToAng = 0.5291772083_k_pr !< bohr to  Angstroms conversion factor
-   real(k_pr), parameter, public ::    k_efsToMicroamps = 160.2176462_k_pr
-   real(k_pr),  public :: k_epsilon0 !< \f$ \epsilon_0 \f$ vacuum permiability
-   real(k_pr),  public :: k_e2 !< square of the elctronic charge
-   real(k_pr),  public :: k_me !< mass of the electron
-   real(k_pr), public :: k_charge2SI !< charge to SI conversion factor
-   real(k_pr), public :: k_length2SI !< length to SI conversion factor
+  real(k_pr), parameter, public ::   k_hartreeToEv = 27.211383411_k_pr !< hartree to electron volt conversion factor
+  real(k_pr),  public :: k_hbar !< Plank's constant \f$ \hbar \f$
+  real(k_pr), parameter, public ::   k_bohrToAng = 0.5291772083_k_pr !< bohr to  Angstroms conversion factor
+  real(k_pr), parameter, public ::    k_efsToMicroamps = 160.2176462_k_pr
+  real(k_pr),  public :: k_epsilon0 !< \f$ \epsilon_0 \f$ vacuum permiability
+  real(k_pr),  public :: k_e2 !< square of the elctronic charge
+  real(k_pr),  public :: k_me !< mass of the electron
+  real(k_pr), public :: k_charge2SI !< charge to SI conversion factor
+  real(k_pr), public :: k_length2SI !< length to SI conversion factor
+  real(k_pr), public :: k_time2SI !< time to SI conversion factor
   real(k_pr), parameter,public :: k_debye2SI=3.335640952D-30 !< debye to SI (Cm) conversion factor
   integer, parameter :: k_nz=110 !< no of atomic elements that have info associated with
 
@@ -92,7 +93,7 @@ module m_Constants
   public :: group
 
 
-contains 
+contains
 
 !> \brief Initializes the m_Constants according to the system of units chosen
 !> \author Alin M Elena
@@ -100,48 +101,51 @@ contains
 !> \param units selects the system of units
 
    subroutine InitializeConstants(units)
-      integer,intent(in) :: units     
+      integer,intent(in) :: units
       select case(units)
       case(k_unitsEV)
-         k_amuToInternal = 103.6426867_k_pr
-         k_kb = 8.61734215D-5 ! in eV / K
-         k_hbar = 0.65821188926_k_pr ! in eV fs
-         k_epsilon0 = 5.526349954D-3
-         k_e2=1.0_k_pr
-         k_me=1.0_k_pr ! 
-         k_charge2SI= 1.60217653D-19 !Cm
-         k_length2SI=1.0D-10 !m
+        k_amuToInternal = 103.6426867_k_pr
+        k_kb = 8.61734215D-5 ! in eV / K
+        k_hbar = 0.65821188926_k_pr ! in eV fs
+        k_epsilon0 = 5.526349954D-3
+        k_e2=1.0_k_pr
+        k_me=1.0_k_pr !
+        k_charge2SI= 1.60217653D-19 !Cm
+        k_length2SI=1.0D-10 !m
+        k_length2SI=0.048397933_k_pr !fs
       case(k_unitsAU)
-         k_amuToInternal =  1836.15267247_k_pr
-         k_kb = 3.1668154D-6 !Eh/K
-         k_hbar = 1.0_k_pr 
-         k_epsilon0 = 1/(4.0_k_pr*k_pi)
-         k_e2=1.0_k_pr
-         k_me=1.0_k_pr
-         k_charge2SI= 1.60217653D-19 !Cm
-         k_length2SI=0.5291772108D-10 !m
+        k_amuToInternal =  1836.15267247_k_pr
+        k_kb = 3.1668154D-6 !Eh/K
+        k_hbar = 1.0_k_pr
+        k_epsilon0 = 1/(4.0_k_pr*k_pi)
+        k_e2=1.0_k_pr
+        k_me=1.0_k_pr
+        k_charge2SI= 1.60217653D-19 !Cm
+        k_length2SI=0.5291772108D-10 !m
+        k_time2SI=2.418884326505D-2 !fs
       case(k_unitsSI)
-         k_amuToInternal = 1.66053886D-27 !kg
-         k_kb= 1.3806505D-23 !J/K
-         k_hbar = 1.05457168D-34 !J s 
-         k_epsilon0 = 8.854187817D-12 !F/m
-         k_e2=1.60217653D-19**2 !C^2
-         k_me= 9.1093826D-31! kg
-         k_charge2SI= 1.0_k_pr !Cm
-         k_length2SI=1.0_k_pr !m
+        k_amuToInternal = 1.66053886D-27 !kg
+        k_kb= 1.3806505D-23 !J/K
+        k_hbar = 1.05457168D-34 !J s
+        k_epsilon0 = 8.854187817D-12 !F/m
+        k_e2=1.60217653D-19**2 !C^2
+        k_me= 9.1093826D-31! kg
+        k_charge2SI= 1.0_k_pr !Cm
+        k_length2SI=1.0_k_pr !m
+        k_time2SI=1.0D-15 !fs
         case(k_unitsRY)
-        !!!!!!!!!! to be checked
-         k_amuToInternal =  1836.15267247_k_pr
-         k_kb = 6.3361921D-6 !Rydberg/K
-         k_hbar = 1.0_k_pr 
-         k_epsilon0 = 1.0_k_pr/(4.0_k_pr*k_pi)
-         k_e2=2.0_k_pr
-         k_me=0.5_k_pr
-         ! it should be devided by sqrt(2.0) but because we do want to see the charges in meaningful 
-         ! numbers we do not do it                        
-         k_charge2SI= 1.60217653D-19!/sqrt(2.0_k_pr) 
-         k_length2SI=0.5291772108D-10 !m
-      end select         
+        k_amuToInternal =  1836.15267247_k_pr
+        k_kb = 6.3361921D-6 !Rydberg/K
+        k_hbar = 1.0_k_pr
+        k_epsilon0 = 1.0_k_pr/(4.0_k_pr*k_pi)
+        k_e2=2.0_k_pr
+        k_me=0.5_k_pr
+         ! it should be devided by sqrt(2.0) but because we do want to see the charges in meaningful
+         ! numbers we do not do it
+        k_charge2SI= 1.60217653D-19!/sqrt(2.0_k_pr)
+        k_length2SI=0.5291772108D-10 !m
+        k_time2SI=4.83776865301D-2!fs
+      end select
 
    end subroutine InitializeConstants
 
@@ -149,8 +153,8 @@ contains
 !> \author Alin M Elena
 !> \date 29/10/07, 23:19:04
 !> \param iz integer Z of the atom
-  character(len=2) function Symbol(iz)  
-    !--subroutine name--------------------------------!   
+  character(len=2) function Symbol(iz)
+    !--subroutine name--------------------------------!
     character(len=*), parameter :: myname = 'symbol'
     !--subroutine parameters--------------------------!
     integer, intent(in) :: iz
@@ -178,7 +182,7 @@ contains
 !> \date 29/10/07, 23:18:26
 !> \param iz integer Z of the atom
   character(len=k_mw) function ElName(iz)
-    !--subroutine name--------------------------------!   
+    !--subroutine name--------------------------------!
     character(len=*), parameter :: myname = 'ElName'
     !--subroutine parameters--------------------------!
     integer, intent(in) :: iz
@@ -216,7 +220,7 @@ contains
 !> \param iz integer Z of the atom
 
   character(len=4) function Period(iz)
-    !--subroutine name--------------------------------!   
+    !--subroutine name--------------------------------!
     character(len=*), parameter :: myname = 'Period'
     !--subroutine parameters--------------------------!
     integer, intent(in) :: iz
@@ -245,8 +249,8 @@ contains
 !> \date 29/10/07, 23:17:12
 !> \param iz integer Z of the atom
 
-  integer function group(iz)  
-    !--subroutine name--------------------------------!   
+  integer function group(iz)
+    !--subroutine name--------------------------------!
     character(len=*), parameter :: myname = 'group'
     !--subroutine parameters--------------------------!
     integer, intent(in) :: iz
@@ -272,7 +276,7 @@ contains
 !> \param iz integer Z of the atom
 !> \internal complete the electronic configuration
   character(len=k_mw) function ElConfig(iz)
-    !--subroutine name--------------------------------!   
+    !--subroutine name--------------------------------!
     character(len=*), parameter :: myname = 'ElConfig'
     !--subroutine parameters--------------------------!
     integer, intent(in) :: iz
@@ -301,7 +305,7 @@ contains
 !> \param iz integer Z of the atom
 
   real(k_pr) function weight(iz)
-    !--subroutine name--------------------------------!   
+    !--subroutine name--------------------------------!
     character(len=*), parameter :: myname = 'weight'
     !--subroutine parameters--------------------------!
     integer, intent(in) :: iz
@@ -318,7 +322,7 @@ contains
       200.59,204.383,207.2,208.98,210,210,222,223,226,227,232.038,231.036,&
       238.029,237,244,243,247,247,251,252,257,258,259,262,261,262,266,264,&
       269,268,271/
-! values are in atomic units of mass    
+! values are in atomic units of mass
     if ((iz<1).or.(iz>k_nz)) then
       write(6,*) 'weight: out of range iz =',iz
       weight = 1.0_k_pr
@@ -333,7 +337,7 @@ contains
 !> \param iz integer Z of the atom
 
   real(k_pr) function CovalentRadius(iz)
-    !--subroutine name--------------------------------!   
+    !--subroutine name--------------------------------!
     character(len=*), parameter :: myname = 'CovalentRadius'
     !--subroutine parameters--------------------------!
     integer, intent(in) :: iz
@@ -347,7 +351,7 @@ contains
       1.57,1.43,1.37,1.35,1.37,1.32,1.5,1.5,1.7,1.55,1.54,1.54,1.68,1.21,1.5,&
       1.5,1.9,1.88,1.79,1.61,1.58,1.55,1.53,1.51,0.99,1.54,1.83,1.5,1.5,1.5,&
       1.5,1.5,1.5,1.5,1.5,1.5,1.5,1.5,1.5/
-! values are in Angstroms   
+! values are in Angstroms
     if ((iz<1).or.(iz>k_nz)) then
       write(6,*) 'CovalentRadius: out of range iz =',iz
       CovalentRadius = 2.0_k_pr
@@ -362,7 +366,7 @@ contains
 !> \param iz integer Z of the atom
 
   real(k_pr) function VdWRadius(iz)
-    !--subroutine name--------------------------------!   
+    !--subroutine name--------------------------------!
     character(len=*), parameter :: myname = 'VdWRadius'
     !--subroutine parameters--------------------------!
     integer, intent(in) :: iz
@@ -373,7 +377,7 @@ contains
       2,2,2,2,2,2,2,2,2,1.63,1.72,1.58,1.93,2.17,2,2.06,1.98,2.16,2,2,2,2,2,2,&
       2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1.72,1.66,1.55,1.96,2.02,2,2,2,2,2,2,&
       2,2,2,1.86,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2/
-! values are in Angstroms   
+! values are in Angstroms
     if ((iz<1).or.(iz>k_nz)) then
       write(6,*) 'VdWRadius: out of range iz =',iz
       VdWRadius = 2.0_k_pr

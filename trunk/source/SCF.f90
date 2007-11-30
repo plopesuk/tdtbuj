@@ -1,7 +1,7 @@
 !> \brief self consistent field method
 !> \author Alin M Elena
 !> \date 05/11/07, 10:30:06
-module m_SCF 
+module m_SCF
   use m_Constants
   use m_Types
   use m_Useful
@@ -99,19 +99,19 @@ contains
           call ComputeMagneticMoment(genLoc,atomic,sol,ioLoc)
           if (ioLoc%Verbosity >= k_highVerbos) then
             write(ioLoc%uout,'(a)') "Before entering the SCF LOOP"
-! 
+!
 !               if (.not.genLoc%compElec) then
 !                   if (genLoc%k_electrostatics==tbu_multi)call init_qvs(densityin)
 !               endif
             call PrintMatrix(sol%h,"Hamiltonian Matrix:",ioLoc,.false.)
             do i=1,atomic%atoms%natoms
 !                   if (genLoc%k_electrostatics==tbu_multi) then
-!                     call Print_QlmR(i,densityin)   
+!                     call Print_QlmR(i,densityin)
 !                     call Print_VlmR(i,densityin)
 !                   endif
 !                   call Print_atom_rho(i,"density in ")
 !                   call Print_atom_density(i,densityin,"density in ")
-! 
+!
 !                   if (genLoc%k_electrostatics==tbu_multi) then
 !                     do j=1,atomic%natoms
 !                         if (i/=j) then
@@ -127,7 +127,7 @@ contains
               call PrintDipoles(atomic,ioLoc)
               call PrintMagneticMoment(atomic,sol,.false.,ioLoc)
             endif
-! 
+!
             if (ioLoc%Verbosity >= k_highVerbos) then
               write(ioLoc%uout,*) 'SCF'
               write(ioLoc%uout,*) &
@@ -173,7 +173,7 @@ contains
                 call PrintDipoles(atomic,ioLoc)
                 call PrintMagneticMoment(atomic,sol,.true.,ioLoc)
               endif
-! 
+!
               ierr=-1
               nmix=genLoc%scfMixn
               do while ((genLoc%scfMixn>=1).and.(ierr/=0))
@@ -216,7 +216,7 @@ contains
               endif
               if (dmax < genLoc%scftol) exit
             end do
-! 
+!
             if ( ioLoc%uout /= 6) then
               if (nit>genLoc%maxscf) then
                 write(6,'(a,i0,a,ES12.4)')"Warning: it did not converge after ",genLoc%maxscf," the tolerance reached is ",dmax
@@ -243,7 +243,7 @@ contains
             call RepulsiveForces(genLoc,atomic%atoms,tbMod)
             call ElectronicForces(atomic,genLoc,tbMod,sol,ioLoc)
             call ScfForces(genLoc,atomic,sol,ioLoc)
-! 
+!
             deallocate(dins)
             deallocate(douts)
             deallocate(res)
@@ -302,7 +302,7 @@ contains
     n=sol%h%dim
     m=n*(n-1)/2
     shift=n/2
-    
+
     select case(gen%scfType)
       case(k_scfTbuj)
         rTmp=0.0_k_pr
@@ -479,7 +479,7 @@ contains
 !                   enddo
 !                enddo
 !                elecEn=elecEn+0.5_k_pr*aux*e2/(4.0_k_pr*pi*epsilon0)
-!             end do    
+!             end do
     end select
     write(io%uout,'(a,f16.8)')"SCF Electrostatics: ", elecEn
     ScfEnergy = scfe+elecEn

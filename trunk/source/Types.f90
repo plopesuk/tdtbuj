@@ -11,11 +11,11 @@ module m_Types
 !> \details see m_ReadData::read_io
   type, public :: ioType
   character(len=k_mw) :: inpFile !<  name of the input file from which the data are read
-!>  name of the error input file (parsing errors, before opening specific output files)  
+!>  name of the error input file (parsing errors, before opening specific output files)
   character(len=k_mw) :: inpErr
-!>  name of the file in which the output is put 
+!>  name of the file in which the output is put
   character(len=k_mw)  :: outputFile
-!>  how much information to be Printed in the output file 
+!>  how much information to be Printed in the output file
   integer :: verbosity
 !>   name of the file in which the debug data are written
   character(len=k_mw)  :: debugFile
@@ -25,7 +25,7 @@ module m_Types
   logical :: stdout
 !>  unit number for input file
   integer :: uinp
-!>  unit number for output file  
+!>  unit number for output file
   integer :: uout
 !>  unit number for debug file
   integer :: udeb=-1
@@ -35,7 +35,7 @@ module m_Types
   logical :: firstTime = .false.
   end type ioType
 
-!> \brief time keeping type 
+!> \brief time keeping type
   type ,public :: timeType
   real(k_pr) :: start !< start time
   real(k_pr) :: end !< end time
@@ -105,7 +105,7 @@ module m_Types
 !   integer :: excite_spin
     character(len=k_mw) :: jobName !< name of the job
     real(k_pr) :: ranseed !< seed to Initialize the random number generator
-    logical :: writeAnimation !< if true will write the coordinates in a file 
+    logical :: writeAnimation !< if true will write the coordinates in a file
 !   logical :: write_ene
 !   logical :: write_density
 !   logical :: read_density
@@ -118,6 +118,7 @@ module m_Types
     real(k_pr) :: qTolerance !< charge tolerance used to find Fermi level
     type(timeType):: time
     type(fitType)  :: fit
+    real(k_pr) :: CurrSimTime !< keeps the time in a td simulation
   end type generalType
 
 !> \brief data type for atoms properties
@@ -125,14 +126,14 @@ module m_Types
     logical               :: created !< was it read?
     integer               :: natoms !< no of atoms
     integer,  allocatable :: id(:) !< id of the atoms
-    integer,  allocatable :: sp(:) !< specie of the atoms 
+    integer,  allocatable :: sp(:) !< specie of the atoms
     logical,  allocatable :: ismoving(:) !< is it moving?
     logical,  allocatable :: isscf(:) !< is it SCF?
     integer, allocatable :: scf(:) !< list of SCCF atoms
     integer, allocatable :: moving(:) !< list of moving atoms
     real(k_pr), allocatable :: x(:),y(:),z(:) !< cartesian coordinates
     real(k_pr), allocatable :: dx(:),dy(:),dz(:) !< cartesian dipole moments
-    real(k_pr), allocatable :: chrg(:),chrg0(:) !< excess charge, initial excess charge 
+    real(k_pr), allocatable :: chrg(:),chrg0(:) !< excess charge, initial excess charge
     real(k_pr), allocatable :: fx(:), fy(:), fz(:) !< cartesian forces
     real(k_pr), allocatable :: vx(:), vy(:), vz(:) !< cartesian velocities
     real(k_pr), allocatable :: xo(:),yo(:),zo(:) !< old cartesian coordinates
@@ -155,7 +156,7 @@ module m_Types
   end type atomicType
 
 
-!> \brief species type 
+!> \brief species type
   type, public :: speciesType
     logical :: created = .false. !< is it created?
     integer :: nspecies !< no of species
@@ -163,10 +164,10 @@ module m_Types
     real(k_pr), allocatable :: mass(:) !< atomic mass of specie
     integer,  allocatable :: z(:) !< Z of specie
     real(k_pr), allocatable :: zval(:) !< no of valence electrons for each specie
-    real(k_pr), allocatable :: ulocal(:) !< local U (Hubbard U) 
+    real(k_pr), allocatable :: ulocal(:) !< local U (Hubbard U)
     real(k_pr), allocatable :: jlocal(:) !< local J
     real(k_pr), allocatable :: uinter(:) !< Uinter (used for the screaning of k_electrostatics)
-    integer,  allocatable :: norbs(:) !< no of orbitals	
+    integer,  allocatable :: norbs(:) !< no of orbitals
   end type speciesType
 
 !> \brief atomic orbital data type
@@ -178,7 +179,7 @@ module m_Types
 
 !> \brief atomic basis data type
   type, private :: basisType
-    integer :: norbitals !< no of orbitals  
+    integer :: norbitals !< no of orbitals
     type(orbitalType), allocatable :: orbitals(:) !< orbitals
   end type basisType
 
@@ -188,7 +189,7 @@ module m_Types
     real(k_pr),allocatable :: d(:,:,:)
   end type deltaType
 
-!> \brief all atomic data type 
+!> \brief all atomic data type
   type, public :: atomicxType
     type(atomicType) :: atoms !< atmoic properties
     type(speciesType) :: species !< specie properties
@@ -234,7 +235,7 @@ module m_Types
     complex(kind=k_pr), allocatable :: a(:,:) !< keeps the data
   end type matrixType
 
-!> vector type 
+!> vector type
   type, public :: vectorType
     logical :: created !< is it created?
     integer :: dim !< dimension of the array
@@ -249,6 +250,7 @@ module m_Types
     type(matrixType) :: hdown !< spin down hamiltonian
     type(matrixType) :: hup !< spin up hamiltonian
     type(matrixType) :: eigenvecs !< eigenvectors of h
+    type(matrixType) :: forceOp !< force operator matrix
     real(k_pr), allocatable :: eigenvals(:) !< eigenvalues of h
     real(k_pr), allocatable :: n0(:) !< n0 initial density matrix in vector representation
     real(k_pr), allocatable :: potential(:) !< electrostatic potential on each atom

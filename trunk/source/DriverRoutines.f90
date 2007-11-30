@@ -22,7 +22,7 @@ module m_DriverRoutines
   public :: SinglePoint
   public :: BornOppenheimerDynamics
   public :: EhrenfestDynamics
-  public :: EhrenfestDynamicsDumped
+  public :: EhrenfestDynamicsDamped
 
   contains
 
@@ -132,17 +132,17 @@ module m_DriverRoutines
 
     write(io%uout,'(/a,f13.6,/a,f13.6,/a,f13.6,/a,f25.18,/a,f25.18,/)')&
        'Electronic energy = ',eenergy, &
-      'Repulsive energy  = ',renergy, &  
+      'Repulsive energy  = ',renergy, &
       'SCF energy        = ',scfE, &
          '-TS               = ',minusts, &
          'Total energy      = ',eenergy+renergy+scfE+minusts
     sol%totalEnergy=eenergy+renergy+minusts+scfE
     ! this is the time loop
-    write(eneunit,'(a1,a28,5a29)')"#","Time",  "Repuilsive Energy ",  "Electronic Energy",  "SCF Energy",&
+    write(eneunit,'(a1,a28,6a29)')"#","Time",  "Repulsive Energy ",  "Electronic Energy",  "SCF Energy",&
       "-TS","Kinetic Energy",  "Total Energy"
     do istep=1,gen%nsteps
       !set global time variable
-      currTime = (istep-1)*dt
+      gen%CurrSimTime = gen%CurrSimTime*k_time2SI
        ! calculates positions at t+dt
 !       write(io%uout,*)"timestep"
 !       call PrintCoordinates(io,atomic)
@@ -201,10 +201,10 @@ module m_DriverRoutines
 !             call BuildDensity(density)
 !             call calc_charges(rho)
 !             call calc_dipoles(density)
-!             call write_frame(xunit)          
+!             call write_frame(xunit)
 !             call writeAnimation_frame(aniunit)
 ! !           call write_frame_rho(runit)
-        write(saux,'(a,f0.8)')"Time = ",istep*dt
+        write(saux,'(a,f0.8)')"Time = ",gen%CurrSimTime
         call PrintXYZ(aniunit,atomic,.false.,trim(saux))
       endif
       if (io%Verbosity >= k_HighVerbos) then
@@ -213,7 +213,7 @@ module m_DriverRoutines
       endif
       write(io%uout,'(i5,a,f13.6,a,f13.6,a,f13.6)')&
             istep,' P = ',penergy,' K = ',kenergy,' E = ',penergy+kenergy
-      write(eneunit,'(7f29.18)')istep*dt,renergy,eenergy,scfE,minusts,kenergy,penergy+kenergy
+      write(eneunit,'(7f29.18)')gen%currSimTime,renergy,eenergy,scfE,minusts,kenergy,penergy+kenergy
     enddo
 
     if (gen%writeAnimation) then
@@ -239,6 +239,7 @@ module m_DriverRoutines
 !> \param atomic type(atomicxType) contains all info about the atoms and basis set and some parameters
 !> \param tb type(modelType) contains information about the tight binding model parameters
 !> \param sol type(solutionType) contains information about the solution space
+!> \internal it aborts if the calculation is not scf
   subroutine EhrenfestDynamics(io,gen,atomic,tb,sol)
     character(len=*), parameter :: myname = 'EhrenfestDynamics'
     type(ioType), intent(inout) :: io
@@ -292,8 +293,8 @@ module m_DriverRoutines
       call CalcExcessCharges(gen,atomic,sol)
       call CalcDipoles(gen,atomic,sol)
       call PrintXYZ(aniunit,atomic,.false.,"T=0.0")
-!      call write_frame(xunit) 
-!        call write_frame_rho(runit,rho0) 
+!      call write_frame(xunit)
+!        call write_frame_rho(runit,rho0)
 !            call writeAnimation_frame(aniunit)
       write(accUnit,*) "0.0", ChargeOnGroup(atomic%atoms%acceptor,atomic%atoms)
       write(donUnit,*) "0.0", ChargeOnGroup(atomic%atoms%donor,atomic%atoms)
@@ -306,7 +307,7 @@ module m_DriverRoutines
 !        '---- Start reading initial density'
 !      call init_rho("dma.rho","dms.rho","dmd.rho",rho%a,rho%dim)
 !      write(io%uout,'(/a/)')&
-!        '---- End reading initial density'        
+!        '---- End reading initial density'
     call CopyMatrix(rho0,sol%rho,io)
     if (gen%BiasRampSteps>0) then
       call AddBias(1.0_k_pr,atomic,sol)
@@ -315,7 +316,7 @@ module m_DriverRoutines
     call BuildDensity(atomic,sol)
 !          if (.not.gen%comp_elec) then
 !             if (gen%electrostatics==tbu_multi) call init_qvs(density)
-!          endif 
+!          endif
     call AddH2(gen,atomic,sol,tb,io)
     ihbar = cmplx(0.0_k_pr,-1.0_k_pr/k_hbar,k_pr)
     ! go back in time one step for the DM integration
@@ -338,7 +339,7 @@ module m_DriverRoutines
     st = cmplx(2.0_k_pr*dt,0.0_k_pr,k_pr)
     do istep=1,gen%nsteps
    !set global time variable
-      currTime = (istep-1)*dt
+      gen%CurrSimTime = gen%CurrSimTime*k_time2SI
       call BuildDensity(atomic,sol)
 !             if (.not.gen%comp_elec) then
 !                if (gen%electrostatics==tbu_multi) call init_qvs(density)
@@ -350,7 +351,7 @@ module m_DriverRoutines
       call ScalarTMatrix(ihbar*st,rhodot,io)
       call MatrixCeaApbB(rhonew,rhoold,rhodot,k_cone,k_cone,io)
        ! at this point rho contains the rho at time=t
-       ! propagate the positions 
+       ! propagate the positions
        ! calculates positions at t+dt
       do k=1,atomic%atoms%nmoving
         i=atomic%atoms%moving(k)
@@ -403,6 +404,7 @@ module m_DriverRoutines
          + 0.5_k_pr * dt * (atomic%atoms%fy(i) + atomic%atoms%fyo(i)) / mi
         atomic%atoms%vz(i) = atomic%atoms%vz(i) &
          + 0.5_k_pr * dt * (atomic%atoms%fz(i) + atomic%atoms%fzo(i)) / mi
+
       enddo
 
        ! scale velocities
@@ -422,8 +424,8 @@ module m_DriverRoutines
         scfE = 0.0_k_pr
       endif
 
-       penergy = eenergy + renergy + scfE
-       kenergy = KineticEnergy(atomic)
+      penergy = eenergy + renergy + scfE
+      kenergy = KineticEnergy(atomic)
 
       if (gen%writeAnimation) then
         call CalcExcessCharges(gen,atomic,sol)
@@ -431,15 +433,15 @@ module m_DriverRoutines
 !               call writeAnimation_frame(aniunit)
 !               call write_frame(xunit)
 !               call write_frame_rho(runit,rho0)
-        write(accUnit,*) istep*dt, ChargeOnGroup(atomic%atoms%acceptor,atomic%atoms)
-        write(donUnit,*) istep*dt, ChargeOnGroup(atomic%atoms%donor,atomic%atoms)
-        write(spacUnit,*) istep*dt, ChargeOnGroup(atomic%atoms%spacer,atomic%atoms)
-        write(saux,'(a,f0.8)')"Time = ", istep*dt
+        write(accUnit,*) gen%CurrSimTime, ChargeOnGroup(atomic%atoms%acceptor,atomic%atoms)
+        write(donUnit,*) gen%CurrSimTime, ChargeOnGroup(atomic%atoms%donor,atomic%atoms)
+        write(spacUnit,*) gen%CurrSimTime, ChargeOnGroup(atomic%atoms%spacer,atomic%atoms)
+        write(saux,'(a,f0.8)')"Time = ", gen%CurrSimTime
         call PrintXYZ(aniunit,atomic,.false.,trim(saux))
       endif
 !            call write_currents(h,rho)
 !            if (mod(istep,50).eq.1) call write_rho_eigenvalues(rho)
-      write(eneunit,'(7f25.18)')istep*dt,renergy,eenergy,scfE,kenergy,penergy+kenergy,real(trrho)
+      write(eneunit,'(7f25.18)')gen%CurrSimTime,renergy,eenergy,scfE,kenergy,penergy+kenergy,real(trrho)
 
     enddo !istep loop
     if (gen%writeAnimation) then
@@ -461,7 +463,7 @@ module m_DriverRoutines
       'End Velocity Verlet-------------------------------------------------------------'
   end subroutine EhrenfestDynamics
 !> \brief driver routine for verlet velocity Ehrenfest molecular dynamics
-!> dumped
+!> damped
 !> \author Alin M Elena
 !> \date 10/11/07, 15:22:53
 !> \param io type(ioType) contains all the info about I/O files
@@ -469,8 +471,8 @@ module m_DriverRoutines
 !> \param atomic type(atomicxType) contains all info about the atoms and basis set and some parameters
 !> \param tb type(modelType) contains information about the tight binding model parameters
 !> \param sol type(solutionType) contains information about the solution space
-  subroutine EhrenfestDynamicsDumped(io,gen,atomic,tb,sol)
-    character(len=*), parameter :: myname = 'EhrenfestDynamicsDumped'
+  subroutine EhrenfestDynamicsDamped(io,gen,atomic,tb,sol)
+    character(len=*), parameter :: myname = 'EhrenfestDynamicsDamped'
     type(ioType), intent(inout) :: io
     type(generalType), intent(inout) :: gen
     type(atomicxType), intent(inout) :: atomic
@@ -494,7 +496,7 @@ module m_DriverRoutines
     donUnit=GetUnit()
     spacUnit=GetUnit()
     write(io%uout,'(/a/)')&
-         '--Velocity Verlet Ehrenfest Dynamics Dumped----------------------------'
+         '--Velocity Verlet Ehrenfest Dynamics Damped----------------------------'
     gamma=-gen%Gamma
     if (gen%writeAnimation) then
       open(file='eh_dyn.xyz',unit=aniunit)
@@ -520,13 +522,15 @@ module m_DriverRoutines
     call CreateMatrix(rho0,sol%h%dim,.true.)
     call CreateMatrix(deltaRho,sol%h%dim,.true.)
     call CopyMatrix(rho0,sol%rho,io)
+    ! get the starting density matrix
+    call GetRho(sol%rho)
 !   call create_dm_spin_altered(eigenvec,eigenval)
     if (gen%writeAnimation) then
       call BuildDensity(atomic,sol)
       call CalcExcessCharges(gen,atomic,sol)
       call CalcDipoles(gen,atomic,sol)
-!      call write_frame(xunit) 
-!        call write_frame_rho(runit,rho0) 
+!      call write_frame(xunit)
+!        call write_frame_rho(runit,rho0)
 !            call writeAnimation_frame(aniunit)
       write(accUnit,*) "0.0", ChargeOnGroup(atomic%atoms%acceptor,atomic%atoms)
       write(donUnit,*) "0.0", ChargeOnGroup(atomic%atoms%donor,atomic%atoms)
@@ -549,7 +553,7 @@ module m_DriverRoutines
     call BuildDensity(atomic,sol)
 !          if (.not.gen%comp_elec) then
 !             if (gen%electrostatics==tbu_multi) call init_qvs(density)
-!          endif 
+!          endif
     call AddH2(gen,atomic,sol,tb,io)
     ihbar = cmplx(0.0_k_pr,-1.0_k_pr/k_hbar,k_pr)
     ! go back in time one step for the DM integration
@@ -575,13 +579,12 @@ module m_DriverRoutines
       "Kinetic Energy",  "Total Energy",  "No of Electrons"
     do istep=1,gen%nsteps
    !set global time variable
-      currTime = (istep-1)*dt
+      gen%CurrSimTime = istep*dt*k_time2SI
       call BuildDensity(atomic,sol)
 !             if (.not.gen%comp_elec) then
 !                if (gen%electrostatics==tbu_multi) call init_qvs(density)
 !             endif
       call AddH2(gen,atomic,sol,tb,io)
-
       call ZeroMatrix(rhodot,io)
       call Commutator(rhodot,sol%h,sol%rho,io)
       if (mod(istep,gen%EulerSteps)==0) then
@@ -597,7 +600,7 @@ module m_DriverRoutines
       call MatrixCeaApbB(rhonew,rhoold,rhodot,k_cone,k_cone,io)
       call MatrixCeaApbB(rhonew,rhonew,deltaRho,k_cone,k_cone,io)
       ! at this point rho contains the rho at time=t
-       ! propagate the positions 
+       ! propagate the positions
        ! calculates positions at t+dt
       do k=1,atomic%atoms%nmoving
         i=atomic%atoms%moving(k)
@@ -635,7 +638,6 @@ module m_DriverRoutines
 !             if (.not.gen%comp_elec) then
 !                if (gen%electrostatics==tbu_multi) call init_qvs(density)
 !             endif
-
       call ZeroForces(atomic)
       call RepulsiveForces(gen,atomic%atoms,tb)
       call electronicForces(atomic,gen,tb,sol,io)
@@ -669,25 +671,21 @@ module m_DriverRoutines
         scfE = 0.0_k_pr
       endif
 
-       penergy = eenergy + renergy + scfE
-       kenergy = KineticEnergy(atomic)
+      penergy = eenergy + renergy + scfE
+      kenergy = KineticEnergy(atomic)
 
       if (gen%writeAnimation) then
         call CalcExcessCharges(gen,atomic,sol)
         call CalcDipoles(gen,atomic,sol)
-!               call writeAnimation_frame(aniunit)
-!               call write_frame(xunit)
 !               call write_frame_rho(runit,rho0)
-        write(accUnit,*) istep*dt, ChargeOnGroup(atomic%atoms%acceptor,atomic%atoms)
-        write(donUnit,*) istep*dt, ChargeOnGroup(atomic%atoms%donor,atomic%atoms)
-        write(spacUnit,*) istep*dt, ChargeOnGroup(atomic%atoms%spacer,atomic%atoms)
-        write(saux,'(a,f0.8)')"Time = ", istep*dt
+        write(accUnit,*) gen%CurrSimTime, ChargeOnGroup(atomic%atoms%acceptor,atomic%atoms)
+        write(donUnit,*) gen%CurrSimTime, ChargeOnGroup(atomic%atoms%donor,atomic%atoms)
+        write(spacUnit,*) gen%CurrSimTime, ChargeOnGroup(atomic%atoms%spacer,atomic%atoms)
+        write(saux,'(a,f0.8)')"Time = ", gen%CurrSimTime
         call PrintXYZ(aniunit,atomic,.false.,trim(saux))
       endif
-!            call write_currents(h,rho)
 !            if (mod(istep,50).eq.1) call write_rho_eigenvalues(rho)
-      write(eneunit,'(7f25.18)')istep*dt,renergy,eenergy,scfE,kenergy,penergy+kenergy,real(trrho)
-
+      write(eneunit,'(7f25.18)')gen%CurrSimTime,renergy,eenergy,scfE,kenergy,penergy+kenergy,real(trrho)
     enddo !istep loop
     if (gen%writeAnimation) then
       close(aniunit)
@@ -706,6 +704,89 @@ module m_DriverRoutines
     call DestroyMatrix(deltaRho,io)
 
     write(io%uout,'(/a/)')&
-      'End Ehrenfest Dumped-------------------------------------------------------------'
-  end subroutine EhrenfestDynamicsDumped
+      'End Ehrenfest Damped-------------------------------------------------------------'
+  end subroutine EhrenfestDynamicsDamped
+
+  subroutine GetRho(rho)
+    type(matrixType), intent(inout) :: rho
+    integer :: ua, ub, ud,i,j,shift,n,m,ci,cj
+    real(k_pr), allocatable :: a(:,:)
+    ua=GetUnit()
+    ub=GetUnit()
+    ud=GetUnit()
+    allocate(a(1:rho%dim,1:rho%dim))
+    shift=rho%dim/2
+    a=0.0_k_pr
+    ci=1
+    cj=1
+    ! read acceptor
+    open(unit=ua,file="rhoacceptor.dat",status="old", action="read")
+    read(ua,*)n,m
+    do i=1,n
+      read(ua,*)(a(i,j),j=1,m)
+    enddo
+    do i=ci,ci+n/2-1
+      do j=cj,cj+m/2-1
+        rho%a(i,j)=cmplx(a(i,j),0.0_k_pr,k_pr)
+        rho%a(i+shift,j+shift)=cmplx(a(i+n/2,j+m/2),0.0_k_pr,k_pr)
+      enddo
+    enddo
+    close(ua)
+!      do i=1,n
+!       do j=1,m
+!          write(777,'(x,f8.4,x)',advance="no") a(i,j)
+!        enddo
+!        write(777,*)
+!      enddo
+    ci=ci+n/2
+    cj=cj+m/2
+    open(unit=ub,file="rhobridge.dat",status="old", action="read")
+    a=0.0_k_pr
+    read(ub,*)n,m
+    do i=1,n
+      read(ub,*)(a(i,j),j=1,m)
+    enddo
+!     do i=1,n
+!       do j=1,m
+!          write(778,'(x,f8.4,x)',advance="no") a(i,j)
+!        enddo
+!        write(778,*)
+!      enddo
+    do i=ci,ci+n/2-1
+      do j=cj,cj+m/2-1
+        rho%a(i,j)=cmplx(a(i-ci+1,j-cj+1),0.0_k_pr,k_pr)
+        rho%a(i+shift,j+shift)=cmplx(a(i-ci+1+n/2,j-cj+1+m/2),0.0_k_pr,k_pr)
+      enddo
+    enddo
+    close(ub)
+    ci=ci+n/2
+    cj=cj+m/2
+    open(unit=ud,file="rhodonor.dat",status="old", action="read")
+    a=0.0_k_pr
+    read(ud,*)n,m
+    do i=1,n
+      read(ud,*)(a(i,j),j=1,m)
+    enddo
+    close(ud)
+!     do i=1,n
+!       do j=1,m
+!         write(779,'(x,f8.4,x)',advance="no") a(i,j)
+!       enddo
+!       write(779,*)
+!     enddo
+    do i=ci,ci+n/2-1
+      do j=cj,cj+m/2-1
+        rho%a(i,j)=cmplx(a(i-ci+1,j-cj+1),0.0_k_pr,k_pr)
+        rho%a(i+shift,j+shift)=cmplx(a(i-ci+1+n/2,j-cj+1+m/2),0.0_k_pr,k_pr)
+      enddo
+    enddo
+
+!      do i=1,rho%dim
+!       do j=1,rho%dim
+!          write(*,'(x,f8.4,x)',advance="no") real(rho%a(i,j))
+!        enddo
+!        write(*,*)
+!      enddo
+    deallocate(a)
+  end subroutine GetRho
 end module m_DriverRoutines
