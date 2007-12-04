@@ -13,6 +13,7 @@ module m_DensityMatrix
 
   public :: CreateDensityMatrixSpin
   public :: CreateDensityMatrixNoSpin
+  public :: CreateDensityMatrixExcited
   public :: BuildDensity
 
 contains
@@ -29,7 +30,7 @@ contains
     type(atomicxType), intent(inout) :: atomic
     type(generalType), intent(inout) :: gen
     type(ioType), intent(inout) :: io
-    type(solutionType), intent(inout) :: sol 
+    type(solutionType), intent(inout) :: sol
     integer :: i,j
     complex(k_pr) :: trace
     real(k_pr) :: qtotal
@@ -48,7 +49,7 @@ contains
 
     call FindFermi(gen,sol,io,qtotal)
     call GenerateRho(gen,sol,io)
-      
+
   end subroutine CreateDensityMatrixSpin
 
 !> \brief finds the chemical potential
@@ -198,9 +199,9 @@ contains
 !> \author Alin M Elena
 !> \date 07/11/07, 16:32:01
 !> \param evals array eigenvalues
-!> \param tp, spin arrays keep the indeces 
+!> \param tp, spin arrays keep the indeces
    subroutine order(evals,tp,spin)
-    !--subroutine name--------------------------------!   
+    !--subroutine name--------------------------------!
       character(len=*), parameter :: myname = 'order'
       real(k_pr),intent(inout) :: evals(:)
       integer,intent(out) :: spin(:),tp(:)
@@ -300,7 +301,7 @@ contains
           if (f(k) > gen%dmOccupationTolerance) upper_occ_state = k
           if (abs(f(k) - 1.0_k_pr) < gen%dmOccupationTolerance) upper_non_one = k
        enddo
-! 
+!
      ! The density matrix is built from the diagonal representation in the
      ! basis of the eigenstates of H (rho') by transforming with the
      ! matrix of eigenvectors that diagonalize H
@@ -309,21 +310,21 @@ contains
        do k=upper_non_one+1,upper_occ_state
           sol%eigenvecs%a(:,k) = sqrt(f(k))*sol%eigenvecs%a(:,k)
        enddo
- 
+
      ! this does (U sqrt(rho'))(U sqrt(rho'))* , only the upper triangle is calculated
      ! unnocupied vectors are not multiplied
        sol%rho%a=0.0_k_pr
 
        call zherk ( 'U', 'N', sol%rho%dim, upper_occ_state, 1.0_k_pr, sol%eigenvecs%a, &
                     sol%rho%dim, 0.0_k_pr, sol%rho%a, sol%rho%dim )
- 
+
      ! this fills in the lower triangle
        do i=1,sol%rho%dim
           sol%rho%a(i+1:sol%rho%dim,i) = conjg(sol%rho%a(i,i+1:sol%rho%dim))
        enddo
-! 
+!
 !       call write_dos(eigenvals,eigenvecs,gen%electronicMu)
-! 
+!
      ! calculate the contribution to the free energy
        entropy = 0.0_k_pr
         select case(gen%smearMethod)
@@ -413,7 +414,7 @@ contains
 !> \param sol type(solutionType) contains information about the solution space
 
   real(k_pr) function Getn0(i,j,sol)
-    !--subroutine name--------------------------------!   
+    !--subroutine name--------------------------------!
     character(len=*), parameter :: myname = 'Getn0'
     !--subroutine parameters -------------------------!
     integer, intent(in) :: i,j
@@ -424,4 +425,206 @@ contains
       Getn0=0.0_k_pr
     endif
   end function Getn0
+
+
+  subroutine CreateDensityMatrixExcited(gen,atomic,sol,io)
+    character(len=*), parameter :: myname = 'CreateDensityMatrixExcited'
+    type(solutionType), intent(inout)    :: sol
+    type(generalType), intent(inout) :: gen
+    type(ioType), intent(inout) :: io
+    type(atomicxType), intent(inout) :: atomic
+
+    integer, allocatable :: pos1(:), pos2(:)
+    integer      :: i,j,homo,extra
+    complex(k_pr)           :: trace
+    real(k_pr) :: qtotal
+    !-------------------------------------------------!
+
+    call ZeroMatrix(sol%rho,io)
+
+
+    allocate(pos1(1:sol%rho%dim),pos2(1:sol%rho%dim))
+
+    ! calculate number of electrons
+    qtotal = 0.0_k_pr
+    do i=1,atomic%atoms%natoms
+      qtotal = qtotal + atomic%species%zval(atomic%atoms%sp(i))
+    enddo
+    qtotal = qtotal - gen%netCharge
+    if (abs(qtotal-int(qtotal))>gen%qTolerance) then
+      call error("Fractional charge detected for dm spin",myname,.false.,io)
+    endif
+
+!      eigenvals(pos1(i)) would give you the i-th value from the ordered eigenvals
+!     array (ascending)
+!      pos2(i) would give you the position of the i-th value of original eigenvals
+!     in the ordered eigenvals
+    call order(sol%eigenvals,pos1,pos2)
+    call FindFermi(gen,sol,io,qtotal)
+    call FindHomo(gen,sol,io,pos1,homo)
+    call CheckExcitation(gen,sol,io,homo,pos2,extra)
+!     qtotal=qtotal+real(extra,dp)
+!     call find_fermi(eigenvecs,eigenvals,qtotal)
+!     print *, qtotal, general%electronic_mu
+    call GenerateRhoExcited(gen,sol,io,homo,pos1,pos2)
+!       if (control_var%output_level>ol_verbose) then
+!          trace = matrix_trace(rho)
+!          write(control_var%output_file,*) &
+!             '--Density Matrix Altered---------------------------------------'
+!          write(control_var%output_file,'(a,2f8.3)') &
+!             'trace = ',trace
+!          do i=1,rho%dim
+!             write(control_var%output_file,'(a,i5,a,1500f7.3)') &
+!                'row ',i,'=',(real(rho%a(i,j)),j=1,rho%dim)
+!          enddo
+!          write(control_var%output_file,*)' '
+!          do i=1,rho%dim
+!             write(control_var%output_file,'(a,i5,a,1500f7.3)') &
+!                'row ',i,'=',(aimag(rho%a(i,j)),j=1,rho%dim)
+!          enddo
+!          write(control_var%output_file,*) &
+!             '---------------------------------------------------------------'
+!       endif
+    deallocate(pos1,pos2)
+  end subroutine CreateDensityMatrixExcited
+
+  subroutine FindHomo(gen,sol,io,pos,homoLevel)
+    character(len=*), parameter :: myname = 'FindHomo'
+    integer, intent(in) :: pos(:)
+    integer,intent(out) :: homoLevel
+    type(solutionType), intent(inout) :: sol
+    type(generalType), intent(inout) :: gen
+    type(ioType), intent(inout) :: io
+    !--internal variables ----------------------------!
+    integer      :: k
+    real(k_pr),allocatable  :: f(:)
+    !-------------------------------------------------!
+
+    allocate(f(1:sol%rho%dim))
+    ! set the occupations according to mu
+    homoLevel=1
+    do k=1,sol%rho%dim
+      f(pos(k)) = fermi(gen%electronicTemperature,sol%eigenvals(pos(k)),gen%electronicMu)
+    enddo
+    do k=1,sol%rho%dim
+      if (f(pos(k))<gen%dmOccupationTolerance) then
+        homoLevel=k-1
+        exit
+      endif
+    enddo
+
+    if (io%Verbosity>=k_HighVerbos) then
+      write(io%uout,"(a,i0,a,i0)") &
+          "HOMO is at: ",homoLevel, " in the output ", pos(homoLevel)
+    endif
+    deallocate(f)
+  end subroutine FindHomo
+
+
+  subroutine CheckExcitation(gen,sol,io,homo,pos,extra)
+    character(len=*), parameter :: myname = 'CheckExcitation'
+    integer, intent(in) :: homo
+    integer, intent(in) :: pos(:)
+    integer,intent(out) :: extra
+    type(solutionType), intent(inout) :: sol
+    type(generalType), intent(inout) :: gen
+    type(ioType), intent(inout) :: io
+    integer :: i,j,hole,excite,n
+
+
+    n=sol%rho%dim
+    hole=gen%holeState+gen%holeSpin*n/2
+    excite=gen%exciteState+gen%exciteSpin*n/2
+
+    if (pos(hole)>homo) then
+      call error("You can not create a hole at a level already empty",myname,.true.,io)
+    endif
+
+    if (pos(excite)<homo) then
+      call error("You can not create an excitation at a level already occupied",myname,.true.,io)
+    endif
+    extra=pos(excite)-homo+1
+  end subroutine CheckExcitation
+
+  subroutine GenerateRhoExcited(gen,sol,io,homo,pos1,pos2)
+    character(len=*), parameter :: myname = 'GenerateRhoExcited'
+    type(solutionType), intent(inout) :: sol
+    type(generalType), intent(inout) :: gen
+    type(ioType), intent(inout) :: io
+    integer, intent(in) :: pos1(:),pos2(:),homo
+    integer      :: i,j,k,hole,excite,n
+    complex(k_pr)           :: trace
+    real(k_pr),allocatable  :: f(:),g(:)
+    real(k_pr) :: fa,fb,entropy,tiny
+    complex(k_pr),allocatable :: a(:,:)
+
+
+    n=sol%rho%dim
+    allocate(f(1:n),g(1:n))
+    allocate(a(1:n,1:n))
+    ! set the occupations according to mu
+    do k=1,n
+      f(k) = fermi(gen%electronicTemperature,sol%eigenvals(pos1(k)),gen%electronicMu)
+    enddo
+    hole=gen%holeState + gen%holeSpin * n/2
+    excite=gen%exciteState + gen%exciteSpin * n/2
+    g=f
+!     print *, pos2(excite),f(pos2(excite)),pos2(hole),f(pos2(hole))
+    tiny=f(pos2(excite))
+    f(pos2(excite))=f(pos2(hole))
+    f(pos2(hole))=tiny
+!     print *, pos2(excite),f(pos2(excite)),pos2(hole),f(pos2(hole))
+!     do k=homo+1,pos2(excite)-1
+!     f(k)=1.0_k_pr-f(k)
+!     enddo
+!     f(pos2(excite)+1)=1.0_k_pr-f(pos2(excite)+1)
+
+    ! The density matrix is built from the diagonal representation in the
+    ! basis of the eigenstates of H (rho') by transforming with the
+    ! matrix of eigenvectors that diagonalize H
+    ! rho = U rho' U*
+    ! this loop multiplies sqrt(rho') times U
+    a=sol%eigenvecs%a
+    do k=1,n
+      a(:,pos1(k)) = sqrt(f(k))*a(:,pos1(k))
+    enddo
+
+    call ZeroMatrix(sol%rho,io)
+    ! this does (U sqrt(rho'))(U sqrt(rho'))* , only the upper triangle is calculated
+    ! ----- ---- unnocupied vectors are not multiplied not tr
+    call zherk ( 'U', 'N', n, n, 1.0_k_pr, a, n, 0.0_k_pr, sol%rho%a, n )
+    ! this fills in the lower triangle
+    do i=1,n
+      sol%rho%a(i+1:n,i) = conjg(sol%rho%a(i,i+1:n))
+    enddo
+
+    entropy = 0.0_k_pr
+    select case(gen%smearMethod)
+      case(k_smFD)
+        tiny = epsilon(1.0_k_pr)
+        do i=1,sol%rho%dim
+          fa = max(f(i),tiny)
+          fb = max(1-f(i),tiny)
+          entropy = entropy + fa*log(fa)+fb*log(fb)
+        enddo
+        entropy = k_kb * entropy
+      case(k_smMP)
+!          do i=1,rho%dim
+!             entropy=entropy+sn((eigenvals(i)-general%electronic_mu)/general%electronic_temperature,general%mp_N)
+!          enddo
+    end select
+    sol%electronicEntropy=-entropy
+
+    if (io%verbosity>=k_HighVerbos) then
+      write(io%uout,*) &
+        '--Occupation Numbers Altered-----------------------------------'
+      do i=1,n
+        write(io%uout,'(3f16.8)') &
+             sol%eigenvals(pos1(i)),f(i),g(i)
+      enddo
+      write(io%uout,*) &
+            '------------------------------------------------------------'
+    endif
+    deallocate(f,g,a)
+   end subroutine GenerateRhoExcited
 end module m_DensityMatrix

@@ -551,84 +551,46 @@ subroutine ReadGeneral(ioLoc,genLoc)
            "SA temperature = ",genLoc%fit%temp
     end select
   endif
-! !comm_gen WriteEne & logical & .true. & on/off writing energy file \\
-!   genLoc%write_ene=GetLogical(ioLoc,"WriteEne",.true.)
-!   write( ioLoc%uout,'(a,l)')"Write Energy(WriteEne): "&
-!     ,genLoc%write_ene
-!
-! !comm_gen WriteDen & logical & .false. & on/off writing density file \\
-!   genLoc%write_density=GetLogical(ioLoc,"WriteDen",.false.)
-!   write( ioLoc%uout,'(a,l)')"Write density(WriteDen): "&
-!     ,genLoc%write_density
-! !comm_gen ReadDen & logical & .false. & on/off reading density file \\
-!   genLoc%read_density=GetLogical(ioLoc,"ReadDen",.false.)
-!   write( ioLoc%uout,'(a,l)')"Read Density(ReadDen): "&
-!     ,genLoc%read_density
-!
-!
 
-! !comm_gen SpinDU & real & 0.0 & spin down spin up difference\\
-!   genLoc%sdu=GetReal(ioLoc,"SpinDU",0.0_k_pr)
-!   write( ioLoc%uout,'(a,g)')"spin down spin up difference(SpinDU): "&
-!     ,genLoc%sdu
-!
-! !comm_gen FSteps & integer & 100 & Number of steps used to test the force/energy consitency\\
-!   genLoc%f_steps=GetInteger(ioLoc,"FSteps",100)
-!   write( ioLoc%uout,'(a,i0)')"force steps (FSteps): "&
-!     ,genLoc%f_steps
-!
-! !comm_gen FStart & real & 0.0 & position at which the force/energy consistency test starts\\
-!   genLoc%f_start=GetReal(ioLoc,"FStart",0.0_k_pr)
-!   write( ioLoc%uout,'(a,g)')"initial position for force(FStart): "&
-!     ,genLoc%f_start
-!
-! !comm_gen Fdx & real & 0.001 & space step for the force/energy consistency test starts\\
-!   genLoc%f_dx=GetReal(ioLoc,"FStart",0.001_k_pr)
-!   write( ioLoc%uout,'(a,g)')"space step for force(Fdx): "&
-!     ,genLoc%f_dx
-!
-! !comm_gen Gamma & real & 0.3 & dumping factor for Ehrenfest equation\\
-!   genLoc%gamma=GetReal(ioLoc,"Gamma",0.5_k_pr)
-!   write( ioLoc%uout,'(a,g)')"damping factor in Ehrenfest Equation(Gamma): "&
-!     ,genLoc%gamma
-!
+! !comm_gen Excite & logical & .false. & on/off create an excited state \\
+  genLoc%lIsExcited=GetLogical(ioLoc,"Excite",.false.)
+  write( ioLoc%uout,'(a,l)')"Create excitation(Excite): "&
+     ,genLoc%lIsExcited
 
-! !comm_gen Hole & integer & 0 & no of level to create hole\\
-!   genLoc%hole=GetInteger(ioLoc,"Hole",0)
-!   write( ioLoc%uout,'(a,i0)')"Hole level(Hole): "&
-!     ,genLoc%hole
-!
-! !comm_gen Excite & integer & 0 & no of level to create excitation\\
-!   genLoc%excite=GetInteger(ioLoc,"Excite",0)
-!   write( ioLoc%uout,'(a,i0)')"Excitation level(Excite): "&
-!     ,genLoc%excite
-! !comm_gen HoleSpin & D,U & D & spin of the hole\\
-!   saux=GetString(ioLoc,"HoleSpin","D")
-!   write( ioLoc%uout,'(a,a)')"Spin of the Hole (HoleSpin): "&
-!     ,trim(saux)
-!   if (cstr(trim(saux),'D')) then
-!     genLoc%hole_spin = spin_down
-!   elseif (cstr(trim(saux),'U')) then
-!     genLoc%hole_spin = spin_up
-!   else
-!     call error("The requested spin type is not implemented",name,.true.,ioLoc)
-!   endif
-!
-!
-! !comm_gen ExciteSpin & D,U & D & spin of the excitation\\
-!   saux=GetString(ioLoc,"ExciteSpin","D")
-!   write( ioLoc%uout,'(a,a)')"Spin of the excitation (ExciteSpin): "&
-!     ,trim(saux)
-!   if (cstr(trim(saux),'D')) then
-!     genLoc%excite_spin = spin_down
-!   elseif (cstr(trim(saux),'U')) then
-!     genLoc%excite_spin = spin_up
-!   else
-!     call error("The requested spin type is not implemented",name,.true.,ioLoc)
-!   endif
-!
-!
+  if (genLoc%lIsExcited) then
+  ! !comm_gen HoleState & integer & 0 & no of level where we create the hole\\
+    genLoc%holeState=GetInteger(ioLoc,"HoleState",0)
+    write( ioLoc%uout,'(a,i0)')"Hole level(HoleState): "&
+      ,genLoc%holeState
 
+  ! !comm_gen Excite & integer & 0 & no of level to create excitation\\
+    genLoc%exciteState=GetInteger(ioLoc,"ExciteState",0)
+    write( ioLoc%uout,'(a,i0)')"Excitation level(ExciteState): "&
+      ,genLoc%exciteState
+  ! !comm_gen HoleSpin & D,U & D & spin of the hole\\
+    saux=GetString(ioLoc,"HoleSpin","D")
+    write( ioLoc%uout,'(a,a)')"Spin of the Hole (HoleSpin): "&
+      ,trim(saux)
+    if (cstr(trim(saux),'D')) then
+      genLoc%holeSpin = k_spinDown
+    elseif (cstr(trim(saux),'U')) then
+      genLoc%holeSpin = k_spinUp
+    else
+      call error("The requested spin type is not implemented",name,.true.,ioLoc)
+    endif
+
+  !comm_gen ExciteSpin & D,U & D & spin of the excitation\\
+    saux=GetString(ioLoc,"ExciteSpin","D")
+    write( ioLoc%uout,'(a,a)')"Spin of the excitation (ExciteSpin): "&
+      ,trim(saux)
+    if (cstr(trim(saux),'D')) then
+      genLoc%exciteSpin = k_spinDown
+    elseif (cstr(trim(saux),'U')) then
+      genLoc%exciteSpin = k_spinUp
+    else
+      call error("The requested spin type is not implemented",name,.true.,ioLoc)
+    endif
+  endif
 end subroutine ReadGeneral
 
 !> \page control
