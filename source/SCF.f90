@@ -252,7 +252,10 @@ contains
             deallocate(densitynext)
 !             call Print_eigens(eigenval,eigenvec,555,.false.)
 !             call write_density_matrix("rho.bin",rho%a,rho%dim)
-           end select
+            trace = MatrixTrace(sol%rho,ioLoc)
+            write(saux,'(a,"(",f0.4,1x,f0.4,"i)")')"Density matrix, Trace= ",trace
+            call PrintMatrix(sol%rho,trim(saux),ioLoc)
+          end select
       else
         call BuildHamiltonian(ioLoc,genLoc,atomic,tbMod,sol)
         call AddBias(1.0_k_pr,atomic,sol)

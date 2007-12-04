@@ -741,7 +741,7 @@ contains
     enddo
     write(io%uout,'(a,3g16.8,a)')"dipole moment ",atomic%atoms%tdipx*u2SI,atomic%atoms%tdipy*u2SI,&
       atomic%atoms%tdipz*u2SI, " Cm"
-  !! dipoles in Debye 
+  !! dipoles in Debye
     write(io%uout,'(a)')"  Atom |Specie|  Dipole x    |  Dipole y   |    Dipole z     | Units |"
     do at=1, atomic%atoms%natoms
       write(io%uout,'(2i7,3f16.8,a)')at,atomic%atoms%sp(at),atomic%atoms%dx(at)*u2D,atomic%atoms%dy(at)*u2D,&
@@ -782,42 +782,42 @@ contains
     m= atomic%basis%norbitals
     n= atomic%species%norbs(atomic%atoms%sp(i))
 
-    write(io%uout,'(8x)',advance="no")
+    write(io%uout,'(4x)',advance="no")
     do u=1,n
         write(io%uout,'(i12,1x)',advance="no") atomic%atoms%orbs(i,u)
     enddo
     write(io%uout,*)
     do u=1,n
         k1=atomic%atoms%orbs(i,u)
-        write(io%uout,'(i12,1x)',advance="no") k1
+        write(io%uout,'(i4,1x)',advance="no") k1
         do v=1,n
           k2=atomic%atoms%orbs(i,v)
           write(io%uout,'(f12.6,1x)',advance="no") real(mat%a(k1,k2))
         enddo
         write(io%uout,'(1x,i0)')u
     enddo
-    write(io%uout,'(8x)',advance="no")
+    write(io%uout,'(4x)',advance="no")
     do u=1,n
         write(io%uout,'(i12,1x)',advance="no") u
     enddo
     write(io%uout,*)
     if (isComplex) then
       write(io%uout,*) 'Imaginary part'
-      write(io%uout,'(8x)',advance="no")
+      write(io%uout,'(4x)',advance="no")
       do u=1,n
         write(io%uout,'(i12,1x)',advance="no") atomic%atoms%orbs(i,u)
       enddo
       write(io%uout,*)
       do u=1,n
         k1=atomic%atoms%orbs(i,u)
-        write(io%uout,'(i12,1x)',advance="no") k1
+        write(io%uout,'(i4,1x)',advance="no") k1
         do v=1,n
           k2=atomic%atoms%orbs(i,v)
           write(io%uout,'(f12.6,1x)',advance="no") aimag(mat%a(k1,k2))
         enddo
         write(io%uout,'(1x,i0)')u
       enddo
-      write(io%uout,'(8x)',advance="no")
+      write(io%uout,'(4x)',advance="no")
       do u=1,n
         write(io%uout,'(i12,1x)',advance="no") u
       enddo

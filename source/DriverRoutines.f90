@@ -512,6 +512,7 @@ module m_DriverRoutines
     ! prepare the electronic subsystem,
     ! which is an eigenstate of the hamitonian
     ! with the bias
+    gen%lIsExcited=.false.
     call FullSCF(io,gen,atomic,tb,sol)
     atomic%atoms%chrg0=atomic%atoms%chrg
     dt = gen%deltat
@@ -522,8 +523,10 @@ module m_DriverRoutines
     call CreateMatrix(rho0,sol%h%dim,.true.)
     call CreateMatrix(deltaRho,sol%h%dim,.true.)
     call CopyMatrix(rho0,sol%rho,io)
+
+    call CreateDensityMatrixExcited(gen,atomic,sol,io)
     ! get the starting density matrix
-    call GetRho(sol%rho)
+!     call GetRho(sol%rho)
 !   call create_dm_spin_altered(eigenvec,eigenval)
     if (gen%writeAnimation) then
       call BuildDensity(atomic,sol)

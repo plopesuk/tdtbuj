@@ -99,10 +99,11 @@ module m_Types
     integer :: smearMethod
     real(k_pr) :: gamma
 ! ! create excitation
-!   integer :: hole
-!   integer :: excite
-!   integer :: hole_spin
-!   integer :: excite_spin
+    logical :: lIsExcited
+    integer :: holeState
+    integer :: exciteState
+    integer :: holeSpin
+    integer :: exciteSpin
     character(len=k_mw) :: jobName !< name of the job
     real(k_pr) :: ranseed !< seed to Initialize the random number generator
     logical :: writeAnimation !< if true will write the coordinates in a file

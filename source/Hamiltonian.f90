@@ -179,7 +179,12 @@ contains
       sol%eigenvecs%a(1+ns:n,1+ns:n)=tmpB%a(1:ns,1:ns)
       deallocate(tmpA)
       call DestroyMatrix(tmpB,io)
-      call CreateDensityMatrixSpin(gen,atomic,sol,io)
+      if (gen%lIsExcited) then
+        call CreateDensityMatrixExcited(gen,atomic,sol,io)
+      else
+        call CreateDensityMatrixSpin(gen,atomic,sol,io)
+      endif
+
     else
       sol%eigenvals=0.0_k_pr
       call ZeroMatrix(sol%eigenvecs,io)
