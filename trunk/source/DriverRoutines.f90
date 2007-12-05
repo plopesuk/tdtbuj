@@ -339,7 +339,7 @@ module m_DriverRoutines
     st = cmplx(2.0_k_pr*dt,0.0_k_pr,k_pr)
     do istep=1,gen%nsteps
    !set global time variable
-      gen%CurrSimTime = gen%CurrSimTime*k_time2SI
+      gen%CurrSimTime = istep*dt*k_time2SI
       call BuildDensity(atomic,sol)
 !             if (.not.gen%comp_elec) then
 !                if (gen%electrostatics==tbu_multi) call init_qvs(density)
@@ -527,7 +527,7 @@ module m_DriverRoutines
     call CreateDensityMatrixExcited(gen,atomic,sol,io)
     ! get the starting density matrix
 !     call GetRho(sol%rho)
-!   call create_dm_spin_altered(eigenvec,eigenval)
+
     if (gen%writeAnimation) then
       call BuildDensity(atomic,sol)
       call CalcExcessCharges(gen,atomic,sol)
@@ -543,11 +543,6 @@ module m_DriverRoutines
 
     ! now build a hamiltonian with no bias
     call BuildHamiltonian(io,gen,atomic,tb,sol)
-!      write(io%uout,'(/a/)')&1
-!        '---- Start reading initial density'
-!      call init_rho("dma.rho","dms.rho","dmd.rho",rho%a,rho%dim)
-!      write(io%uout,'(/a/)')&
-!        '---- End reading initial density'
     call MatrixCeaApbB(deltaRho,sol%rho,rho0,k_cone,-k_cone,io)
     if (gen%BiasRampSteps>0) then
       call AddBias(1.0_k_pr,atomic,sol)
@@ -563,7 +558,7 @@ module m_DriverRoutines
     call Commutator(rhodot,sol%h,sol%rho,io)
     st = cmplx(-dt,0.0_k_pr,k_pr)
     call ScalarTMatrix(ihbar*st,rhodot,io)
-    call ScalarTMatrix(gamma*st,rhodot,io)
+    call ScalarTMatrix(gamma*st,deltaRho,io)
     call MatrixCeaApbB(rhoold,sol%rho,rhodot,k_cone,k_cone,io)
     call MatrixCeaApbB(rhoold,rhoold,deltaRho,k_cone,k_cone,io)
       ! calculate the forces from the prepared DM and the present H
