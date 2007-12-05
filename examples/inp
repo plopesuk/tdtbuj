@@ -36,7 +36,7 @@ SCFMixing             0.9500
 SCFMixIterations      4
 
 #Time evolution
-DeltaT 0.0001
+DeltaT 0.001
 Nsteps 300000
 WriteAnimation No
 
@@ -44,7 +44,7 @@ ScaleVelocities  No
 IonicTemperature 550.0
 
 Gamma 0.005
-EulerSteps 50
+EulerSteps 50 
 # excitation
 Excite Yes
 HoleState 3
