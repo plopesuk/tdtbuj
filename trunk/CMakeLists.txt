@@ -28,21 +28,6 @@ set(doc_dir doc)
 
 find_package(Doxygen)
 
-find_file(LATEX
-NAMES pdflatex
-PATHS ENV PATH
-)
-MESSAGE("Using this version of pdflatex ${LATEX}")
-
-find_file(MKIDX
-NAMES makeindex
-PATHS ENV PATH
-)
-
-MESSAGE("Using this version of makeindex ${MKIDX}")
-####
-
-
 ######################
 ##set the output folder for libs and bins
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
