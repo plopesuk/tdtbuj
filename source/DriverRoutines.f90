@@ -293,9 +293,6 @@ module m_DriverRoutines
       call CalcExcessCharges(gen,atomic,sol)
       call CalcDipoles(gen,atomic,sol)
       call PrintXYZ(aniunit,atomic,.false.,"T=0.0")
-!      call write_frame(xunit)
-!        call write_frame_rho(runit,rho0)
-!            call writeAnimation_frame(aniunit)
       write(accUnit,*) "0.0", ChargeOnGroup(atomic%atoms%acceptor,atomic%atoms)
       write(donUnit,*) "0.0", ChargeOnGroup(atomic%atoms%donor,atomic%atoms)
       write(spacUnit,*) "0.0", ChargeOnGroup(atomic%atoms%spacer,atomic%atoms)
@@ -303,11 +300,6 @@ module m_DriverRoutines
 
     ! now build a hamiltonian with no bias
     call BuildHamiltonian(io,gen,atomic,tb,sol)
-!      write(io%uout,'(/a/)')&1
-!        '---- Start reading initial density'
-!      call init_rho("dma.rho","dms.rho","dmd.rho",rho%a,rho%dim)
-!      write(io%uout,'(/a/)')&
-!        '---- End reading initial density'
     call CopyMatrix(rho0,sol%rho,io)
     if (gen%BiasRampSteps>0) then
       call AddBias(1.0_k_pr,atomic,sol)
@@ -326,9 +318,9 @@ module m_DriverRoutines
     call MatrixCeaApbB(rhoold,sol%rho,rhodot,k_cone,k_cone,io)
       ! calculate the forces from the prepared DM and the present H
     call CopySparseMatrix(sol%h,sol%hin,io)
-  !      call zero_forces
-  !      call repulsive_forces
-  !      call electronic_forces
+    call ZeroForces(atomic)
+    call RepulsiveForces(gen,atomic%atoms,tb)
+    call electronicForces(atomic,gen,tb,sol,io)
     ! initialize the velocities
     call InitVelocities(gen,atomic,sol)
     ! now we are ready to start the dynamics,
@@ -339,7 +331,7 @@ module m_DriverRoutines
     st = cmplx(2.0_k_pr*dt,0.0_k_pr,k_pr)
     do istep=1,gen%nsteps
    !set global time variable
-      gen%CurrSimTime = istep*dt*k_time2SI
+      gen%CurrSimTime = (istep-1)*dt*k_time2SI
       call BuildDensity(atomic,sol)
 !             if (.not.gen%comp_elec) then
 !                if (gen%electrostatics==tbu_multi) call init_qvs(density)
@@ -527,7 +519,6 @@ module m_DriverRoutines
     call CreateDensityMatrixExcited(gen,atomic,sol,io)
     ! get the starting density matrix
 !     call GetRho(sol%rho)
-
     if (gen%writeAnimation) then
       call BuildDensity(atomic,sol)
       call CalcExcessCharges(gen,atomic,sol)
@@ -540,7 +531,9 @@ module m_DriverRoutines
       write(spacUnit,*) "0.0", ChargeOnGroup(atomic%atoms%spacer,atomic%atoms)
       call PrintXYZ(aniunit,atomic,.false.,"T = 0.0")
     endif
-
+!          if (.not.gen%comp_elec) then
+!             if (gen%electrostatics==tbu_multi) call init_qvs(density)
+!          endif
     ! now build a hamiltonian with no bias
     call BuildHamiltonian(io,gen,atomic,tb,sol)
     call MatrixCeaApbB(deltaRho,sol%rho,rho0,k_cone,-k_cone,io)
@@ -549,10 +542,8 @@ module m_DriverRoutines
     endif
     call CopySparseMatrix(sol%hin,sol%h,io)
     call BuildDensity(atomic,sol)
-!          if (.not.gen%comp_elec) then
-!             if (gen%electrostatics==tbu_multi) call init_qvs(density)
-!          endif
     call AddH2(gen,atomic,sol,tb,io)
+
     ihbar = cmplx(0.0_k_pr,-1.0_k_pr/k_hbar,k_pr)
     ! go back in time one step for the DM integration
     call Commutator(rhodot,sol%h,sol%rho,io)
@@ -563,21 +554,21 @@ module m_DriverRoutines
     call MatrixCeaApbB(rhoold,rhoold,deltaRho,k_cone,k_cone,io)
       ! calculate the forces from the prepared DM and the present H
     call CopySparseMatrix(sol%h,sol%hin,io)
-  !      call zero_forces
-  !      call repulsive_forces
-  !      call electronic_forces
+    call ZeroForces(atomic)
+    call RepulsiveForces(gen,atomic%atoms,tb)
+    call electronicForces(atomic,gen,tb,sol,io)
+
     ! initialize the velocities
     call InitVelocities(gen,atomic,sol)
     ! now we are ready to start the dynamics,
     ! we have the forces, velocities, positions
     ! and rho at time t
-
     st = cmplx(2.0_k_pr*dt,0.0_k_pr,k_pr)
     write(eneunit,'(a1,a24,6a25)')"#","Time",  "Repuilsive Energy ",  "Electronic Energy",  "SCF Energy",&
       "Kinetic Energy",  "Total Energy",  "No of Electrons"
     do istep=1,gen%nsteps
    !set global time variable
-      gen%CurrSimTime = istep*dt*k_time2SI
+      gen%CurrSimTime = (istep-1)*dt*k_time2SI
       call BuildDensity(atomic,sol)
 !             if (.not.gen%comp_elec) then
 !                if (gen%electrostatics==tbu_multi) call init_qvs(density)
@@ -589,7 +580,7 @@ module m_DriverRoutines
         !euler step
         call ScalarTMatrix(ihbar*cmplx(dt,0.0_k_pr,k_pr),rhodot,io)
         call MatrixCeaApbB(deltaRho,sol%rho,rho0,k_cone,-k_cone,io)
-        call ScalarTMatrix(gamma*cmplx(dt,0.0_k_pr,k_pr),deltaRho,io)
+        call ScalarTMatrix(cmplx(gamma*dt,0.0_k_pr,k_pr),deltaRho,io)
       else !verlet step
         call ScalarTMatrix(ihbar*st,rhodot,io)
         call MatrixCeaApbB(deltaRho,sol%rho,rho0,k_cone,-k_cone,io)
@@ -651,7 +642,6 @@ module m_DriverRoutines
         atomic%atoms%vz(i) = atomic%atoms%vz(i) &
          + 0.5_k_pr * dt * (atomic%atoms%fz(i) + atomic%atoms%fzo(i)) / mi
       enddo
-
        ! scale velocities
       if (gen%scaleVelocities) then
         call ScaleVelocities(gen,atomic)

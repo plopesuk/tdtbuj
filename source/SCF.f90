@@ -460,8 +460,10 @@ contains
         enddo
         scfe=scfe*0.5_k_pr*k_e2/(4.0_k_pr*k_pi*k_epsilon0)
         scfx=scfx*0.5_k_pr*k_e2/(4.0_k_pr*k_pi*k_epsilon0)
-        write(io%uout,'(a,f16.8)')" SCF energy from U: ", scfe
-        write(io%uout,'(a,f16.8)')" SCF energy from J: ", scfx
+        if (io%verbosity >= k_highVerbos) then
+          write(io%uout,'(a,f16.8)')" SCF energy from U: ", scfe
+          write(io%uout,'(a,f16.8)')" SCF energy from J: ", scfx
+        endif
         scfe=scfe+scfx
     end select
 
@@ -484,7 +486,9 @@ contains
 !                elecEn=elecEn+0.5_k_pr*aux*e2/(4.0_k_pr*pi*epsilon0)
 !             end do
     end select
-    write(io%uout,'(a,f16.8)')"SCF Electrostatics: ", elecEn
+    if (io%verbosity >= k_highVerbos) then
+      write(io%uout,'(a,f16.8)')"SCF Electrostatics: ", elecEn
+    endif
     ScfEnergy = scfe+elecEn
   end function ScfEnergy
 !> \brief computes the scf contribution to the forces
