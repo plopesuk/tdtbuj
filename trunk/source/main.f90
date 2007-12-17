@@ -13,12 +13,6 @@
 !> - \subpage basis "Basis Set"
 !> - \subpage delta "Multipoles parameters(Delta Block)"
 !> \section tb Tight Binding Parameters
-!> \section source Source code
-!> The code can be obtained from here
-!>  http://titus.phy.qub.ac.uk/Programs/TDTB+UJ/tdtbuj.tar.bz2 or by svn using \n
-!> \code svn checkout http://tdtbuj.googlecode.com/svn/trunk/ tdtbuj-read-only \endcode
-!> a pdf version of the manual can be found at
-!>  http://titus.phy.qub.ac.uk/Programs/TDTB+UJ/refman.pdf
 !> \page code Coding Style Document
 !> \section general General Style
 !>- You \em SHOULD use the Object Oriented features of Fotran as much as possible.
@@ -94,7 +88,7 @@
 !>- A comment should preferably look like this
 !> \verbatim
 !> \brief short description of the action
-!> \details (optional) more details and notes 
+!> \details (optional) more details and notes
 !> \author The Name
 !> \date creation date (optional) time
 !> \remarks (optional) extra comments
@@ -106,7 +100,7 @@
 !>- You \em SHOULD avoid lines longer than 132 characters.
 !>- You \em SHOULD break up long lists of parameters, indenting the broken lines to the right of the start of the first line.
 !>  Call Procedure(BigName, AnotherParameter, GoshThisIsLong) \n
-!> becomes: \n 
+!> becomes: \n
 !>  Call Procedure(BigName,\n
 !>   AnotherParameter,\n
 !>   GoshThisIsLong);
@@ -115,7 +109,7 @@
 !> \verbatim
 !> do i=1,n
 !>   if (lCondition) then
-!>     a=3    
+!>     a=3
 !>   endif
 !> enddo
 !> a=5
@@ -167,7 +161,7 @@ program tbuj
   if (general%runType == k_runSp) then
     call SinglePoint(ioInfo,general,atomicx,tbModel,SolSpace)
   elseif (general%runType == k_runGeomBFGS) then
-!     call bfgs 
+!     call bfgs
   elseif (general%runType == k_runBO) then
     call BornOppenheimerDynamics(ioInfo,general,atomicx,tbModel,SolSpace)
   elseif (general%runType == k_runEhrenfest) then
@@ -183,11 +177,11 @@ program tbuj
   elseif (general%runType==k_runForceTestz) then
 !     call forceTestz
   elseif (general%runType==k_runEhrenfestDamped) then
-    call EhrenfestDynamicsDamped(ioInfo,general,atomicx,tbModel,SolSpace) 
+    call EhrenfestDynamicsDamped(ioInfo,general,atomicx,tbModel,SolSpace)
   elseif (general%runType==k_runFragments) then
 !     call fragments_k_run
   elseif (general%runType==k_runSpecial) then
-!     call special_k_run  
+!     call special_k_run
   else
     call error("RunType not implemented",'TDTB+UJ',.true.,ioInfo)
   endif
