@@ -235,14 +235,7 @@ module m_Types
     integer, allocatable :: indx(:), jndx(:) !< the indeces of the non zero elements for sparse
     complex(kind=k_pr), allocatable :: a(:,:) !< keeps the data
   end type matrixType
-
-!> vector type
-  type, public :: vectorType
-    logical :: created !< is it created?
-    integer :: dim !< dimension of the array
-    complex(k_pr), allocatable :: v(:) !< keeps the data of the array
-  end type vectorType
-
+  
 !> defines the type for the the data needed to solve the problem
   type,public :: solutionType
     type(matrixType) :: h !< total hamiltonian

@@ -6,7 +6,8 @@ module m_DensityMatrix
   use m_Types
   use m_Useful
   use m_Gutenberg
-  use m_LinearAlgebra, only : ZeroMatrix
+  use m_LinearAlgebra, only : ZeroMatrix, aastar
+
 
   implicit none
   private
@@ -116,7 +117,7 @@ contains
 !> \param io type(ioType) contains all the info about I/O files
 !> \param gen type(generalType) contains the info needed by the program to k_run
 !> \param sol type(solutionType) contains information about the solution space
-!> \internal zherk should be called in Linearalgebra, implement MP
+
   subroutine GenerateRho(gen,sol,io)
     character(len=*), parameter :: myname = 'GenerateRho'
     type(generalType), intent(in) :: gen
@@ -149,13 +150,8 @@ contains
 
     ! this does (U sqrt(rho'))(U sqrt(rho'))* , only the upper triangle is calculated
     ! ----- ---- unnocupied vectors are not multiplied not tr
-      call zherk ( 'U', 'N', sol%rho%dim, sol%rho%dim, 1.0_k_pr, a, sol%rho%dim, 0.0_k_pr, sol%rho%a, sol%rho%dim )
-
-    ! this fills in the lower triangle
-      do i=1,sol%rho%dim
-        sol%rho%a(i+1:sol%rho%dim,i) = conjg(sol%rho%a(i,i+1:sol%rho%dim))
-      enddo
-
+    call ZeroMatrix(sol%rho,io)
+    call aastar(a,sol%rho%a,1.0_k_pr,0.0_k_pr,sol%rho%dim)      
       entropy = 0.0_k_pr
       select case(gen%smearMethod)
       case(k_smFD)
@@ -238,7 +234,6 @@ contains
 !> \param gen type(generalType) contains the info needed by the program to k_run
 !> \param sol type(solutionType) contains information about the solution space
 !> \param atomic type(atomicxType) contains all info about the atoms and basis set and some parameters
-!> \internal the call too zherk should be done via LinearAlgebra
 !> \internal activate MP smearing method
   subroutine CreateDensityMatrixNoSpin(gen,atomic,sol,io)
     character(len=*), parameter :: MyName="CreateDensityMatrixNoSpin"
@@ -313,19 +308,8 @@ contains
 
      ! this does (U sqrt(rho'))(U sqrt(rho'))* , only the upper triangle is calculated
      ! unnocupied vectors are not multiplied
-       sol%rho%a=0.0_k_pr
-
-       call zherk ( 'U', 'N', sol%rho%dim, upper_occ_state, 1.0_k_pr, sol%eigenvecs%a, &
-                    sol%rho%dim, 0.0_k_pr, sol%rho%a, sol%rho%dim )
-
-     ! this fills in the lower triangle
-       do i=1,sol%rho%dim
-          sol%rho%a(i+1:sol%rho%dim,i) = conjg(sol%rho%a(i,i+1:sol%rho%dim))
-       enddo
-!
-!       call write_dos(eigenvals,eigenvecs,gen%electronicMu)
-!
-     ! calculate the contribution to the free energy
+      
+      call aastar(sol%eigenvecs%a(:,1:upper_occ_state),sol%rho%a,1.0_k_pr,0.0_k_pr,sol%rho%dim)       
        entropy = 0.0_k_pr
         select case(gen%smearMethod)
          case(k_smFD)
@@ -592,12 +576,7 @@ contains
     call ZeroMatrix(sol%rho,io)
     ! this does (U sqrt(rho'))(U sqrt(rho'))* , only the upper triangle is calculated
     ! ----- ---- unnocupied vectors are not multiplied not tr
-    call zherk ( 'U', 'N', n, n, 1.0_k_pr, a, n, 0.0_k_pr, sol%rho%a, n )
-    ! this fills in the lower triangle
-    do i=1,n
-      sol%rho%a(i+1:n,i) = conjg(sol%rho%a(i,i+1:n))
-    enddo
-
+    call aastar(a,sol%rho%a,1.0_k_pr,0.0_k_pr,n)    
     entropy = 0.0_k_pr
     select case(gen%smearMethod)
       case(k_smFD)

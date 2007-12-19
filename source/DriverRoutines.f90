@@ -2,7 +2,6 @@
 !> \author Alin M Elena
 !> \date 02/11/07, 18:04:08
 
-
 module m_DriverRoutines
   use m_Constants
   use m_Useful
@@ -25,7 +24,6 @@ module m_DriverRoutines
   public :: EhrenfestDynamicsDamped
 
   contains
-
 
 !> \brief the driver for total energy and electronic structure calculations
 !> \author Alin M Elena
@@ -77,7 +75,6 @@ module m_DriverRoutines
     sol%totalEnergy=eenergy+renergy+minusts+scfE
 
   end subroutine SinglePoint
-
 
 !> \brief driver routine for verlet velocity Born-Oppenheimer molecular dynamics
 !> \author Alin M Elena
@@ -305,7 +302,7 @@ module m_DriverRoutines
     if (gen%BiasRampSteps>0) then
       call AddBias(1.0_k_pr,atomic,sol)
     endif
-    call CopySparseMatrix(sol%hin,sol%h,io)
+    call CopyMatrix(sol%hin,sol%h,io)
     call BuildDensity(atomic,sol)
 !          if (.not.gen%comp_elec) then
 !             if (gen%electrostatics==tbu_multi) call init_qvs(density)
@@ -318,7 +315,7 @@ module m_DriverRoutines
     call ScalarTMatrix(ihbar*st,rhodot,io)
     call MatrixCeaApbB(rhoold,sol%rho,rhodot,k_cone,k_cone,io)
       ! calculate the forces from the prepared DM and the present H
-    call CopySparseMatrix(sol%h,sol%hin,io)
+    call CopyMatrix(sol%h,sol%hin,io)
     call ZeroForces(atomic)
     call RepulsiveForces(gen,atomic%atoms,tb)
     call electronicForces(atomic,gen,tb,sol,io)
@@ -541,7 +538,7 @@ module m_DriverRoutines
     if (gen%BiasRampSteps>0) then
       call AddBias(1.0_k_pr,atomic,sol)
     endif
-    call CopySparseMatrix(sol%hin,sol%h,io)
+    call CopyMatrix(sol%hin,sol%h,io)
     call BuildDensity(atomic,sol)
     call AddH2(gen,atomic,sol,tb,io)
 
@@ -554,7 +551,7 @@ module m_DriverRoutines
     call MatrixCeaApbB(rhoold,sol%rho,rhodot,k_cone,k_cone,io)
     call MatrixCeaApbB(rhoold,rhoold,deltaRho,k_cone,k_cone,io)
       ! calculate the forces from the prepared DM and the present H
-    call CopySparseMatrix(sol%h,sol%hin,io)
+    call CopyMatrix(sol%h,sol%hin,io)
     call ZeroForces(atomic)
     call RepulsiveForces(gen,atomic%atoms,tb)
     call electronicForces(atomic,gen,tb,sol,io)
