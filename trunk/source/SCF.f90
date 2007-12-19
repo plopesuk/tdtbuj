@@ -7,7 +7,7 @@ module m_SCF
   use m_Useful
   use m_Gutenberg
   use m_Hamiltonian
-  use m_LinearAlgebra, only : MatrixTrace,CopySparseMatrix,SpmPut,MatrixCeaApbB
+  use m_LinearAlgebra, only : MatrixTrace,CopyMatrix,SpmPut,MatrixCeaApbB
   use m_Electrostatics
   use m_TightBinding
   use m_DensityMatrix
@@ -83,7 +83,7 @@ contains
 
           call BuildHamiltonian(ioLoc,genLoc,atomic,tbMod,sol)
           call AddBias(1.0_k_pr,atomic,sol)
-          call CopySparseMatrix(sol%hin,sol%h,ioLoc)
+          call CopyMatrix(sol%hin,sol%h,ioLoc)
           call DiagHamiltonian(ioLoc,genLoc,atomic,sol)
 
 !           if (genLoc%alter_dm) then
@@ -190,7 +190,7 @@ contains
               genLoc%scfMixn=nmix
               densityin = densitynext
               sol%density = densitynext
-              call CopySparseMatrix(sol%h,sol%hin,ioLoc)
+              call CopyMatrix(sol%h,sol%hin,ioLoc)
 !               if (ioLoc%Verbosity >=k_highVerbos) then
 !                   call Print_density(densityin,"density in")
 !                   call Print_density(densityout,"density out")
@@ -243,7 +243,7 @@ contains
             call RepulsiveForces(genLoc,atomic%atoms,tbMod)
             call ElectronicForces(atomic,genLoc,tbMod,sol,ioLoc)
             call ScfForces(genLoc,atomic,sol,ioLoc)
-!
+
             deallocate(dins)
             deallocate(douts)
             deallocate(res)
@@ -253,7 +253,7 @@ contains
 !             call Print_eigens(eigenval,eigenvec,555,.false.)
 !             call write_density_matrix("rho.bin",rho%a,rho%dim)
             trace = MatrixTrace(sol%rho,ioLoc)
-            write(saux,'(a,"(",f0.4,1x,f0.4,"i)")')"Density matrix, Trace= ",trace
+            write(saux,'(a,"(",f0.4,1x,f0.4,"i)")') "Density matrix, Trace= ",trace
             call PrintMatrix(sol%rho,trim(saux),ioLoc)
           end select
       else

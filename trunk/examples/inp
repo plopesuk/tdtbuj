@@ -1,4 +1,3 @@
-<<<<<<< .mine
 OutputFile output.out
 DebugFile  output.dbg
 OutputLevel 5
@@ -9,105 +8,6 @@ JobName test
 RanSeed 0.142
 Units  RY
 MaxOrbsPerAtom 10
-
-
-
-RunType SinglePoint
-#RunType BODynamics
-#RunType Ehrenfest
-#RunType EhrenfestDamped
-#RunType Fit
-
-
-NetCharge 0.0
-VBias 1.0
-
-Spin Yes 
-CollinearSpins Yes
-Electrostatics PointCharges
-
-
-SmearingMethod           FD
-ElectronicTemperature    50.1
-
-SCF yes	 
-SCFSteps 1000
-SCFTolerance          0.000000000010
-SCFMixing             0.9500
-SCFMixIterations      4
-
-#Time evolution
-DeltaT 0.0001
-Nsteps 300000
-WriteAnimation No
-
-ScaleVelocities  No
-IonicTemperature 550.0
-
-Gamma 0.005
-EulerSteps 50
-# excitation
-Excite Yes
-HoleState 3
-HoleSpin  U
-ExciteState 4
-ExciteSpin U
-
-
-
-### Fit
-FitMethod  SimplexSA
-NoFitParams  1
-FitTol                0.0001000000000000 
-RestartFit  F 
-FitNeps  4 
-# simplex specific
-SimplexMaxIter  10000 
-# SA specific
-SAMaxFeval  100000 default
-SACycles  20 
-SAnBefRed 5 
-SATemp    100.00 
-SAstep    1.00
-SAStepAdj 2.00
-SATempRed 0.50
-
-# simplexSA
-
-BondType GSP
-Embedding No
-SymRefRho Yes
-Screened No 
-ReadVel Yes
-HElTres 1.0e-10
-
-###################
-block DeltaPol
-1
-0.1
-0.2
-2
-endblock DeltaPol
-###############
-
-include coords.dat
-include species.dat
-include basis.dat
-include gsp.dat
-
-=======
-OutputFile output.out
-DebugFile  output.dbg
-OutputLevel 5
-DebugLevel  25
-OnScreen   No
-
-JobName test
-RanSeed 0.142
-Units  RY
-MaxOrbsPerAtom 10
-
-
 
 #RunType SinglePoint
 #RunType BODynamics
@@ -115,14 +15,12 @@ MaxOrbsPerAtom 10
 RunType EhrenfestDamped
 #RunType Fit
 
-
 NetCharge 0.0
 VBias 1.0
 
 Spin Yes 
 CollinearSpins Yes
 Electrostatics PointCharges
-
 
 SmearingMethod           FD
 ElectronicTemperature    50.1
@@ -135,22 +33,20 @@ SCFMixIterations      4
 
 #Time evolution
 DeltaT 0.0001
-Nsteps 6000000 
+Nsteps 100
 WriteAnimation No
 
 ScaleVelocities  No
 IonicTemperature 550.0
 
 Gamma 0.05
-EulerSteps 1000000
+EulerSteps 70
 # excitation
 Excite Yes 
 HoleState 3
 HoleSpin  U
 ExciteState 4
 ExciteSpin U
-
-
 
 ### Fit
 FitMethod  SimplexSA
@@ -192,4 +88,3 @@ include species.dat
 include basis.dat
 include gsp.dat
 
->>>>>>> .r23

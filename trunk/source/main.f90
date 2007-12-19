@@ -13,6 +13,8 @@
 !> - \subpage basis "Basis Set"
 !> - \subpage delta "Multipoles parameters(Delta Block)"
 !> \section tb Tight Binding Parameters
+!>
+!>  A pdf version of this documentation can be found at http://titus.phy.qub.ac.uk/Programs/TDTB_UJ/refman.pdf
 !> \page code Coding Style Document
 !> \section general General Style
 !>- You \em SHOULD use the Object Oriented features of Fotran as much as possible.
