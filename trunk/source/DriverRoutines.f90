@@ -109,7 +109,7 @@ module m_DriverRoutines
 !          call write_header(xunit,gen%nsteps,gen%deltat,atomic%natoms)
 !          open(unit=runit,file="bo_dyn.rho",form="UNFORMATTED",status="unknown",action="write")
 !          call write_header_rho(runit,gen%nsteps,gen%deltat,n)
-    call PrintXYZ(aniunit,atomic,.false.,"T = 0.0")
+      call PrintXYZ(aniunit,atomic,.false.,"T = 0.0")
     endif
     open(file='bo_dyn.ENE',unit=eneunit)
     ! initialize forces and velocities
@@ -571,20 +571,23 @@ module m_DriverRoutines
 !             if (.not.gen%comp_elec) then
 !                if (gen%electrostatics==tbu_multi) call init_qvs(density)
 !             endif
+!      write(888,'(29f16.8)')gen%CurrSimTime, sol%rho%a(1,1),sol%rho%a(2,2),sol%rho%a(3,3),sol%rho%a(4,4),&
+!		sol%rho%a(5,5),sol%rho%a(6,6),sol%rho%a(7,7),sol%rho%a(8,8),&
+!		sol%rho%a(9,9),sol%rho%a(10,10),sol%rho%a(11,11),sol%rho%a(12,12), sol%rho%a(1,2),sol%rho%a(7,8)
       call AddH2(gen,atomic,sol,tb,io)
       call ZeroMatrix(rhodot,io)
       call Commutator(rhodot,sol%h,sol%rho,io)
+      call MatrixCeaApbB(deltaRho,sol%rho,rho0,k_cone,-k_cone,io)
       if (mod(istep,gen%EulerSteps)==0) then
         !euler step
         call ScalarTMatrix(ihbar*cmplx(dt,0.0_k_pr,k_pr),rhodot,io)
-        call MatrixCeaApbB(deltaRho,sol%rho,rho0,k_cone,-k_cone,io)
         call ScalarTMatrix(cmplx(gamma*dt,0.0_k_pr,k_pr),deltaRho,io)
+	call MatrixCeaApbB(rhonew,sol%rho,rhodot,k_cone,k_cone,io)	
       else !verlet step
-        call ScalarTMatrix(ihbar*st,rhodot,io)
-        call MatrixCeaApbB(deltaRho,sol%rho,rho0,k_cone,-k_cone,io)
+        call ScalarTMatrix(ihbar*st,rhodot,io)        
         call ScalarTMatrix(gamma*st,deltaRho,io)
-      end if
-      call MatrixCeaApbB(rhonew,rhoold,rhodot,k_cone,k_cone,io)
+	call MatrixCeaApbB(rhonew,rhoold,rhodot,k_cone,k_cone,io)	
+      end if      
       call MatrixCeaApbB(rhonew,rhonew,deltaRho,k_cone,k_cone,io)
       ! at this point rho contains the rho at time=t
        ! propagate the positions

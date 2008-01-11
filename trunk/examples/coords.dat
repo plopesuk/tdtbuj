@@ -11,13 +11,13 @@ block VelocitiesData
 3 0.0 0.0 0.0
 endblock VelocitiesData
 
-NDonor 0
+NDonor 1
 block DonorAtoms
-3 1 2
+1
 endblock DonorAtoms
 
-NAcceptor 3
+NAcceptor 1
 block AcceptorAtoms
-1 2 3
+2 
 endblock AcceptorAtoms
 
