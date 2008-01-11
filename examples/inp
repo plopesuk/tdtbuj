@@ -1,7 +1,7 @@
 OutputFile output.out
 DebugFile  output.dbg
-OutputLevel 5
-DebugLevel  25
+OutputLevel 1
+DebugLevel  1
 OnScreen   No
 
 JobName test
@@ -32,15 +32,15 @@ SCFMixing             0.9500
 SCFMixIterations      4
 
 #Time evolution
-DeltaT 0.0001
-Nsteps 100
-WriteAnimation No
+DeltaT 0.001
+Nsteps 300000
+WriteAnimation Yes
 
 ScaleVelocities  No
 IonicTemperature 550.0
 
 Gamma 0.05
-EulerSteps 70
+EulerSteps 100
 # excitation
 Excite Yes 
 HoleState 3

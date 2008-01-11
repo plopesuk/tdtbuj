@@ -151,7 +151,7 @@ contains
     ! this does (U sqrt(rho'))(U sqrt(rho'))* , only the upper triangle is calculated
     ! ----- ---- unnocupied vectors are not multiplied not tr
     call ZeroMatrix(sol%rho,io)
-    call aastar(a,sol%rho%a,1.0_k_pr,0.0_k_pr,sol%rho%dim)      
+    call aastar(a,sol%rho%a,1.0_k_pr,0.0_k_pr,sol%rho%dim)
       entropy = 0.0_k_pr
       select case(gen%smearMethod)
       case(k_smFD)
@@ -308,8 +308,8 @@ contains
 
      ! this does (U sqrt(rho'))(U sqrt(rho'))* , only the upper triangle is calculated
      ! unnocupied vectors are not multiplied
-      
-      call aastar(sol%eigenvecs%a(:,1:upper_occ_state),sol%rho%a,1.0_k_pr,0.0_k_pr,sol%rho%dim)       
+
+      call aastar(sol%eigenvecs%a(:,1:upper_occ_state),sol%rho%a,1.0_k_pr,0.0_k_pr,sol%rho%dim)
        entropy = 0.0_k_pr
         select case(gen%smearMethod)
          case(k_smFD)
@@ -576,7 +576,7 @@ contains
     call ZeroMatrix(sol%rho,io)
     ! this does (U sqrt(rho'))(U sqrt(rho'))* , only the upper triangle is calculated
     ! ----- ---- unnocupied vectors are not multiplied not tr
-    call aastar(a,sol%rho%a,1.0_k_pr,0.0_k_pr,n)    
+    call aastar(a,sol%rho%a,1.0_k_pr,0.0_k_pr,n)
     entropy = 0.0_k_pr
     select case(gen%smearMethod)
       case(k_smFD)
