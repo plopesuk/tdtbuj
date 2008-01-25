@@ -381,13 +381,13 @@ subroutine ReadGeneral(ioLoc,genLoc)
     write( ioLoc%uout,'(a,ES12.4)')"hamiltionian element thresold(HElThres): "&
       ,genLoc%hElementThreshold
 
-      genLoc%collinear=GetLogical(ioLoc,"CollinearSpins",.false.)
-      write( ioLoc%uout,'(a,l1)')"collinear spins(CollinearSpins): "&
-      ,genLoc%collinear
+    genLoc%collinear=GetLogical(ioLoc,"CollinearSpins",.false.)
+    write( ioLoc%uout,'(a,l1)')"collinear spins(CollinearSpins): "&
+     ,genLoc%collinear
 
-      genLoc%maxIt=GetInteger(ioLoc,"MaxIt",500)
-      write( ioLoc%uout,'(a,i0)')"Maximum number of iterations to find Fermi level(MaxIt): "&
-      ,genLoc%maxit
+    genLoc%maxIt=GetInteger(ioLoc,"MaxIt",500)
+    write( ioLoc%uout,'(a,i0)')"Maximum number of iterations to find Fermi level(MaxIt): "&
+     ,genLoc%maxit
 
     genLoc%qTolerance=GetReal(ioLoc,"ChargeTol",1.0e-10_k_pr)
     write( ioLoc%uout,'(a,ES12.4)')"Charge Tolerance used to find Fermi level(ChargeTol): "&
@@ -396,6 +396,10 @@ subroutine ReadGeneral(ioLoc,genLoc)
       genLoc%netcharge=GetReal(ioLoc,"NetCharge",0.0_k_pr)
       write( ioLoc%uout,'(a,ES12.4)')"Net charge(NetCharge): "&
       ,genLoc%netcharge
+
+    genLoc%forceTolerance=GetReal(ioLoc,"ForceTolerance",1.0e-10_k_pr)
+    write( ioLoc%uout,'(a,ES12.4)')"Force Tolerance (during geometry optimisation)(ForceTolerance): "&
+      ,genLoc%forceTolerance
 
     saux=GetString(ioLoc,"SmearingMethod","FD")
     write( ioLoc%uout,'(a,a)')"Smearing Methos used to find Fermi level (SmearingMethod): "&
@@ -481,6 +485,8 @@ subroutine ReadGeneral(ioLoc,genLoc)
       genLoc%fit%fitMethod=k_sa
     elseif (cstr(trim(saux),"simplexSA")) then
       genLoc%fit%fitMethod=k_simplexSA
+    elseif (cstr(trim(saux),"TrustRegion")) then
+      genLoc%fit%fitMethod=k_TrustRegion
     else
       call error("The requested fitting method is not implemented",name,.true.,ioLoc)
     endif
@@ -549,6 +555,14 @@ subroutine ReadGeneral(ioLoc,genLoc)
         genLoc%fit%temp=GetReal(ioLoc,"SATemp",100.0_k_pr)
         write(ioLoc%uout,'(a,f8.3)') &
            "SA temperature = ",genLoc%fit%temp
+      case(k_TrustRegion)
+        genLoc%fit%step=GetReal(ioLoc,"TRstep",100.0_k_pr)
+        write(ioLoc%uout,'(a,f8.3)') &
+               "TR initial step = ",genLoc%fit%step
+        genLoc%fit%iter=GetInteger(ioLoc,"TrMaxIter",10000)
+         write(ioLoc%uout,'(a,i8)') &
+          "MAximum number of iterations for TrustRegion = ",genLoc%fit%iter
+
     end select
   endif
 
@@ -705,7 +719,9 @@ end subroutine ReadGeneral
 !> \hline
 !> SATempRed & real & 0.5 & SA temperature reduction factor\\\
 !> \hline
-!> SATemp & real & 100.0 & iinitial temperature in SA method\\\
+!> SATemp & real & 100.0 & initial temperature in SA method\\\
+!> \hline
+!> ForceTolerance & real & 10E-10 & Force tolerance for geometry optimisation\\\
 !> \hline
 !> \end{longtable}
 !> \endlatexonly
@@ -982,7 +998,12 @@ end subroutine ReadGeneral
 !><TR><TD ALIGN="CENTER">SATemp</TD>
 !><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real</TD>
 !><TD ALIGN="CENTER">100.0</TD>
-!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>iinitial temperature in SA method</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>initial temperature in SA method</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">ForceTolerance</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real</TD>
+!><TD ALIGN="CENTER">10E-10</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>force tolerance for geometry optimisation</TD>
 !></TR>
 !></TABLE>
 !> \endhtmlonly

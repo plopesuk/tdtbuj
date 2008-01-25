@@ -163,7 +163,7 @@ program tbuj
   if (general%runType == k_runSp) then
     call SinglePoint(ioInfo,general,atomicx,tbModel,SolSpace)
   elseif (general%runType == k_runGeomBFGS) then
-!     call bfgs
+    call BFGS(ioInfo,general,atomicx,tbModel,SolSpace)
   elseif (general%runType == k_runBO) then
     call BornOppenheimerDynamics(ioInfo,general,atomicx,tbModel,SolSpace)
   elseif (general%runType == k_runEhrenfest) then
