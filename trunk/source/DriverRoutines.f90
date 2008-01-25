@@ -14,6 +14,7 @@ module m_DriverRoutines
   use m_Hamiltonian
   use m_Dynamics
   use m_DensityMatrix
+  use m_LBFGS
   implicit none
 
   private
@@ -22,6 +23,7 @@ module m_DriverRoutines
   public :: BornOppenheimerDynamics
   public :: EhrenfestDynamics
   public :: EhrenfestDynamicsDamped
+  public :: BFGS
 
   contains
 
@@ -582,12 +584,12 @@ module m_DriverRoutines
         !euler step
         call ScalarTMatrix(ihbar*cmplx(dt,0.0_k_pr,k_pr),rhodot,io)
         call ScalarTMatrix(cmplx(gamma*dt,0.0_k_pr,k_pr),deltaRho,io)
-	call MatrixCeaApbB(rhonew,sol%rho,rhodot,k_cone,k_cone,io)	
+	call MatrixCeaApbB(rhonew,sol%rho,rhodot,k_cone,k_cone,io)
       else !verlet step
-        call ScalarTMatrix(ihbar*st,rhodot,io)        
+        call ScalarTMatrix(ihbar*st,rhodot,io)
         call ScalarTMatrix(gamma*st,deltaRho,io)
-	call MatrixCeaApbB(rhonew,rhoold,rhodot,k_cone,k_cone,io)	
-      end if      
+	call MatrixCeaApbB(rhonew,rhoold,rhodot,k_cone,k_cone,io)
+      end if
       call MatrixCeaApbB(rhonew,rhonew,deltaRho,k_cone,k_cone,io)
       ! at this point rho contains the rho at time=t
        ! propagate the positions
@@ -778,4 +780,114 @@ module m_DriverRoutines
 !      enddo
     deallocate(a)
   end subroutine GetRho
+
+!> \brief driver routine for BFGS optimization
+!> \author Alin M Elena
+!> \date 10/11/07, 15:22:53
+!> \param io type(ioType) contains all the info about I/O files
+!> \param gen type(generalType) contains the info needed by the program to k_run
+!> \param atomic type(atomicxType) contains all info about the atoms and basis set and some parameters
+!> \param tb type(modelType) contains information about the tight binding model parameters
+!> \param sol type(solutionType) contains information about the solution space
+  subroutine BFGS(io,gen,atomic,tb,sol)
+    character(len=*), parameter :: myname = 'BFGS'
+    type(ioType), intent(inout) :: io
+    type(generalType), intent(inout) :: gen
+    type(atomicxType), intent(inout) :: atomic
+    type(solutionType), intent(inout) :: sol
+    type(modelType), intent(inout) :: tb
+    integer :: aniunit
+    integer  :: i
+    integer  :: m,n, res
+    real(k_pr) :: epsx,epsf,epsg,gtol,xtol,ftol
+    real(k_pr), allocatable :: x(:)
+    integer  :: info,atom, iprint(1:2),maxfev
+
+    aniunit=GetUnit()
+    write(io%uout,'(/a/)')&
+         '--BFGS Optimization Run-----------------------------------------'
+    if (gen%writeAnimation) then
+       open(file='bfgsDyn.xyz',unit=aniunit)
+    endif
+
+    n = atomic%atoms%nmoving*3
+    m=min(7,n)
+    if (io%verbosity > k_highVerbos) then
+      iprint(1) = 1
+    else
+      iprint(1) = -1
+    endif
+    iprint(1) = 1
+    iprint(2) = 0
+    epsf = gen%forceTolerance/10.0_k_pr
+    epsg = gen%forceTolerance/10.0_k_pr
+    epsx = gen%forceTolerance/10.0_k_pr
+    xtol = 1.0e-16_k_pr
+    gtol=0.0_k_pr
+    info = 0
+    maxfev=20
+    ftol=1.0e-4_k_pr
+    allocate(x(1:n))
+    do i=1,atomic%atoms%nmoving
+      atom=atomic%atoms%id(atomic%atoms%moving(i))
+      x(3*(i-1)+1) = atomic%atoms%x(atom)
+      x(3*(i-1)+2) = atomic%atoms%y(atom)
+      x(3*(i-1)+3) = atomic%atoms%z(atom)
+    enddo
+    call lbfgs(n,m,x,epsg,epsf,epsx,xtol,gtol,ftol,maxfev,gen%nsteps,iprint,info,&
+                 UpdatePoint,gen,atomic,tb,sol,io)
+    res=UpdatePoint(gen,atomic,tb,sol,io,x,ftol,x)
+    deallocate(x)
+    call SinglePoint(io,gen,atomic,tb,sol)
+       write(io%uout,'(/a)')&
+          'Final forces:'
+       call PrintForces(atomic%atoms,io)
+       write(io%uout,'(/a)')&
+          'Final coordinates:'
+       call PrintCoordinates(io,atomic)
+       if (info<0) then
+          write(io%uout,'(/a,i4)')&
+             'WARNING: Optimization did not converge.',info
+       endif
+       if (gen%writeAnimation) then
+          close(aniunit)
+       endif
+! !      call write_fdf_coords()
+       write(io%uout,'(/a)')&
+          '----------------------------------------------------------------'
+   end subroutine BFGS
+
+  integer function UpdatePoint(gen,atomic,tb,sol,io,x,f,gradient)
+    character(len=*), parameter :: myname = 'UpdatePoint'
+    type(ioType), intent(inout) :: io
+    type(generalType), intent(inout) :: gen
+    type(atomicxType), intent(inout) :: atomic
+    type(solutionType), intent(inout) :: sol
+    type(modelType), intent(inout) :: tb
+    real(k_pr), intent(inout) :: f, gradient(:)
+    real(k_pr), intent(in) :: x(:)
+    integer :: i,atom
+    UpdatePoint=0
+    do i=1,atomic%atoms%nmoving
+      atom=atomic%atoms%id(atomic%atoms%moving(i))
+      atomic%atoms%x(atom) = x(3*(i-1)+1)
+      atomic%atoms%y(atom) = x(3*(i-1)+2)
+      atomic%atoms%z(atom) = x(3*(i-1)+3)
+    enddo
+    call SinglePoint(io,gen,atomic,tb,sol)
+    if (.not.gen%lIsSCFConverged) then
+      UpdatePoint=1
+    endif
+    do i=1,atomic%atoms%nmoving
+      atom=atomic%atoms%id(atomic%atoms%moving(i))
+      gradient(3*(i-1)+1) = -atomic%atoms%fx(atom)
+      gradient(3*(i-1)+2) = -atomic%atoms%fy(atom)
+      gradient(3*(i-1)+3) = -atomic%atoms%fz(atom)
+    enddo
+    f=sol%totalEnergy
+   end function UpdatePoint
+
+
+
+
 end module m_DriverRoutines

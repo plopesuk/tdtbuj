@@ -11,9 +11,9 @@ set(target_name tdtbuj)
 FIND_PACKAGE(BLAS)
 MESSAGE("Using this version of blas ${BLAS95_LIBRARIES} with flags
 ${BLAS_LINKER_FLAGS}")
-find_package(LAPACK)
-message("Using this version of lapack: ${LAPACK95_LIBRARIES} with flags  ${LAPACK_LINKER_FLAGS} ")
-set(LIBS ${LAPACK_LINKER_FLAGS} ${LAPACK95_LIBRARIES} ${BLAS95_LIBRARIES} )
+find_package(MKLSOLVER)
+message("Using this version of lapack: ${MKLSOLVER_LIBRARIES} with flags  ${MKLSOLVER_LINKER_FLAGS} ")
+set(LIBS ${MKLSOLVER_LINKER_FLAGS} ${MKLSOLVER_LIBRARIES} ${BLAS95_LIBRARIES} )
 ##########################
 
 
@@ -32,14 +32,14 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 ######
 ## adds user libs
 
-add_library(parser 
+add_library(parser
 ${src_dir}/Constants.f90
 ${src_dir}/Parser.f90
 ${src_dir}/Types.f90
 ${src_dir}/Useful.f90
 )
 
-add_library(linalg 
+add_library(linalg
 ${src_dir}/Constants.f90
 ${src_dir}/Types.f90
 ${src_dir}/Useful.f90
@@ -50,7 +50,7 @@ ${src_dir}/LinearAlgebra.f90
 
 ####################
 ##### adds the main target
-add_executable(${target_name} 
+add_executable(${target_name}
 ${src_dir}/Constants.f90
 ${src_dir}/Types.f90
 ${src_dir}/Useful.f90
@@ -69,6 +69,7 @@ ${src_dir}/SA.f90
 ${src_dir}/SimplexSA.f90
 ${src_dir}/Fit.f90
 ${src_dir}/Dynamics.f90
+${src_dir}/lbfgs.f90
 ${src_dir}/DriverRoutines.f90
 ${src_dir}/main.f90
 )

@@ -12,8 +12,9 @@ MaxOrbsPerAtom 10
 #RunType SinglePoint
 #RunType BODynamics
 #RunType Ehrenfest
-RunType EhrenfestDamped
+#RunType EhrenfestDamped
 #RunType Fit
+RunType GeometryOptimization
 
 NetCharge 0.0
 VBias 1.0
@@ -26,14 +27,14 @@ SmearingMethod           FD
 ElectronicTemperature    50.1
 
 SCF yes	 
-SCFSteps 1000
+SCFSteps 10000
 SCFTolerance          0.000000000010
 SCFMixing             0.9500
 SCFMixIterations      4
 
 #Time evolution
 DeltaT 0.001
-Nsteps 300000
+Nsteps 100
 WriteAnimation Yes
 
 ScaleVelocities  No
@@ -42,15 +43,15 @@ IonicTemperature 550.0
 Gamma 0.05
 EulerSteps 100
 # excitation
-Excite Yes 
+Excite No 
 HoleState 3
 HoleSpin  U
 ExciteState 4
 ExciteSpin U
 
 ### Fit
-FitMethod  SimplexSA
-NoFitParams  1
+FitMethod  TrustRegion
+NoFitParams  10
 FitTol                0.0001000000000000 
 RestartFit  F 
 FitNeps  4 
@@ -64,6 +65,9 @@ SATemp    100.00
 SAstep    1.00
 SAStepAdj 2.00
 SATempRed 0.50
+#Trust-Region specific
+TRstep 100.0
+TRMaxIter 100000
 
 # simplexSA
 
@@ -73,6 +77,7 @@ SymRefRho Yes
 Screened No 
 ReadVel Yes
 HElTres 1.0e-10
+ForceTolerance 1.0e-16
 
 ###################
 block DeltaPol

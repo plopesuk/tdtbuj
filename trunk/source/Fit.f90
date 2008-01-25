@@ -24,19 +24,20 @@ module m_Fit
   use m_Gutenberg
   use m_TightBinding
   implicit none
+  include 'mkl_rci.fi'
   private
   public  :: fitting
 
   type, public :: fitDataType
-  real(k_pr), pointer :: x(:)
-  real(k_pr), pointer :: exper(:)
+    real(k_pr), pointer :: x(:)
+    real(k_pr), pointer :: exper(:)
     real(k_pr), pointer :: fit(:)
-  integer :: n
+    integer :: n
   end type fitDataType
 
   type(fitDataType),public :: fitData
   real(k_pr), public,pointer :: y(:),p(:,:),best(:),bounds(:,:)
-  
+
 ! private variables
   character(len=100), parameter :: cExper="experiment.dat"
   character(len=100), parameter :: cOutFit="fitout.dat"
@@ -48,23 +49,23 @@ module m_Fit
 contains
 
 
-  subroutine SetInitialParams(x, atomic,tb)
+  subroutine SetInitialParams(x,atomic,tb)
     character(len=*), parameter :: sMyName="SetInitialParams"
     real(k_pr), intent(inout) :: x(:)
     type(atomicxType), intent(in) :: atomic
     type(modelType), intent(in) :: tb
 
-      x(1) =  tb%hopping(1,2)%a(1,0,0)
-!     x(1) =  tb%hopping(1,1)%eps(0)
-!     x(2) =  tb%hopping(1,2)%a(0,0,0)
-!     x(3) =  tb%hopping(1,2)%a(1,0,0)
-!     x(4) =  atomic%species%jlocal(atomic%atoms%sp(2))
-!     x(5) =  atomic%species%ulocal(atomic%atoms%sp(2))
-!     x(6) =  tb%hopping(1,2)%n
-!     x(7) =  tb%hopping(1,2)%nc
-!     x(8) =  atomic%species%jlocal(atomic%atoms%sp(1))
-!     x(9) =  atomic%species%ulocal(atomic%atoms%sp(1))
-!     x(10) =  0.1_k_pr
+!      x(1) =  tb%hopping(1,2)%a(1,0,0)
+      x(1) =  tb%hopping(1,1)%eps(0)
+      x(2) =  tb%hopping(1,2)%a(0,0,0)
+     x(3) =  tb%hopping(1,2)%a(1,0,0)
+     x(4) =  atomic%species%jlocal(atomic%atoms%sp(2))
+     x(5) =  atomic%species%ulocal(atomic%atoms%sp(2))
+     x(6) =  tb%hopping(1,2)%n
+     x(7) =  tb%hopping(1,2)%nc
+     x(8) =  atomic%species%jlocal(atomic%atoms%sp(1))
+     x(9) =  atomic%species%ulocal(atomic%atoms%sp(1))
+     x(10) =  0.1_k_pr
 !     x(11) = 0.1_k_pr
 !     x(12) = tb%hopping(1,2)%rc
 !     x(13) = tb%hopping(1,1)%a(0,0,0)
@@ -89,49 +90,47 @@ contains
 !     tb%hopping(2,2)%eps(0)=yfit(1)+yfit(10)
 !     tb%hopping(2,2)%eps(1)=tb%hopping(2,2)%eps(0)
 !     !eso<esn
-!     tb%hopping(1,1)%eps(0)=yfit(1)
-!     tb%hopping(1,1)%eps(1)=yfit(1)+yfit(11)
-! 
-!     tb%hopping(1,1)%eps(4)=tb%hopping(1,1)%eps(0)
-!     tb%hopping(1,1)%eps(5)=tb%hopping(1,1)%eps(1)
-! 
-!     tb%hopping(1,2)%a(0,0,0)=yfit(2)
-!     tb%hopping(2,1)%a(0,0,0)=yfit(2)
-! 
-! !     tb%hopping(1,2)%a(0,1,0)=yfit(3)
-!     tb%hopping(1,2)%a(1,0,0)=yfit(3)
-! 
-! !     tb%hopping(2,1)%a(0,1,0)=-yfit(3)
-!     tb%hopping(2,1)%a(0,1,0)=-yfit(3)
-! 
-! 
-!     atomic%species%jlocal(atomic%atoms%sp(2))=yfit(4)
-!     atomic%species%ulocal(atomic%atoms%sp(2))=yfit(5)
-!     tb%hopping(1,2)%n=yfit(6)
-!     tb%hopping(1,2)%nc=yfit(7)
-!     tb%hopping(2,1)%n=tb%hopping(1,2)%n
-!     tb%hopping(2,1)%nc=tb%hopping(1,2)%nc
+      tb%hopping(1,1)%eps(0)=yfit(1)
+      tb%hopping(1,1)%eps(1)=yfit(1)+yfit(10)
+!
+     tb%hopping(1,1)%eps(4)=tb%hopping(1,1)%eps(0)
+     tb%hopping(1,1)%eps(5)=tb%hopping(1,1)%eps(1)
+!
+     tb%hopping(1,2)%a(0,0,0)=yfit(2)
+     tb%hopping(2,1)%a(0,0,0)=yfit(2)
+!
+     tb%hopping(1,2)%a(1,0,0)=yfit(3)
+     tb%hopping(2,1)%a(0,1,0)=-yfit(3)
+
+!
+!
+     atomic%species%jlocal(atomic%atoms%sp(2))=yfit(4)
+     atomic%species%ulocal(atomic%atoms%sp(2))=yfit(5)
+     tb%hopping(1,2)%n=yfit(6)
+     tb%hopping(1,2)%nc=yfit(7)
+     tb%hopping(2,1)%n=tb%hopping(1,2)%n
+     tb%hopping(2,1)%nc=tb%hopping(1,2)%nc
 !     !
-!     atomic%species%jlocal(atomic%atoms%sp(1))=yfit(8)
-!     atomic%species%ulocal(atomic%atoms%sp(1))=yfit(9)
-! 
+     atomic%species%jlocal(atomic%atoms%sp(1))=yfit(8)
+     atomic%species%ulocal(atomic%atoms%sp(1))=yfit(9)
+!
 !     tb%hopping(1,2)%rc = yfit(12)
 !     tb%hopping(2,1)%rc = yfit(12)
-! 
-! 
+!
+!
 !     tb%hopping(1,1)%a(0,0,0)=yfit(13)
 !     tb%hopping(1,1)%a(0,1,0)=yfit(14)
 !     tb%hopping(1,1)%a(1,0,0)=-tb%hopping(1,1)%a(0,1,0)
 !     tb%hopping(1,1)%a(1,1,0)=yfit(15)
 !     tb%hopping(1,1)%a(1,1,1)=yfit(16)
-! 
-! 
-! 
+!
+!
+!
 !     tb%hopping(1,1)%rc = yfit(17)
 !     tb%hopping(1,1)%n = yfit(18)
 !     tb%hopping(1,1)%nc = yfit(19)
-    tb%hopping(1,2)%a(1,0,0)=yfit(1)
-    tb%hopping(2,1)%a(0,1,0)=-yfit(1)
+!    tb%hopping(1,2)%a(1,0,0)=yfit(1)
+!    tb%hopping(2,1)%a(0,1,0)=-yfit(1)
     call setTails(io,gen,atomic,tb,sol)
   end subroutine UpdateParams
 
@@ -166,17 +165,17 @@ contains
       fitData%fit(1:ilevels)=sol%eigenvals(1:ilevels)
 
       do i=1,ilevels/2-1
-        aux=aux+abs(fitData%exper(i)-fitData%exper(i+1)-(sol%eigenvals(i)-sol%eigenvals(i+1)))
+        aux=aux+(fitData%exper(i)-fitData%exper(i+1)-(sol%eigenvals(i)-sol%eigenvals(i+1)))**2
       enddo
 
       do i=1+ilevels/2, ilevels-1
-        aux=aux+abs(fitData%exper(i)-fitData%exper(i+1)-(sol%eigenvals(i)-sol%eigenvals(i+1)))
+        aux=aux+(fitData%exper(i)-fitData%exper(i+1)-(sol%eigenvals(i)-sol%eigenvals(i+1)))**2
       enddo
-      aux=aux+abs(fitData%exper(1+ilevels/2)-fitData%exper(1)-(sol%eigenvals(1+ilevels/2)-sol%eigenvals(1)))
+      aux=aux+(fitData%exper(1+ilevels/2)-fitData%exper(1)-(sol%eigenvals(1+ilevels/2)-sol%eigenvals(1)))**2
   ! add charges in the cost function
+      fitData%fit(ilevels+1:ilevels+atomic%atoms%natoms)=atomic%atoms%chrg(1:atomic%atoms%natoms)
       do i =1,atomic%atoms%natoms
-          fitData%fit(i+ilevels)=atomic%atoms%chrg(i)
-          aux=aux+abs(fitData%exper(i+ilevels)-atomic%atoms%chrg(i))
+          aux=aux+(fitData%exper(i+ilevels)-atomic%atoms%chrg(i))**2
       enddo
       UpdateCost=aux
     endif
@@ -218,16 +217,21 @@ end function UpdateCost
     close(2)
 
   end subroutine PrintFit
-! 
+!
 !
 !> \brief Reads the "experimental" data against which we do the fit
 !> \author Alin M Elena
 !> \date 14/11/07, 09:58:53
- subroutine InitFit
+!> \param io type(ioType) contains all the info about I/O files
+ subroutine InitFit(io)
     character(len=*), parameter :: myname = 'InitFit'
+    type(ioType), intent(inout) :: io
     real(k_pr) :: r1,e1,ri,ei
     integer :: n,err,i
-    open(1,file=trim(cExper),status="old",action="read")
+    open(1,file=trim(cExper),status="old",action="read",iostat=err)
+    if (err/=0) then
+      call error("I can not open file "//trim(cExper),myname,.true.,io)
+    endif
     read(1,*)r1,e1
     err=0
     n=0
@@ -261,7 +265,7 @@ end function UpdateCost
     open(1,file=trim(cBounds),status="old",action="read",iostat=errno)
     if (errno/=0) then
       call error("bounds file not found!!!",myname,.true.,io)
-    endif  
+    endif
     do i=1,gen%fit%iNoParams
       read(1,*,iostat=errno)bounds(i,1),bounds(i,2)
       if (errno/=0) then
@@ -289,12 +293,12 @@ end function UpdateCost
     type(atomicxType), intent(inout) :: atomic
     type(modelType), intent(inout) :: tb
     type(solutionType), intent(inout) :: sol
-    integer :: i,j,kk!,mm
+    integer :: i,j,kk,un!,mm
     real(k_pr) ::copt
     real(k_pr),allocatable ::tol(:)
     logical ::quit
 
-    call InitFit
+    call InitFit(io)
     select case(gen%fit%fitMethod)
       case(k_simplex)
                  ! simplex fit
@@ -424,8 +428,25 @@ end function UpdateCost
         allocate(best(1:gen%fit%iNoParams))
         call InitSA(gen,atomic,tb,sol,io)
         call PrintFit(gen,atomic,tb,sol,io)
+        un=GetUnit()
+        open(un,file=trim(cRestart),status='unknown',action="write")
+        do i=1,gen%fit%iNoParams
+          write(un,*) best(i)
+        enddo
+        close(un)
         deallocate(best)
-    end select 
+      case (k_TrustRegion)
+         allocate(best(1:gen%fit%iNoParams))
+         call TrustRegion(gen,atomic,tb,sol,io)
+         call PrintFit(gen,atomic,tb,sol,io)
+         un=GetUnit()
+         open(un,file=trim(cRestart),status='unknown',action="write")
+         do i=1,gen%fit%iNoParams
+           write(un,*) best(i)
+         enddo
+         close(un)
+         deallocate(best)
+    end select
 
 !           ! simulated annealing fit
 !     elseif (leqi(gen%fit%fit_type,"sa")) then
@@ -434,8 +455,8 @@ end function UpdateCost
     deallocate(fitData%x,fitData%exper,fitData%fit)
 
   end subroutine fitting
-! 
-! 
+!
+!
 
 
 !> \brief initializes the simplex method
@@ -663,4 +684,256 @@ end function UpdateCost
       endif
     enddo
   end subroutine SimplexSA
+
+!> \brief initializes the simplex-simulated annealing method
+!> \author Alin M Elena
+!> \date 14/11/07, 13:48:55
+!> \param io type(ioType) contains all the info about I/O files
+!> \param gen type(generalType) contains the info needed by the program to k_run
+!> \param atomic type(atomicxType) contains all info about the atoms and basis set and some parameters
+!> \param tb type(modelType) contains information about the tight binding model parameters
+!> \param sol type(solutionType) contains information about the solution space
+  subroutine TrustRegion(gen,atomic,tb,sol,io)
+    character(len=*),parameter :: myname="SimplexSA"
+    type(ioType), intent(inout) :: io
+    type(generalType), intent(inout) :: gen
+    type(atomicxType), intent(inout) :: atomic
+    type(solutionType), intent(inout) :: sol
+    type(modelType), intent(inout) :: tb
+
+    integer :: n !! n - number of function variables
+    integer :: m !! m - dimension of function value
+    real(k_pr) :: eps (1:6) !! precisions for stop-criteria (see manual for more details)
+    real(k_pr) :: jac_eps !! jacobi calculation precision
+    integer :: rci_request !! reverse communication interface parameter
+    real(k_pr), allocatable :: fvec (:) !! function (f(x)) value vector
+    real(k_pr), allocatable :: fjac (:, :) !! jacobi matrix
+    integer :: iter !! number of iterations
+    integer :: st_cr !! number of stop-criterion
+    integer :: successful !! controls of rci cycle
+    integer :: iter1 !! maximum number of iterations
+    integer :: iter2 !! maximum number of iterations of calculation of trial-step
+    real(k_pr) :: rs !! initial step bound
+    real(k_pr) :: r1, r2 !! initial and final residuals
+    integer(kind=8) :: handle !! tr solver handle
+    integer :: i, j, errno,un
+    real(k_pr), allocatable :: lw(:),up(:)
+    real(k_pr), allocatable :: f1(:), f2(:)
+
+
+    n=gen%fit%iNoParams
+    m=fitData%n-1
+    allocate(lw(1:n),up(1:n),fvec(1:m),fjac(1:m,1:n))
+    allocate(f1(1:m),f2(1:m))
+    !! set precisions for stop-criteria
+    eps(1:6) = gen%fit%fittol
+    !! set maximum number of iterations
+    iter1 = gen%fit%iter
+    !! set maximum number of iterations of calculation of trial-step
+    iter2 = iter1/100
+    !! set initial step bound
+    rs = gen%fit%step
+    !! precisions for jacobi calculation
+    jac_eps = gen%fit%fittol
+    !! set the initial guess
+    if (gen%fit%RestartFit) then
+      un=GetUnit()
+      open(un,file=trim(cRestart),status="old",action="read",iostat=errno)
+      if (errno/=0) then
+        call error("restart "//trim(cRestart)//" file not found!!",myname,.true.,io)
+      endif
+      do i=1,gen%fit%iNoParams
+        read(un,*)best(i)
+      enddo
+      close(un)
+      call UpdateParams(best,gen,atomic,tb,sol,io)
+    else
+      call SetInitialParams(best,atomic,tb)
+    endif
+    !! set lower and upper bounds
+    call ReadBounds(gen,io)
+    lw(:)=bounds(:,1)
+    up(:)=bounds(:,2)
+    !! set initial values
+    do i = 1, m
+      fvec (i) = 0.0_k_pr
+      do j = 1, n
+        fjac (i, j) = 0.0_k_pr
+      enddo
+    enddo
+    !! initialize solver (allocate memory, set initial values)
+    !! handle in/out: tr solver handle
+    !! n in: number of function variables
+    !! m in: dimension of function value
+    !! x in: solution vector. contains values x for f(x)
+    !! bounds(:,1) in: lower bound
+    !! bounds(:,2) in: upper bound
+    !! eps in: precisions for stop-criteria
+    !! iter1 in: maximum number of iterations
+    !! iter2 in: maximum number of iterations of calculation of trial-step
+    !! rs in: initial step bound
+    if (dtrnlspbc_init (handle, n, m, best, lw,up, eps, iter1, iter2, rs) /= tr_success) then
+    !! if function does not complete successfully then print error message
+      call error("Initialization of optimizer failed!!",myname,.true.,io)
+    endif
+    !! set initial rci cycle variables
+    rci_request = 0
+    successful = 0
+    !! rci cycle
+    do while (successful == 0)
+    !! call tr solver
+    !! handle in/out: tr solver handle
+    !! fvec in: vector
+    !! fjac in: jacobi matrix
+    !! rci_request in/out: return number that denotes next step for performing
+      if (dtrnlspbc_solve (handle, fvec, fjac, rci_request) /= tr_success) then
+      !! if function does not complete successfully then print error message
+        call error("Optimizer failed!!",myname,.true.,io)
+      endif
+      !! rci_request in/out: return number that denotes next step for performing
+      !! according to rci_request value we do next step
+      select case (rci_request)
+        case (-1, -2, -3, -4, -5, -6)
+          !! stop rci cycle
+          successful = 1
+        case (1)
+        !! recalculate function value
+        !! m in: dimension of function value
+        !! n in: number of function variables
+        !! best in: solution vector
+        !! fvec out: function value f(x)
+          call ObjectiveFunctions (m,n,best,fvec,gen,atomic,tb,sol,io)
+        case (2)
+        !! compute jacobi matrix
+        !! ObjectiveFunctions in: external objective function
+        !! n in: number of function variables
+        !! m in: dimension of function value
+        !! fjac out: jacobi matrix
+        !! x in: solution vector
+        !! jac_eps in: jacobi calculation precision
+
+        if (ComputeJacobi (n, m, fjac, best,jac_eps,f1,f2,gen,atomic,tb,sol,io) /= tr_success) then
+        !! if function does not complete successfully then print error message
+          call error("Jacobian calculation failed!!",myname,.true.,io)
+        endif
+      endselect
+    enddo
+    !! get solution statuses
+    !! handle in: tr solver handle
+    !! iter out: number of iterations
+    !! st_cr out: number of stop criterion
+    !! r1 out: initial residuals
+    !! r2 out: final residuals
+    if (dtrnlspbc_get (handle, iter, st_cr, r1,r2) /= tr_success) then
+    !! if function does not complete successfully then print error message
+      call error("getting status of optimizer failed!!",myname,.true.,io)
+    endif
+
+    !! free handle memory
+    if (dtrnlspbc_delete (handle) /= tr_success) then
+      !! if function does not complete successfully then print error message
+      call error("Cleaning the memory of optimizer failed!!",myname,.true.,io)
+    endif
+
+    !! if final residual is less than required precision then print pass
+    if (r2 < gen%fit%fitTol) then
+     write(io%uout,'(a,i0,a,f16.8)')"Optimizer was successfull in ",iter, " iterations with a final residual of", r2
+     write(io%uout,'(a,i0)')"Termination criteria ", st_cr
+      !! else print failed
+    else
+      write(io%uout,'(a,f16.8)')"Optimizer failed with a final residual of ", r2
+      write(io%uout,'(a,i0)')"Termination criteria ", st_cr
+    endif
+
+    deallocate(lw,up,fvec,fjac)
+    deallocate(f1,f2)
+  end subroutine TrustRegion
+    !! routine for extendet powell function calculation
+    !! m in: dimension of function value
+    !! n in: number of function variables
+    !! x in: vector for function calculation
+    !! f out: function value f(x)
+  subroutine ObjectiveFunctions (m,n, x, f,gen,atomic,tb,sol,io)
+    integer, intent(inout) :: n,m
+    real(k_pr), intent(inout) :: x(:), f(:)
+    type(ioType), intent(inout) :: io
+    type(generalType), intent(inout) :: gen
+    type(atomicxType), intent(inout) :: atomic
+    type(solutionType), intent(inout) :: sol
+    type(modelType), intent(inout) :: tb
+    integer :: i, ilevels
+
+      call UpdateParams(x,gen,atomic,tb,sol,io)
+      call SinglePoint(io,gen,atomic,tb,sol)
+      if (.not.gen%lIsSCFConverged) then
+        f(1:m)=k_infinity
+      else
+        ilevels=sol%h%dim
+        fitData%fit(1:ilevels)=sol%eigenvals(1:ilevels)
+
+      do i=1,ilevels/2-1
+        f(i)=fitData%exper(i)-fitData%exper(i+1)-(sol%eigenvals(i)-sol%eigenvals(i+1))
+      enddo
+
+      do i=1+ilevels/2, ilevels-1
+        f(i-1)=fitData%exper(i)-fitData%exper(i+1)-(sol%eigenvals(i)-sol%eigenvals(i+1))
+      enddo
+      f(ilevels-1)=fitData%exper(1+ilevels/2)-fitData%exper(1)-(sol%eigenvals(1+ilevels/2)-sol%eigenvals(1))
+  ! add charges in the objective functions
+      fitData%fit(ilevels+1:ilevels+atomic%atoms%natoms)=atomic%atoms%chrg(1:atomic%atoms%natoms)
+      do i =1,atomic%atoms%natoms
+          f(i+ilevels-1)=fitData%exper(i+ilevels)-atomic%atoms%chrg(i)
+      enddo
+     endif
+  end subroutine ObjectiveFunctions
+
+  integer function ComputeJacobi (n, m,fjac,x,jac_eps,f1,f2,gen,atomic,tb,sol,io)
+    character(len=*), parameter :: myname="ComputeJacobi"
+    integer, intent(inout) :: n,m
+    real(k_pr), intent(inout) :: x(:), fjac(:,:),f1(:),f2(:),jac_eps
+    integer(kind=8) :: handle
+    type(ioType), intent(inout) :: io
+    type(generalType), intent(inout) :: gen
+    type(atomicxType), intent(inout) :: atomic
+    type(solutionType), intent(inout) :: sol
+    type(modelType), intent(inout) :: tb
+    integer :: successful !! controls of rci cycle
+    integer :: rci_request !! reverse communication interface parameter
+
+    rci_request = 0
+    successful = 0
+
+
+    ComputeJacobi=tr_success-1
+
+    if (djacobi_init (handle,n,m,x,fjac,jac_eps) /= tr_success) then
+    ! if function does not complete successfully then print error message
+      call error("allocating memory for the jacobian failed!!",myname,.true.,io)
+    endif
+
+    !! rci cycle
+    do while (successful == 0)
+    !! call solver
+      if (djacobi_solve (handle, f1, f2, rci_request) /= tr_success) then
+      !! if function does not complete successfully then print error message
+        call error("computation of jacobian failed!!",myname,.true.,io)
+      endif
+      if (rci_request == 1) then
+      !! calculate function value f1 = f(x+eps)
+        call ObjectiveFunctions (m,n, x, f1,gen,atomic,tb,sol,io)
+      elseif (rci_request == 2) then
+        !! calculate function value f1 = f(x-eps)
+        call ObjectiveFunctions (m,n, x, f2,gen,atomic,tb,sol,io)
+      elseif (rci_request == 0) then
+        !! exit rci cycle
+        successful = 1
+      endif
+    enddo
+    if (djacobi_delete (handle) /= tr_success) then
+    !! if function does not complete successfully then print error message
+      call error("Cleaning the memory of jacobian failed!!",myname,.true.,io)
+    endif
+    ComputeJacobi=tr_success
+  end function ComputeJacobi
+
 end module m_Fit
