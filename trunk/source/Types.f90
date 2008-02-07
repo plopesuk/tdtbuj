@@ -120,7 +120,12 @@ module m_Types
     real(k_pr) :: qTolerance !< charge tolerance used to find Fermi level
     type(timeType):: time
     type(fitType)  :: fit
-    real(k_pr) :: CurrSimTime !< keeps the time in a td simulation
+    real(k_pr) :: CurrSimTime !< keeps the time in a td simulation    
+    real(k_pr) :: epsG,gtol
+    real(k_pr) :: epsX,xtol
+    real(k_pr) :: epsF,ftol
+    integer :: maxFEval
+    integer :: HessianM
   end type generalType
 
 !> \brief data type for atoms properties

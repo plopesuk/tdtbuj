@@ -630,7 +630,7 @@ contains
     case(2)
       jz=m
     case(3)
-      jz=n
+      jz=n 
     end select
 
   end function jz

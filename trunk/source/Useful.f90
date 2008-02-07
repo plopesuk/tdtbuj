@@ -433,8 +433,8 @@ contains
     type(atomicxType),intent(inout) :: atomic
     type(ioType),intent(in) :: io
     type(solutionType), intent(in) :: sol
-     integer :: from,to,k,j,i,m
-    real(k_pr) :: m_down,m_up,aux,sx,mu,md
+    integer :: from,to,k,j,m
+    real(k_pr) :: m_down,m_up,aux,mu,md
 
     j=0
     m_down=0.0_k_pr
@@ -573,8 +573,7 @@ contains
       real(k_pr) :: mu
       real(k_pr) :: fermi
     !--internal variables ----------------------------!  
-      real(k_pr) :: expo,aux,sum
-      integer :: i
+      real(k_pr) :: expo
     !-------------------------------------------------!
          expo = (energy-mu)/(temp*k_kb)
          if (expo<-100.0_k_pr) then

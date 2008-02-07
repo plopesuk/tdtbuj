@@ -207,6 +207,7 @@ contains
     tx=0.0_k_pr
     ta=0.0_k_pr
 
+    write(io%uout,'(a,a)')"Energy update from: ", myname
     res=func(gen,atomic,tb,sol,io,x,f,g)
 
     fold = f
@@ -356,56 +357,45 @@ end subroutine lbfgs
        integer :: i
 
        if (iter == 0)then
-            write(io%uerr,10)
-            write(io%uerr,20) n,m
-            write(io%uerr,30)f,gnorm
+            write(io%uout,'(a)')"=============================================================="
+            write(io%uout,'(a,i0,a,i0,a)') "n= ",n," number of corrections= ",m, "initial values"
+            write(io%uout,'(a,ES12.4,a,ES12.4)')"f=",f," gnorm= ",gnorm
                   if (iprint(2)>=1)then
-                      write(io%uerr,40)
-                      write(io%uerr,50) (x(i),i=1,n)
-                      write(io%uerr,60)
-                      write(io%uerr,50) (g(i),i=1,n)
+                      write(io%uout,'(a)') "vector X:"
+                      write(io%uout,'(1500f16.8)') (x(i),i=1,n)
+                      write(io%uout,'(a)')"gradient vector (Forces): "
+                      write(io%uout,'(1500f16.8)') (g(i),i=1,n)
                    endif
-            write(io%uerr,10)
-            write(io%uerr,70)
+            write(io%uout,'(a)')"=============================================================="
+            write(io%uout,'(a,4x,a,8x,a,7x,a)')"   i   nfn","func","gnorm","steplength"
        else
            if ((iprint(1)==0).and.(iter/=1.and..not.finish))return
                if (iprint(1)/=0)then
                     if(mod(iter-1,iprint(1))==0.or.finish)then
-                          if(iprint(2)>1.and.iter>1) write(io%uerr,70)
-                          write(io%uerr,80)iter,nfun,f,gnorm,stp
+                          if(iprint(2)>1.and.iter>1) write(io%uout,'(a,4x,a,8x,a,7x,a)')"   i   nfn","func","gnorm","steplength"
+                          write(io%uout,'(2(i4,1x),3x,3(1f10.3,2x))')iter,nfun,f,gnorm,stp
                     else
                           return
                     endif
                else
-                    if( iprint(2)>1.and.finish) write(io%uerr,70)
-                    write(io%uerr,80)iter,nfun,f,gnorm,stp
+                    if( iprint(2)>1.and.finish) write(io%uout,'(a,4x,a,8x,a,7x,a)')"   i   nfn","func","gnorm","steplength"
+                    write(io%uout,'(2(i4,1x),3x,3(1f10.3,2x))')iter,nfun,f,gnorm,stp
                endif
                if (iprint(2)==2.or.iprint(2)==3)then
                      if (finish)then
-                         write(io%uerr,90)
+                         write(io%uout,'(a)')"final point X: "
                      else
-                         write(io%uerr,40)
+                         write(io%uout,'(a)') "vector X:"
                      endif
-                       write(io%uerr,50)(x(i),i=1,n)
+                       write(io%uout,'(1500f16.8)')(x(i),i=1,n)
                    if (iprint(2)==3)then
-                       write(io%uerr,60)
-                       write(io%uerr,50)(g(i),i=1,n)
+                       write(io%uout,'(a)')"gradient vector (Forces): "
+                       write(io%uout,'(1500f16.8)')(g(i),i=1,n)
                    endif
                endif
-             if (finish) write(io%uerr,100)
+             if (finish) write(io%uout,'(a)') " the minimization terminated without detecting errors. iflag = 0"
        endif
-
-  10   format('*************************************************')
-  20   format('  n=',i5,'   number of corrections=',i2, /,  '       initial values')
-  30   format(' f= ',1pd10.3,'   gnorm= ',1pd10.3)
-  40   format(' vector x= ')
-  50   format(6(2x,1pd10.3))
-  60   format(' gradient vector g= ')
-  70   format(/'   i   nfn',4x,'func',8x,'gnorm',7x,'steplength'/)
-  80   format(2(i4,1x),3x,3(1pd10.3,2x))
-  90   format(' final point x= ')
-  100  format(/' the minimization terminated without detecting errors.',/' iflag = 0')
-       end subroutine IterationReport
+  end subroutine IterationReport
 !
 ! !c
 ! !c     **************************
@@ -576,7 +566,8 @@ end subroutine lbfgs
     p5 = 0.5_k_pr
     p66 = 0.66_k_pr
     xtrapf = 4.0_k_pr
-
+    
+    write(io%uout,'(a,a)')"Energy update from: ", myname
     res=func(gen,atomic,tb,sol,io,x,f,g)
     infoc = 1
     info = 0
@@ -633,6 +624,7 @@ end subroutine lbfgs
       do j = 1,n
         x(j) = wa(j)+stp*s(j)
       enddo
+      write(io%uout,'(a,a)')"Energy update from: ", myname
       res=func(gen,atomic,tb,sol,io,x,f,g)
       info = 0
 

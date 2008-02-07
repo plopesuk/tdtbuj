@@ -122,7 +122,7 @@ contains
     type(solutionType),intent(inout) :: sol
     type(atomicxType), intent(inout) :: atomic
     type(generalType), intent(inout) :: gen
-    integer  :: i,j,k,l
+    integer  :: i,j,k
     real(k_pr) :: ua,ub, rij,uv
     !-------------------------------------------------!
     sol%potential = 0.0_k_pr

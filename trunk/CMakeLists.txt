@@ -11,6 +11,8 @@ set(target_name tdtbuj)
 FIND_PACKAGE(BLAS)
 MESSAGE("Using this version of blas ${BLAS95_LIBRARIES} with flags
 ${BLAS_LINKER_FLAGS}")
+MESSAGE("Using this version of blas ${BLAS_LIBRARIES} with flags
+${BLAS_LINKER_FLAGS}")
 find_package(MKLSOLVER)
 message("Using this version of lapack: ${MKLSOLVER_LIBRARIES} with flags  ${MKLSOLVER_LINKER_FLAGS} ")
 set(LIBS ${MKLSOLVER_LINKER_FLAGS} ${MKLSOLVER_LIBRARIES} ${BLAS95_LIBRARIES} )
@@ -43,7 +45,7 @@ add_library(linalg
 ${src_dir}/Constants.f90
 ${src_dir}/Types.f90
 ${src_dir}/Useful.f90
-${src_dir}/LinearAlgebra.f90
+${src_dir}/LinearAlgebra.F90
 )
 
 ####################

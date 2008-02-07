@@ -22,5 +22,7 @@ this will generate a documentation using doxygen
 (www.stack.nl/~dimitri/doxygen/) you will need also 
 latex and makeindex.
 
-
+paranoic debug flags intel compiler
+PS C:\Users\Alin M Elena\tdtbuj> $env:FFLAGS="/traceback /check:pointer /check:bounds /check:uninit /check:format /check
+:output_conversion /check:arg_temp_created /Qopenmp-profile /Qfpp2  /Od  /gen-interfaces /stand:f03"
 
