@@ -46,6 +46,7 @@ contains
 
   call ResetSparseMatrix(sol%h)
   if (.not. gen%spin) then
+!!$OMP PARALLEL DO DEFAULT(shared) PRIVATE(i,j,k,o,hij,rij,l,m,n)  SCHEDULE(static)      
     do i=1,atomic%atoms%natoms
       do j=1,atomic%atoms%natoms
         if (i/=j) then
@@ -72,12 +73,14 @@ contains
         endif
       enddo
     enddo
+!!$OMP END PARALLEL DO    
   elseif( gen%collinear) then
+!$OMP PARALLEL DO DEFAULT(shared) PRIVATE(i,j,k,o,hij,rij,l,m,n,norbsi,norbsj)  SCHEDULE(static)        
     do i=1,atomic%atoms%natoms
-      do j=1,atomic%atoms%natoms
-        norbsi=atomic%species%norbs(atomic%atoms%sp(i))/2
-        norbsj=atomic%species%norbs(atomic%atoms%sp(j))/2
-        if (i/=j) then
+      norbsi=atomic%species%norbs(atomic%atoms%sp(i))/2 
+      do j=1,atomic%atoms%natoms        
+        if (i/=j) then        
+        norbsj=atomic%species%norbs(atomic%atoms%sp(j))/2 
 ! Offsite terms
           call AtomDistance(atomic%atoms,j,i,rij,l,m,n)
           do k=1,norbsi
@@ -95,20 +98,21 @@ contains
             enddo
           enddo
         else
-!            Onsite terms
+!            Onsite terms           
           do k=1,norbsi
-            do o=1,norbsj
+            do o=1,norbsi
               hij = Onsite(atomic%basis%orbitals(atomic%atoms%orbs(i,k)),&
                             atomic%basis%orbitals(atomic%atoms%orbs(i,o)),tbMod)
-              call SpmPut(sol%h,atomic%atoms%orbs(i,k),atomic%atoms%orbs(j,o),cmplx(hij,0.0_k_pr,k_pr))
+              call SpmPut(sol%h,atomic%atoms%orbs(i,k),atomic%atoms%orbs(i,o),cmplx(hij,0.0_k_pr,k_pr))
               hij = Onsite(atomic%basis%orbitals(atomic%atoms%orbs(i,k+norbsi)),&
-                            atomic%basis%orbitals(atomic%atoms%orbs(i,o+norbsj)),tbMod)
-              call SpmPut(sol%h,atomic%atoms%orbs(i,k+norbsi),atomic%atoms%orbs(j,o+norbsj),cmplx(hij,0.0_k_pr,k_pr))
+                            atomic%basis%orbitals(atomic%atoms%orbs(i,o+norbsi)),tbMod)
+              call SpmPut(sol%h,atomic%atoms%orbs(i,k+norbsi),atomic%atoms%orbs(i,o+norbsi),cmplx(hij,0.0_k_pr,k_pr))
             enddo
           enddo
         endif
       enddo
     enddo
+!$OMP END PARALLEL DO     
   else
     call error("Non-Collinear spins are not implemented yet!",myname,.true.,io)
   endif
@@ -153,7 +157,7 @@ contains
     type(generalType), intent(inout) :: gen
     type(solutionType), intent(inout) :: sol
     type(atomicxType), intent(inout) :: atomic
-    integer :: i,j,n,ns
+    integer :: n,ns
     real(k_pr),allocatable :: tmpA(:)
     type(matrixType) :: tmpB
 
@@ -389,7 +393,6 @@ contains
     type(solutionType), intent(inout) :: sol
     type(ioType), intent(inout) :: io
     type(generalType), intent(in) :: gen
-    integer :: i,j
     !-------------------------------------------------!
 
       if (gen%spin) then

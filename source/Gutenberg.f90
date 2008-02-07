@@ -42,8 +42,8 @@ contains
     type(atomicxType), intent(in) :: atomix
     type(modelType),intent(in) :: tbmod
 
-    integer i,j
-    character(len=k_mw) :: saux
+    integer :: i,j
+    
     integer :: k,k1,k2
     write(io%uout,'(a)')"==Tail functions========================================================================================"
     write(io%uout,'(a)')"==Repulsive terms tail parameters======================================================"
@@ -393,7 +393,7 @@ contains
     type(atomicxType), intent(inout) :: atomix
     type(modelType), intent(inout) :: tbMod
 
-    integer i,j,i1,k,k1,k2,p
+    integer :: i,j,i1,k,k1,k2
     character(len=k_mw) :: read_var
 
     write(io%uout,*)"==Harrison Parameters================================================"
@@ -511,7 +511,7 @@ contains
     logical, intent(in) :: blocal
     type(ioType), intent(in) :: io
 
-    integer :: i,at
+    integer :: i
     real(k_pr) :: lm
     write(io%uout,"(a)")"Atom | Specie | Magnetic Moment |"
     if (blocal) then

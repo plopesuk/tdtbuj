@@ -32,8 +32,7 @@ contains
     type(generalType), intent(inout) :: gen
     type(ioType), intent(inout) :: io
     type(solutionType), intent(inout) :: sol
-    integer :: i,j
-    complex(k_pr) :: trace
+    integer :: i
     real(k_pr) :: qtotal
     character(len=k_ml) :: saux
 
@@ -123,7 +122,7 @@ contains
     type(generalType), intent(in) :: gen
     type(ioType), intent(in) :: io
     type(solutionType), intent(inout) :: sol
-    integer      :: i,j,k
+    integer      :: i,k
     real(k_pr),allocatable  :: f(:)
     real(k_pr) :: fa,fb,entropy,tiny
     complex(k_pr),allocatable :: a(:,:)
@@ -241,9 +240,8 @@ contains
     type(generalType), intent(inout) :: gen
     type(ioType), intent(inout) :: io
     type(solutionType), intent(inout) :: sol
-      integer      :: i,j,k
+      integer      :: i,k
       real(k_pr)              :: a,b
-      complex(k_pr)           :: trace
       real(k_pr),allocatable  :: f(:)
       real(k_pr) :: qtotal,q
       real(k_pr) :: entropy,tiny,fa,fb
@@ -419,8 +417,7 @@ contains
     type(atomicxType), intent(inout) :: atomic
 
     integer, allocatable :: pos1(:), pos2(:)
-    integer      :: i,j,homo,extra
-    complex(k_pr)           :: trace
+    integer      :: i,homo,extra
     real(k_pr) :: qtotal
     !-------------------------------------------------!
 
@@ -513,7 +510,7 @@ contains
     type(solutionType), intent(inout) :: sol
     type(generalType), intent(inout) :: gen
     type(ioType), intent(inout) :: io
-    integer :: i,j,hole,excite,n
+    integer :: hole,excite,n
 
 
     n=sol%rho%dim
@@ -536,8 +533,7 @@ contains
     type(generalType), intent(inout) :: gen
     type(ioType), intent(inout) :: io
     integer, intent(in) :: pos1(:),pos2(:),homo
-    integer      :: i,j,k,hole,excite,n
-    complex(k_pr)           :: trace
+    integer      :: i,k,hole,excite,n
     real(k_pr),allocatable  :: f(:),g(:)
     real(k_pr) :: fa,fb,entropy,tiny
     complex(k_pr),allocatable :: a(:,:)

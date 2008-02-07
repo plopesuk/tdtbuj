@@ -214,6 +214,7 @@ contains
                 write(ioLoc%uout,'(a,f16.8)')"       SCF: ",scfe
                 write(ioLoc%uout,'(a,f16.8)')"     Total: ",ee+re+scfe
               endif
+              
               if (dmax < genLoc%scftol) exit
             end do
 !
@@ -231,6 +232,7 @@ contains
             else
                write(ioLoc%uout,'(a,i0,a,ES12.4)') "converged in ",nit, " iterations up to ",dmax
             endif
+            
             call CalcExcessCharges(genLoc,atomic,sol)
             call CalcDipoles(genLoc,atomic,sol)
             call ComputeMagneticMoment(genLoc,atomic,sol,ioLoc)
@@ -242,8 +244,7 @@ contains
             call ZeroForces(atomic)
             call RepulsiveForces(genLoc,atomic%atoms,tbMod)
             call ElectronicForces(atomic,genLoc,tbMod,sol,ioLoc)
-            call ScfForces(genLoc,atomic,sol,ioLoc)
-
+            call ScfForces(genLoc,atomic,sol,ioLoc)            
             deallocate(dins)
             deallocate(douts)
             deallocate(res)
@@ -252,10 +253,12 @@ contains
             deallocate(densitynext)
 !             call Print_eigens(eigenval,eigenvec,555,.false.)
 !             call write_density_matrix("rho.bin",rho%a,rho%dim)
-            trace = MatrixTrace(sol%rho,ioLoc)
-            write(saux,'(a,"(",f0.4,1x,f0.4,"i)")') "Density matrix, Trace= ",trace
-            call PrintMatrix(sol%rho,trim(saux),ioLoc)
-          end select
+            if (ioLoc%verbosity >= k_mediumVerbos) then
+              trace = MatrixTrace(sol%rho,ioLoc)
+              write(saux,'(a,"(",f0.4,1x,f0.4,"i)")') "Density matrix, Trace= ",trace
+             call PrintMatrix(sol%rho,trim(saux),ioLoc)
+            endif            
+        end select
       else
         call BuildHamiltonian(ioLoc,genLoc,atomic,tbMod,sol)
         call AddBias(1.0_k_pr,atomic,sol)

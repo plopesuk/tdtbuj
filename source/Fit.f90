@@ -536,7 +536,7 @@ end function UpdateCost
     real(k_pr) :: t, eps, rt, fopt
     integer,allocatable::  nacp(:)
     integer ::  ns, nt, nfcnev, ier,  &
-            maxevl, iprint, nacc, nobds,i,neps,errno
+            maxevl, nacc, nobds,i,neps,errno
     logical ::  max
 
     allocate(x(1:gen%fit%iNoParams),xopt(1:gen%fit%iNoParams),c(1:gen%fit%iNoParams),vm(1:gen%fit%iNoParams),&

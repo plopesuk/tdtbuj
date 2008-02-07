@@ -410,7 +410,7 @@ end subroutine setTails
 
     real(k_pr) :: RadNoTail
     !-------------------------------------------------!
-    real(k_pr) ::r0,n,nc,rc,phi0
+    real(k_pr) ::r0,n,nc,rc
     select case(gen%bond)
     case(k_bondGSP)
       r0 = tb%hopping(sp1,sp2)%r0
@@ -470,7 +470,7 @@ end subroutine setTails
     type(generalType), intent(inout) :: gen
     real(k_pr) :: RadPNoTail
     !-------------------------------------------------!
-    real(k_pr) ::r0,n,nc,rc,phi0
+    real(k_pr) ::r0,n,nc,rc
 
     select case(gen%bond)
     case(k_bondGSP)
@@ -538,7 +538,7 @@ end subroutine setTails
     type(generalType), intent(inout) :: gen
     real(k_pr) :: RadPpNoTail
     !-------------------------------------------------!
-    real(k_pr) ::r0,n,nc,rc,phi0
+    real(k_pr) ::r0,n,nc,rc
 
     select case(gen%bond)
     case(k_bondGSP)
@@ -872,8 +872,8 @@ end subroutine setTails
     type(atomicxType), intent(inout) :: atomic
     type(solutionType), intent(inout) :: sol
     type(ioType), intent(inout) :: io
-    integer :: from,to,i
-    real(k_pr) :: lmom,tmom
+    integer :: i
+    real(k_pr) :: tmom
     tmom=0.0_k_pr
     if (gen%spin) then
     do i=1,atomic%atoms%natoms

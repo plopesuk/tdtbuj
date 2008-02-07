@@ -35,7 +35,7 @@ contains
     type(atomicxType), intent(inout) :: atomic
     type(modelType), intent(inout) :: tbMod
     real(k_pr) :: aux
-    integer :: errno=-1,nt,i
+    integer :: errno=-1
 
     ioLoc%uerr=GetUnit()
     ioLoc%inpErr=trim(ioLoc%inpFile)//".err"
@@ -397,10 +397,6 @@ subroutine ReadGeneral(ioLoc,genLoc)
       write( ioLoc%uout,'(a,ES12.4)')"Net charge(NetCharge): "&
       ,genLoc%netcharge
 
-    genLoc%forceTolerance=GetReal(ioLoc,"ForceTolerance",1.0e-10_k_pr)
-    write( ioLoc%uout,'(a,ES12.4)')"Force Tolerance (during geometry optimisation)(ForceTolerance): "&
-      ,genLoc%forceTolerance
-
     saux=GetString(ioLoc,"SmearingMethod","FD")
     write( ioLoc%uout,'(a,a)')"Smearing Methos used to find Fermi level (SmearingMethod): "&
       ,trim(saux)
@@ -568,7 +564,7 @@ subroutine ReadGeneral(ioLoc,genLoc)
 
 ! !comm_gen Excite & logical & .false. & on/off create an excited state \\
   genLoc%lIsExcited=GetLogical(ioLoc,"Excite",.false.)
-  write( ioLoc%uout,'(a,l)')"Create excitation(Excite): "&
+  write( ioLoc%uout,'(a,l1)')"Create excitation(Excite): "&
      ,genLoc%lIsExcited
 
   if (genLoc%lIsExcited) then
@@ -605,6 +601,36 @@ subroutine ReadGeneral(ioLoc,genLoc)
       call error("The requested spin type is not implemented",name,.true.,ioLoc)
     endif
   endif
+  if (genLoc%runType == k_runGeomBFGS) then
+    genLoc%fTol=GetReal(ioLoc,"EnergyTolerance",1.0e-4_k_pr)
+    write( ioLoc%uout,'(a,ES12.4)')"Energy Tolerance (during geometry optimisation)(EnergyTolerance): "&
+      ,genLoc%fTol
+    genLoc%gTol=GetReal(ioLoc,"ForceTolerance",1.0e-10_k_pr)
+    write( ioLoc%uout,'(a,ES12.4)')"Force Tolerance (during geometry optimisation)(ForceTolerance): "&
+      ,genLoc%gTol
+    genLoc%xTol=GetReal(ioLoc,"XTolerance",1.0e-10_k_pr)
+    write( ioLoc%uout,'(a,ES12.4)')" Coordinates Tolerance (during geometry optimisation)(XTolerance): "&
+      ,genLoc%xTol
+    genLoc%epsf=GetReal(ioLoc,"EpsilonE",1.0e-10_k_pr)
+    write( ioLoc%uout,'(a,ES12.4)')"Epsilon Energy Tolerance (during geometry optimisation)(EpsilonE): "&
+      ,genLoc%epsf    
+    genLoc%epsg=GetReal(ioLoc,"EpsilonG",1.0e-10_k_pr)
+    write( ioLoc%uout,'(a,ES12.4)')"Epsilon Gradient Tolerance (during geometry optimisation)(EpsilonG): "&
+      ,genLoc%epsg
+    genLoc%epsX=GetReal(ioLoc,"EpsilonX",1.0e-10_k_pr)
+    write( ioLoc%uout,'(a,ES12.4)')"Epsilon Coordinates Tolerance (during geometry optimisation)(EpsilonX): "&
+      ,genLoc%epsx
+    genLoc%maxFEval=GetInteger(ioLoc,"MaxFEval",20)
+    write(ioLoc%uout,'(a,i8)') &
+          "Maximum number of evaluations for energy during each step of geometry optimisation (MaxFEval)",genLoc%maxFeval
+    genLoc%nsteps=GetInteger(ioLoc,"GeometryNSteps",100)
+    write( ioLoc%uout,'(a,i0)')"Number of steps for geometry optimisation (GeometryNSteps): "&
+        ,genLoc%nsteps        
+    genLoc%HessianM=GetInteger(ioLoc,"HessianM",7)
+    write(ioLoc%uout,'(a,i8)') &
+          "Number of corrections used (3<= m <=7) by bfgs to compute hessian geometry optimisation (HessianM) ",genLoc%HessianM 
+  endif
+  
 end subroutine ReadGeneral
 
 !> \page control
@@ -1582,7 +1608,7 @@ end subroutine ReadBasis
     type(atomicxType), intent(inout) :: atomix
     type(modelType), intent(inout) :: tbMod
 
-    integer :: i,j,k,k1,k2
+    integer :: i,j,k
 
     allocate(tbMod%hopping(1:atomix%species%nspecies,1:atomix%species%nspecies))
 
@@ -2035,6 +2061,6 @@ end subroutine ReadBasis
 
     deallocate(sol%n0)
     deallocate(sol%density)
-
+    call MKL_FreeBuffers()
   end subroutine CleanMemory
 end module m_ReadData

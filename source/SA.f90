@@ -112,7 +112,7 @@ contains
                             xp(i) = lb(i) + (ub(i) - lb(i))*ranmar(sol%seed)
                             lnobds = lnobds + 1
                             nobds = nobds + 1
-                            call prt3(max,n,xp,x,fp,f,io)
+                            call prt3(max,xp,x,f,io)
                         end if
                     enddo
 
@@ -120,7 +120,7 @@ contains
                     fp=func(xp,gen,atomic,tb,sol,io)
                     if(.not. max) fp = -fp
                     nfcnev = nfcnev + 1
-                    call prt4(max,n,xp,x,fp,f,io)
+                    call prt4(max,xp,x,fp,f,io)
 
                !  if too many function evaluations occur, terminate the algorithm.
                     if(nfcnev >= maxevl) then
@@ -189,11 +189,11 @@ contains
                     vm(i) = ub(i) - lb(i)
                 end if
             enddo
-            call prt8(n,vm,xopt,x,io)
+            call prt8(vm,xopt,x,io)
             nacp = 0
         enddo
 
-        call prt9(max,n,t,xopt,vm,fopt,nup,ndown,nrej,lnobds,nnew,io)
+        call prt9(max,t,xopt,vm,fopt,nup,ndown,nrej,lnobds,nnew,io)
 !  check termination criteria.
         quit = .false.
         fstar(1) = f
@@ -229,9 +229,8 @@ contains
 
     end subroutine SimulAnnealing
 
-  subroutine prt3(max,n,xp,x,fp,f,io)
-    real(k_pr), intent(in) :: xp(:), x(:), fp, f
-    integer, intent(in)  :: n
+  subroutine prt3(max,xp,x,f,io)
+    real(k_pr), intent(in) :: xp(:), x(:), f
     logical, intent(in) ::  max
     type(ioType), intent(inout) :: io
         write(io%uout,'(''  '')')
@@ -243,35 +242,30 @@ contains
         end if
           call PrintVector(xp,'trial x',.true.,.false.,io)
         write(io%uout,*)"  point rejected since out of bounds "
-
-        return
     end subroutine prt3
 
-    subroutine prt4(max,n,xp,x,fp,f,io)
-
-            real(k_pr),intent(in) ::  xp(:), x(:), fp, f
-            integer,intent(in) ::  n
-            logical,intent(in) ::  max
-          type(ioType), intent(inout) :: io
-        write(io%uout,*)
-        call PrintVector(x,'current x',.true.,.false.,io)
-        if (max) then
-            write(io%uout,'(a,g25.18)')" current f: ", f
-          call PrintVector(xp,'trial x',.true.,.false.,io)
-            write(io%uout,'(a,g25.18)')" resulting f: ", fp
-        else
-            write(io%uout,'(a,g25.18)')" current f: ", -f
-          call PrintVector(xp,'trial x',.true.,.false.,io)
-            write(io%uout,'(a,g25.18)')" resulting f: ", -fp
-        end if
-
-        return
+    subroutine prt4(max,xp,x,fp,f,io)
+      real(k_pr),intent(in) ::  xp(:), x(:), fp, f
+      logical,intent(in) ::  max
+      type(ioType), intent(inout) :: io
+      
+      write(io%uout,*)
+      call PrintVector(x,'current x',.true.,.false.,io)
+      if (max) then
+        write(io%uout,'(a,g25.18)')" current f: ", f
+        call PrintVector(xp,'trial x',.true.,.false.,io)
+        write(io%uout,'(a,g25.18)')" resulting f: ", fp
+      else
+        write(io%uout,'(a,g25.18)')" current f: ", -f
+        call PrintVector(xp,'trial x',.true.,.false.,io)
+        write(io%uout,'(a,g25.18)')" resulting f: ", -fp
+      end if     
     end subroutine prt4
 
-    subroutine prt8(n,vm,xopt,x,io)
-          type(ioType), intent(inout) :: io
-        real(k_pr)  vm(:), xopt(:), x(:)
-        integer  n
+    subroutine prt8(vm,xopt,x,io)
+        type(ioType), intent(inout) :: io
+        real(k_pr) :: vm(:), xopt(:), x(:)
+        
 
         write(io%uout,*)" intermediate results after step length adjustment"
           call PrintVector(vm,'new step length (vm)',.true.,.false.,io)
@@ -280,11 +274,11 @@ contains
         write(io%uout,*)
     end subroutine prt8
 
-    subroutine prt9(max,n,t,xopt,vm,fopt,nup,ndown,nrej,lnobds,nnew,io)
+    subroutine prt9(max,t,xopt,vm,fopt,nup,ndown,nrej,lnobds,nnew,io)
         type(ioType), intent(inout) :: io
-        real(k_pr)          xopt(:), vm(:), t, fopt
-        integer  n, nup, ndown, nrej, lnobds, nnew, totmov
-        logical  max
+        real(k_pr) ::          xopt(:), vm(:), t, fopt
+        integer::  nup, ndown, nrej, lnobds, nnew, totmov
+        logical ::  max
 
         totmov = nup + ndown + nrej
 
@@ -311,6 +305,5 @@ contains
           call PrintVector(vm,'step length (vm)',.true.,.false.,io)
         write(io%uout,'('' '')')
   end subroutine prt9
-
-
+  
 end module m_SA

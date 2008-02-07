@@ -53,6 +53,7 @@ module m_DriverRoutines
     eenergy = ElectronicEnergy(genLoc,sol,ioLoc)
     renergy = RepulsiveEnergy(genLoc,atomic%atoms,tbMod)
     minusts = - genLoc%electronicTemperature * sol%electronicEntropy
+   
     write(ioLoc%uout,'(/a)')&
          '--Single Point Run----------------------------------------------'
     call PrintAtoms(ioLoc,genLoc,atomic)
@@ -95,8 +96,8 @@ module m_DriverRoutines
     type(modelType), intent(inout) :: tb
     integer :: aniunit, eneunit,xunit,runit
     real(k_pr) :: eenergy,renergy,kenergy,penergy,scfE,minusts
-    integer  :: i,istep,m,n,k
-    real(k_pr) :: dt,mi,currTime
+    integer  :: i,istep,k
+    real(k_pr) :: dt,mi
     character(len=k_ml) :: saux
     aniunit=GetUnit()
     eneunit=GetUnit()
@@ -249,8 +250,8 @@ module m_DriverRoutines
     type(modelType), intent(inout) :: tb
     integer :: aniunit, eneunit, popunit, xunit,runit, accUnit, donUnit, spacUnit
     real(k_pr) :: eenergy,renergy,kenergy,penergy,scfE
-    integer  :: i,istep,n,m,j,k
-    real(k_pr) :: dt,mi,currTime
+    integer  :: i,istep,k
+    real(k_pr) :: dt,mi
     complex(k_pr) :: ihbar,trrho,st
     type(matrixType) :: rhoold,rhodot,rhonew,rho0
     real(k_pr) ::biasFactor,bfa
@@ -472,8 +473,8 @@ module m_DriverRoutines
     type(modelType), intent(inout) :: tb
     integer :: aniunit, eneunit, popunit, xunit,runit, accUnit, donUnit, spacUnit
     real(k_pr) :: eenergy,renergy,kenergy,penergy,scfE
-    integer  :: i,istep,n,m,j,k
-    real(k_pr) :: dt,mi,currTime
+    integer  :: i,istep,k
+    real(k_pr) :: dt,mi
     complex(k_pr) :: ihbar,trrho,st
     type(matrixType) :: rhoold,rhodot,rhonew,rho0,deltaRho
     real(k_pr) ::biasFactor,bfa,gamma
@@ -584,11 +585,11 @@ module m_DriverRoutines
         !euler step
         call ScalarTMatrix(ihbar*cmplx(dt,0.0_k_pr,k_pr),rhodot,io)
         call ScalarTMatrix(cmplx(gamma*dt,0.0_k_pr,k_pr),deltaRho,io)
-	call MatrixCeaApbB(rhonew,sol%rho,rhodot,k_cone,k_cone,io)
+        call MatrixCeaApbB(rhonew,sol%rho,rhodot,k_cone,k_cone,io)
       else !verlet step
         call ScalarTMatrix(ihbar*st,rhodot,io)
         call ScalarTMatrix(gamma*st,deltaRho,io)
-	call MatrixCeaApbB(rhonew,rhoold,rhodot,k_cone,k_cone,io)
+        call MatrixCeaApbB(rhonew,rhoold,rhodot,k_cone,k_cone,io)
       end if
       call MatrixCeaApbB(rhonew,rhonew,deltaRho,k_cone,k_cone,io)
       ! at this point rho contains the rho at time=t
@@ -811,22 +812,23 @@ module m_DriverRoutines
     endif
 
     n = atomic%atoms%nmoving*3
-    m=min(7,n)
+    m=min(gen%HessianM,n)
     if (io%verbosity > k_highVerbos) then
       iprint(1) = 1
     else
       iprint(1) = -1
-    endif
-    iprint(1) = 1
+    endif    
     iprint(2) = 0
-    epsf = gen%forceTolerance/10.0_k_pr
-    epsg = gen%forceTolerance/10.0_k_pr
-    epsx = gen%forceTolerance/10.0_k_pr
-    xtol = 1.0e-16_k_pr
-    gtol=0.0_k_pr
+    epsf = gen%epsF
+    epsg = gen%epsG
+    epsx = gen%epsX
+    xtol = gen%xtol
+    gtol=gen%ftol
     info = 0
-    maxfev=20
-    ftol=1.0e-4_k_pr
+    maxfev=gen%maxFeval
+    ftol=gen%ftol
+    
+    
     allocate(x(1:n))
     do i=1,atomic%atoms%nmoving
       atom=atomic%atoms%id(atomic%atoms%moving(i))
@@ -877,6 +879,10 @@ module m_DriverRoutines
     call SinglePoint(io,gen,atomic,tb,sol)
     if (.not.gen%lIsSCFConverged) then
       UpdatePoint=1
+      gen%scf=.false.
+      call error(myname,"change to non-SCF calculation for this point",.false.,io)
+      call SinglePoint(io,gen,atomic,tb,sol)
+      gen%scf=.true.
     endif
     do i=1,atomic%atoms%nmoving
       atom=atomic%atoms%id(atomic%atoms%moving(i))
@@ -886,8 +892,4 @@ module m_DriverRoutines
     enddo
     f=sol%totalEnergy
    end function UpdatePoint
-
-
-
-
 end module m_DriverRoutines

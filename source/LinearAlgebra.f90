@@ -44,11 +44,24 @@ contains
     type(matrixType),intent(inout) :: a
     logical,intent(in) :: zeroout
     integer,intent(in) :: m
+   integer :: i,j 
 
     a%isSparse = .false.
     a%dim = m
     allocate(a%a(m,m))
-    if (zeroout) a%a = cmplx(0.0_k_pr,0.0_k_pr,k_pr)
+    if (zeroout) then
+#if OPENMP     
+!$OMP PARALLEL DO  DEFAULT(shared) PRIVATE(i,j) SCHEDULE(static)
+    do i=1,m
+      do j=1,m  
+        a%a(i,j) = cmplx(0.0_k_pr,0.0_k_pr,k_pr)
+      enddo
+    enddo 
+!$OMP END PARALLEL DO    
+#else    
+    a%a = cmplx(0.0_k_pr,0.0_k_pr,k_pr)
+#endif
+   endif 
     a%created = .true.
   end subroutine CreateMatrix
   !-------------------------------------------------!
@@ -61,6 +74,7 @@ contains
     type(matrixType),intent(inout) :: a
     logical,intent(in) :: zeroout
     integer,intent(in) :: m
+   integer :: i,j 
     
     a%isSparse = .true.
     a%dim = m
@@ -69,7 +83,19 @@ contains
     allocate(a%indx(m*m))
     allocate(a%jndx(m*m))
 
-    if (zeroout) a%a = cmplx(0.0_k_pr,0.0_k_pr,k_pr)
+    if (zeroout) then
+#if OPENMP    
+ !$OMP PARALLEL DO  DEFAULT(shared) PRIVATE(i,j) SCHEDULE(static)
+    do i=1,m
+      do j=1,m  
+        a%a(i,j) = cmplx(0.0_k_pr,0.0_k_pr,k_pr)
+      enddo
+    enddo    
+!$OMP END PARALLEL DO          
+#else    
+    a%a = cmplx(0.0_k_pr,0.0_k_pr,k_pr)
+#endif
+    endif
     a%created = .true.
   end subroutine CreateSparseMatrix  
   !-------------------------------------------------!
@@ -78,13 +104,22 @@ contains
   subroutine ResetSparseMatrix(a)
     character(len=*), parameter :: myname = 'ResetSparseMatrix'
     type(matrixType),intent(inout) :: a
-    integer :: i!,j
+    integer :: i
+#if OPENMP  
+   !$OMP PARALLEL DO DEFAULT(shared) PRIVATE(i)
+    do i=1,a%nonZero
+      a%a(a%indx(i),a%jndx(i)) = cmplx(0.0_k_pr,0.0_k_pr,k_pr)
+      a%indx(i) = 0
+      a%jndx(i) = 0
+    end do
+!$OMP END PARALLEL DO    
+#else
     do i=1,a%nonZero
       a%a(a%indx(i),a%jndx(i)) = cmplx(0.0_k_pr,0.0_k_pr,k_pr)
     end do
-
-    a%indx(1:a%nonZero) = 0
-    a%jndx(1:a%nonZero) = 0
+    a%indx = 0
+    a%jndx = 0 
+#endif    
     a%nonZero = 0
   end subroutine ResetSparseMatrix
 
@@ -129,11 +164,23 @@ contains
     character(len=*), parameter :: myname = 'ZeroMatrix'
     type(matrixType),intent(inout) :: a
     type(ioType), intent(in) :: io
+   integer :: i,j
 
     if (.not.a%created) then
       call error("Cannot fill an unexistant matrix",myname,.true.,io)
     endif
-    a%a = cmplx(0.0_k_pr,0.0_k_pr,k_pr)
+#if OPENMP    
+!$OMP PARALLEL DO DEFAULT(shared) PRIVATE(i,j) SCHEDULE(static)
+    do i=1,a%dim
+      do j=1,a%dim
+        a%a(i,j) = cmplx(0.0_k_pr,0.0_k_pr,k_pr)
+      enddo
+    enddo 
+!$OMP END PARALLEL DO             
+#else
+   a%a = cmplx(0.0_k_pr,0.0_k_pr,k_pr)
+#endif
+
   end subroutine ZeroMatrix
    
   !-------------------------------------------------!
@@ -145,24 +192,12 @@ contains
     real(kind=k_pr),intent(inout) :: lambda(:)
     type(ioType), intent(in) :: io
     integer :: info
-      !! integer ::lwork
-      !! complex(kind=k_pr), allocatable :: work(:)
-      !! real(kind=k_pr), allocatable :: rwork(:)
 
     if (.not.a%created) then
       call error("Cannot diagonalize unexistant matrix",myname,.true.,io)
     endif
-    call CopyMatrix(c,a,io)
-      !! allocate(rwork(3*a%dim-2))
-      !! lwork = 5*a%dim-1
-      !! allocate(work(lwork))
-    call heev(c%a,lambda,'V','U',info)
-      !! call zheev('V','U', &
-         !! a%dim,c%a,a%dim, &
-         !! lambda, &
-         !! work,lwork,rwork,info)
-      !! deallocate(work)
-      !! deallocate(rwork)
+    call CopyMatrix(c,a,io)      
+    call heev(c%a,lambda,'V','U',info)  
     if(info/=0) then
       call error("Diagonalization failed",myname,.true.,io)
     endif
@@ -203,9 +238,18 @@ contains
       call error("Cannot operate on unexistant matrix",myname,.true.,io)
     endif
     MatrixTrace= cmplx(0.0_k_pr,0.0_k_pr,k_pr)
+#if OPENMP           
+!$OMP PARALLEL DO DEFAULT(shared) PRIVATE(i) REDUCTION(+:MatrixTrace) SCHEDULE(static)
     do i=1,a%dim
       MatrixTrace= MatrixTrace + a%a(i,i)
     end do
+!$OMP END PARALLEL DO    
+#else
+    do i=1,a%dim
+      MatrixTrace= MatrixTrace + a%a(i,i)
+    end do
+#endif    
+    
   end function MatrixTrace
   !-------------------------------------------------!
   ! Multiply scalar times matrix !
@@ -215,11 +259,22 @@ contains
     type(matrixType),intent(inout) :: a
     complex(kind=k_pr),intent(in) :: s
     type(ioType), intent(in) :: io
-    
+    integer :: i,j 
     if (.not.a%created) then
       call error("Cannot operate on an unexistant matrix",myname,.true.,io)
     endif
-    a%a = s*a%a 
+#if OPENMP    
+!$OMP PARALLEL DO DEFAULT(shared) PRIVATE(i,j) SCHEDULE(static)
+    do i=1,a%dim
+      do j=1,a%dim
+        a%a(i,j) = a%a(i,j)*s
+      enddo
+    enddo 
+ !$OMP END PARALLEL DO         
+#else    
+       a%a = a%a*s
+#endif
+    
   end subroutine ScalarTMatrix   
  
   !-------------------------------------------------!
@@ -230,6 +285,7 @@ contains
     type(matrixType),intent(in) :: a
     type(matrixType),intent(inout) :: b
     type(ioType), intent(in) :: io
+    integer :: i,j 
     if(b%created.and.(b%dim/=a%dim)) then
       call error("Dimensions are different",myname,.true.,io)
     endif
@@ -239,15 +295,34 @@ contains
       endif
       if (b%isSparse) then
         b%nonZero=a%nonZero
-        b%indx=a%indx
-        b%jndx=a%jndx
+#if OPENMP        
+        !$OMP PARALLEL DO DEFAULT(shared) PRIVATE(i) SCHEDULE(static)
+        do i=1,a%nonZero
+          b%indx(i)=a%indx(i)
+          b%jndx(i)=a%jndx(i)
+        enddo
+        !$OMP END PARALLEL DO            
+#else
+          b%indx=a%indx
+          b%jndx=a%jndx
+#endif        
       endif    
     else
       if (.not.b%created) then
         call CreateMatrix(b,a%dim,.false.)
       endif
     endif
-    b%a = a%a
+#if OPENMP     
+     !$OMP PARALLEL DO DEFAULT(shared) PRIVATE(i,j) SCHEDULE(static)
+    do i=1,a%dim
+      do j=1,a%dim  
+        b%a(i,j) = a%a(i,j)
+      enddo
+    enddo 
+!$OMP END PARALLEL DO            
+#else
+     b%a = a%a
+#endif
   end subroutine CopyMatrix
   
   !-------------------------------------------------!
@@ -271,6 +346,8 @@ contains
       call CreateMatrix(c,a%dim,.true.)
     endif
     if (a%isSparse) then
+#if OPENMP     
+!$OMP PARALLEL DO DEFAULT(shared) PRIVATE(j,ii,i,k)  SCHEDULE(static)
       do j=1,b%dim
         do ii=1,a%nonZero
           i = a%indx(ii)
@@ -279,7 +356,20 @@ contains
           c%a(j,k) = c%a(j,k) - b%a(j,i)*a%a(i,k)
         enddo
       enddo
+!$OMP END PARALLEL DO      
+#else
+      do j=1,b%dim
+        do ii=1,a%nonZero
+          i = a%indx(ii)
+          k = a%jndx(ii)
+          c%a(i,j) = c%a(i,j) + a%a(i,k)*b%a(k,j)
+          c%a(j,k) = c%a(j,k) - b%a(j,i)*a%a(i,k)
+        enddo
+      enddo
+#endif
     elseif (b%isSparse) then
+#if OPENMP     
+!$OMP PARALLEL DO DEFAULT(shared) PRIVATE(j,ii,i,k)  SCHEDULE(static)    
       do j=1,b%dim
         do ii=1,b%nonZero
           i = b%indx(ii)
@@ -288,6 +378,17 @@ contains
           c%a(j,k) = c%a(j,k) - b%a(j,i)*a%a(i,k)
         enddo
       enddo
+!$OMP END PARALLEL DO      
+#else
+      do j=1,b%dim
+        do ii=1,b%nonZero
+          i = b%indx(ii)
+          k = b%jndx(ii)
+          c%a(i,j) = c%a(i,j) + a%a(i,k)*b%a(k,j)
+          c%a(j,k) = c%a(j,k) - b%a(j,i)*a%a(i,k)
+        enddo
+      enddo
+#endif      
     else    
       alpha = cmplx(1.0_k_pr,0.0_k_pr,k_pr)
       beta = cmplx(0.0_k_pr,0.0_k_pr,k_pr)
@@ -315,23 +416,53 @@ contains
     ProductTrace= cmplx(0.0_k_pr,0.0_k_pr,k_pr)
     pt = cmplx(0.0_k_pr,0.0_k_pr,k_pr)
     if (a%isSparse) then
+#if OPENMP    
+!$OMP PARALLEL DO DEFAULT(shared) PRIVATE(i,ii,ji) REDUCTION(+:pt) SCHEDULE(static)
       do i=1,a%nonZero
         ii = a%indx(i)
         ji = a%jndx(i)
         pt = pt + a%a(ii,ji)*b%a(ji,ii)
       enddo
+!$OMP END PARALLEL DO       
+#else
+      do i=1,a%nonZero
+        ii = a%indx(i)
+        ji = a%jndx(i)
+        pt = pt + a%a(ii,ji)*b%a(ji,ii)
+      enddo
+#endif
     elseif (b%isSparse) then
+#if OPENMP    
+!$OMP PARALLEL DO DEFAULT(shared) PRIVATE(i,ii,ji) REDUCTION(+:pt) SCHEDULE(static)    
+      do i=1,b%nonZero
+        ii = b%indx(i)
+        ji = b%jndx(i)           
+        pt = pt + a%a(ii,ji)*b%a(ji,ii)
+      enddo
+!$OMP END PARALLEL DO      
+#else
       do i=1,b%nonZero
         ii = b%indx(i)
         ji = b%jndx(i)
         pt = pt + a%a(ii,ji)*b%a(ji,ii)
       enddo
+#endif
     else
+#if OPENMP    
+!$OMP PARALLEL DO DEFAULT(shared) PRIVATE(i,j) REDUCTION(+:pt) SCHEDULE(static)       
+      do i=1,a%dim
+        do j=1,a%dim        
+          pt = pt + a%a(i,j)*b%a(j,i)
+        enddo
+      end do
+!$OMP END PARALLEL DO
+#else
       do i=1,a%dim
         do j=1,a%dim
           pt = pt + a%a(i,j)*b%a(j,i)
         enddo
       end do
+#endif      
     endif
     ProductTrace= pt
   end function ProductTrace    
@@ -365,6 +496,8 @@ contains
 
     if (c%IsSparse .and. b%IsSparse .and. a%IsSparse) then
       if (a%nonZero==b%nonZero) then
+#if OPENMP      
+!$OMP PARALLEL DO DEFAULT(shared) PRIVATE(i,k,l,m,n) SCHEDULE(static)
         do i=1,a%nonZero
           k = a%indx(i)
           l = a%jndx(i)
@@ -373,8 +506,38 @@ contains
           m = b%jndx(i)
           call SpmPut(c,n,m,alpha*a%a(n,m)+beta*b%a(n,m))
         enddo
-      elseif(a%nonZero<b%nonZero) then
+!$OMP END PARALLEL DO        
+#else
         do i=1,a%nonZero
+          k = a%indx(i)
+          l = a%jndx(i)
+          call SpmPut(c,k,l,alpha*a%a(k,l)+beta*b%a(k,l))
+          n = b%indx(i)
+          m = b%jndx(i)
+          call SpmPut(c,n,m,alpha*a%a(n,m)+beta*b%a(n,m))
+        enddo
+#endif
+      elseif(a%nonZero<b%nonZero) then
+#if OPENMP      
+!$OMP PARALLEL DO DEFAULT(shared) PRIVATE(i,k,l,m,n) SCHEDULE(static)      
+        do i=1,a%nonZero
+          k = a%indx(i)
+          l = a%jndx(i)
+          call SpmPut(c,k,l,alpha*a%a(k,l)+beta*b%a(k,l))
+          n = b%indx(i)
+          m = b%jndx(i)
+          call SpmPut(c,n,m,alpha*a%a(n,m)+beta*b%a(n,m))
+        enddo
+!$OMP END PARALLEL DO
+!$OMP PARALLEL DO DEFAULT(shared) PRIVATE(i,k,l) SCHEDULE(static)              
+        do i=a%nonZero+1,b%nonZero
+          k = b%indx(i)
+          l = b%jndx(i)
+          call SpmPut(c,k,l,beta*b%a(k,l))
+        enddo
+!$OMP END PARALLEL DO
+#else 
+       do i=1,a%nonZero
           k = a%indx(i)
           l = a%jndx(i)
           call SpmPut(c,k,l,alpha*a%a(k,l)+beta*b%a(k,l))
@@ -387,8 +550,28 @@ contains
           l = b%jndx(i)
           call SpmPut(c,k,l,beta*b%a(k,l))
         enddo
+#endif       
       else
+#if OPENMP      
+!$OMP PARALLEL DO DEFAULT(shared) PRIVATE(i,k,l,m,n) SCHEDULE(static)     
         do i=1,b%nonZero
+          k = a%indx(i)
+          l = a%jndx(i)
+          call SpmPut(c,k,l,alpha*a%a(k,l)+beta*b%a(k,l))
+          n = b%indx(i)
+          m = b%jndx(i)
+          call SpmPut(c,n,m,alpha*a%a(n,m)+beta*b%a(n,m))
+        enddo
+!$OMP END PARALLEL DO
+!$OMP PARALLEL DO DEFAULT(shared) PRIVATE(i,k,l) SCHEDULE(static)
+      do i=b%nonZero+1,a%nonZero
+          k = a%indx(i)
+          l = a%jndx(i)
+          call SpmPut(c,k,l,alpha*a%a(k,l))
+        enddo             
+!$OMP END PARALLEL DO
+#else 
+       do i=1,b%nonZero
           k = a%indx(i)
           l = a%jndx(i)
           call SpmPut(c,k,l,alpha*a%a(k,l)+beta*b%a(k,l))
@@ -401,9 +584,20 @@ contains
           l = a%jndx(i)
           call SpmPut(c,k,l,alpha*a%a(k,l))
         enddo
+#endif        
       endif
     else
+#if OPENMP
+!$OMP PARALLEL DO DEFAULT(shared) PRIVATE(i,j) SCHEDULE(static)    
+     do i=1, c%dim
+       do j=1,c%dim
+         c%a(i,j) = alpha*a%a(i,j) + beta*b%a(i,j) 
+       enddo
+     enddo 
+ !$OMP END PARALLEL DO    
+#else
       c%a = alpha*a%a + beta*b%a 
+#endif      
     endif
   end subroutine MatrixCeaApbB
 !> \brief perform a matrix-matrix operation using Hermitian matrices. 
@@ -423,9 +617,17 @@ contains
     
     call herk(a,c,'U', 'N',alpha,beta)
     ! this fills in the lower triangle
-    do i=1,n
+#if OPENMP    
+!$OMP PARALLEL DO DEFAULT(shared) PRIVATE(i)  SCHEDULE(static)        
+    do i=1,n-1
       c(i+1:n,i) = conjg(c(i,i+1:n))
     enddo
+!$OMP END PARALLEL DO
+#else
+    do i=1,n-1
+      c(i+1:n,i) = conjg(c(i,i+1:n))
+    enddo
+#endif
   end subroutine aastar
   
 end module m_LinearAlgebra
