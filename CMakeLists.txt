@@ -9,13 +9,16 @@ set(target_name tdtbuj)
 ##########################
 ## external libs
 FIND_PACKAGE(BLAS)
-MESSAGE("Using this version of blas ${BLAS95_LIBRARIES} with flags
+MESSAGE("Using this version of blas95 ${BLAS95_LIBRARIES} with flags
 ${BLAS_LINKER_FLAGS}")
-MESSAGE("Using this version of blas ${BLAS_LIBRARIES} with flags
-${BLAS_LINKER_FLAGS}")
+
+FIND_PACKAGE(LAPACK)
+MESSAGE("Using this version of lapack95 ${LAPACK95_LIBRARIES} with flags
+${LAPACK_LINKER_FLAGS}")
+
 find_package(MKLSOLVER)
-message("Using this version of lapack: ${MKLSOLVER_LIBRARIES} with flags  ${MKLSOLVER_LINKER_FLAGS} ")
-set(LIBS ${MKLSOLVER_LINKER_FLAGS} ${MKLSOLVER_LIBRARIES} ${BLAS95_LIBRARIES} )
+message("Using this version of solver: ${MKLSOLVER_LIBRARIES} with flags  ${MKLSOLVER_LINKER_FLAGS} ")
+set(LIBS ${MKLSOLVER_LINKER_FLAGS} ${LAPACK95_LIBRARIES} ${MKLSOLVER_LIBRARIES} ${BLAS95_LIBRARIES} )
 ##########################
 
 
@@ -27,7 +30,7 @@ find_package(Doxygen)
 
 ##set the output folder for libs and bins
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
+set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin1)
 ###################
 
 
@@ -71,7 +74,7 @@ ${src_dir}/SA.f90
 ${src_dir}/SimplexSA.f90
 ${src_dir}/Fit.f90
 ${src_dir}/Dynamics.f90
-${src_dir}/lbfgs.f90
+${src_dir}/LBFGS.f90
 ${src_dir}/DriverRoutines.f90
 ${src_dir}/main.f90
 )

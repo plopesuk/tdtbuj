@@ -28,7 +28,7 @@ SmearingMethod           FD
 ElectronicTemperature    50.1
 
 SCF yes	 
-SCFSteps 1000
+SCFSteps 100
 SCFTolerance          0.000000000010
 SCFMixing             0.7500
 SCFMixIterations      4

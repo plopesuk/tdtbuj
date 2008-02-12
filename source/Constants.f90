@@ -84,6 +84,11 @@ module m_Constants
   real(k_pr), parameter,public :: k_debye2SI=3.335640952D-30 !< debye to SI (Cm) conversion factor
   integer, parameter :: k_nz=110 !< no of atomic elements that have info associated with
 
+  ! error messages codes for Trust region algorithm
+  integer, parameter, public :: TR_SUCCESS = 1501
+  integer, parameter, public :: TR_INVALID_OPTION = 1502
+  integer, parameter, public :: TR_OUT_OF_MEMORY = 1503
+
   public :: InitializeConstants
   public :: symbol
   public :: ElName

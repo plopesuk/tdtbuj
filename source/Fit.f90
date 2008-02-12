@@ -23,10 +23,12 @@ module m_Fit
   use m_DriverRoutines
   use m_Gutenberg
   use m_TightBinding
-  implicit none
-  include 'mkl_rci.fi'
+  implicit none 
   private
   public  :: fitting
+  
+  integer, external :: djacobi_init, djacobi_solve, djacobi_delete, djacobi
+  integer, external :: dtrnlspbc_get, dtrnlspbc_init, dtrnlspbc_solve, dtrnlspbc_delete
 
   type, public :: fitDataType
     real(k_pr), pointer :: x(:)
@@ -299,6 +301,7 @@ end function UpdateCost
     logical ::quit
 
     call InitFit(io)
+   allocate(tol(1:gen%fit%neps)) 
     select case(gen%fit%fitMethod)
       case(k_simplex)
                  ! simplex fit
@@ -312,7 +315,7 @@ end function UpdateCost
         write(io%uout,*)"---------------------------------------------------"
         ! end print
         allocate(best(1:gen%fit%iNoParams),tol(1:gen%fit%neps))
-        tol=1e25_k_pr
+        tol(1:gen%fit%neps)=1.0e25_k_pr
           call amoeba(p,y,gen%fit%fitTol,UpdateCost,kk,bounds,gen%fit%iter,gen,atomic,tb,sol,io)
         copt=y(1)
         call PrintVector(p(1,:),'current parameters:',.true.,.false.,io)
@@ -366,9 +369,9 @@ end function UpdateCost
         close(2)
   !     call print_gsp(trim(cFdfFile))
           ! end simplex fit
-        deallocate(y,p,bounds,best,tol)
+        deallocate(y,p,best)
       case (k_SimplexSA)
-        allocate(best(1:gen%fit%iNoParams),tol(1:gen%fit%neps))
+        allocate(best(1:gen%fit%iNoParams))
         call SimplexSA(gen,atomic,tb,sol,io)
         do i=1,gen%fit%neps
           tol(i)=1e25_k_pr
@@ -411,8 +414,7 @@ end function UpdateCost
           enddo
             call PrintVector(best,'best parameters so far:',.true.,.false.,io)
           if (quit) then
-            call PrintVector(best,'optimal parameters:',.true.,.false.,io)
-            deallocate(tol)
+            call PrintVector(best,'optimal parameters:',.true.,.false.,io)            
             exit
           endif
         enddo
@@ -423,7 +425,7 @@ end function UpdateCost
         enddo
         close(2)
   !              call print_gsp(trim(cFdfFile))
-        deallocate(y,p,best,bounds)
+        deallocate(y,p,best)
       case (k_SA)
         allocate(best(1:gen%fit%iNoParams))
         call InitSA(gen,atomic,tb,sol,io)
@@ -448,12 +450,10 @@ end function UpdateCost
          deallocate(best)
     end select
 
-!           ! simulated annealing fit
-!     elseif (leqi(gen%fit%fit_type,"sa")) then
-!     elseif (leqi(gen%fit%fit_type,"simplexsa")) then
 
     deallocate(fitData%x,fitData%exper,fitData%fit)
-
+    deallocate(bounds)
+    deallocate(tol) 
   end subroutine fitting
 !
 !
@@ -531,8 +531,7 @@ end function UpdateCost
     type(atomicxType), intent(inout) :: atomic
     type(solutionType), intent(inout) :: sol
     type(modelType), intent(inout) :: tb
-    real(k_pr),allocatable ::  x(:), xopt(:), c(:), &
-            vm(:),fstar(:), xp(:)
+    real(k_pr),allocatable ::  x(:), xopt(:), c(:), vm(:),fstar(:), xp(:)
     real(k_pr) :: t, eps, rt, fopt
     integer,allocatable::  nacp(:)
     integer ::  ns, nt, nfcnev, ier,  &
@@ -607,6 +606,7 @@ end function UpdateCost
     enddo
     close(2)
 !     call print_gsp(trim(cFdfFile))
+     deallocate(fstar,x,xopt,c,vm,xp,nacp)
   end subroutine InitSA
 
 !> \brief initializes the simplex-simulated annealing method
@@ -633,7 +633,7 @@ end function UpdateCost
     yb=huge(yb)
     allocate(tol(1:gen%fit%neps))
     do i=1,gen%fit%neps
-      tol(i)=1e20_k_pr
+      tol(i)=1.0e20_k_pr
     enddo
         !end init simplex
     temperature=gen%fit%temp
@@ -672,17 +672,16 @@ end function UpdateCost
       enddo
       call PrintVector(best,'best parameters so far:',.true.,.false.,io)
       if (quit) then
-        call PrintVector(opt,'optimal parameters:',.true.,.false.,io)
-        deallocate(tol)
-        return
+        call PrintVector(opt,'optimal parameters:',.true.,.false.,io)        
+        exit
       endif
       temperature=temperature*gen%fit%rt
       if(temperature<epsilon(temperature)) then
         write(io%uout,*)"temperature under machine precision!!!"
-        deallocate(tol)
-        return
+        exit
       endif
     enddo
+   deallocate(tol) 
   end subroutine SimplexSA
 
 !> \brief initializes the simplex-simulated annealing method

@@ -39,60 +39,48 @@ contains
     type(atomicxType), intent(inout) :: atomic
     type(modelType), intent(inout) :: tbMod
     type(solutionType), intent(inout) :: sol
-    integer nit,m,n
-    real(k_pr), allocatable :: densityin(:)
-    real(k_pr), allocatable :: densityout(:)
-    real(k_pr), allocatable :: densitynext(:)
-    real(k_pr)  :: residual, dmax=0.0_k_pr
+    integer :: nit,m,n    
+    real(k_pr)  :: residual, dmax
     real(k_pr)  :: ee,re,scfe,te
     logical   :: exists,first
-    integer :: ierr
-    real(k_pr), allocatable:: dins(:,:),  res(:,:),douts(:,:)
+    integer :: ierr   
     integer :: l,ml, i,j,nmix
     complex(k_pr) :: trace
     character(len=k_ml) :: saux
-
+    
+    dmax=0.0_k_pr
     genLoc%lIsSCFConverged=.true.
+    n=atomic%basis%norbitals
+    m=(n-1)*n/2 
     if (genLoc%scf) then
 ! delta density matrix is stored in an array as upper triangular part followed by the diagonal
       select case(genLoc%scfType)
         case (k_scfTbuj)
           if (.not.genLoc%spin) then
             call error("This model should be spin polarised!",smyname,.true.,ioLoc)
-          endif
-          n=atomic%basis%norbitals
-          m=(n-1)*n/2
-          if (.not.allocated(dins)) then
-            allocate(dins(m+n,genLoc%scfMixn))
-            allocate(douts(m+n,genLoc%scfMixn))
-            allocate(res(m+n,genLoc%scfMixn))
-            allocate(densityin(m+n))
-            allocate(densityout(m+n))
-            allocate(densitynext(m+n))
-          endif
+          endif          
 !           if((.not.genLoc%compElec).and.(genLoc%k_electrostatics==k_electrostaticsMultipoles)) then
 !             call allocate_qvs
 !           endif
-          dins=0.0_k_pr
-          douts=0.0_k_pr
-          res=0.0_k_pr
+          sol%buff%dins=0.0_k_pr
+          sol%buff%douts=0.0_k_pr
+          sol%buff%res=0.0_k_pr
 
-          densityin=0.0_k_pr
-          densityout=0.0_k_pr
-          densitynext=0.0_k_pr
-
-          call BuildHamiltonian(ioLoc,genLoc,atomic,tbMod,sol)
-          call AddBias(1.0_k_pr,atomic,sol)
-          call CopyMatrix(sol%hin,sol%h,ioLoc)
-          call DiagHamiltonian(ioLoc,genLoc,atomic,sol)
-
+          sol%buff%densityin=0.0_k_pr
+          sol%buff%densityout=0.0_k_pr
+          sol%buff%densitynext=0.0_k_pr
+          
+          call BuildHamiltonian(ioLoc,genLoc,atomic,tbMod,sol)                   
+          call AddBias(1.0_k_pr,atomic,sol)          
+          call CopyMatrix(sol%hin,sol%h,ioLoc)                      
+          call DiagHamiltonian(ioLoc,genLoc,atomic,sol)                    
 !           if (genLoc%alter_dm) then
 !             call create_dm_spin_altered(eigenvec,eigenval)
 !           endif
 !           ! this one in fact builds the initial guess for density matrix
-          call BuildDensity(atomic,sol,genLoc,.true.)
-          call BuildDensity(atomic,sol)
-          densityin=sol%density
+          call BuildDensity(atomic,sol,genLoc,.true.)                            
+          call BuildDensity(atomic,sol)                  
+          sol%buff%densityin=sol%density
           scfe=ScfEnergy(genLoc,atomic,sol,ioLoc)
           call CalcExcessCharges(genLoc,atomic,sol)
           call CalcDipoles(genLoc,atomic,sol)
@@ -132,16 +120,17 @@ contains
               write(ioLoc%uout,*) 'SCF'
               write(ioLoc%uout,*) &
                   'nit          energy          res        drmax      Tr[rho]           mu'
-            endif
-            do nit=1,genLoc%maxscf
+            endif            
+            do nit=1,genLoc%maxscf                          
               if (ioLoc%Verbosity >=k_highVerbos)  then
                    write(ioLoc%uout,'(a,i0)') "SCF LOOP iteration: ",nit
               endif
 !               if (.not.genLoc%compElec) then
 !                   if (genLoc%k_electrostatics==tbu_multi) call init_qvs(densityin)
-!               endif
-              call AddH2(genLoc,atomic,sol,tbMod,ioLoc)
-              call DiagHamiltonian(ioLoc,genLoc,atomic,sol)
+!               endif              
+              call AddH2(genLoc,atomic,sol,tbMod,ioLoc)                            
+              call DiagHamiltonian(ioLoc,genLoc,atomic,sol)              
+              
               if (ioLoc%Verbosity >= k_highVerbos) then
                 call PrintMatrix(sol%hdown,"Hamiltonian Matrix Spin Down:",ioLoc,.false.)
                 call PrintMatrix(sol%hup,"Hamiltonian Matrix Spin Up:",ioLoc,.false.)
@@ -150,15 +139,16 @@ contains
 !                   call create_dm_spin_altered(eigenvec,eigenval)
 !               endif
               call BuildDensity(atomic,sol)
-              densityout=sol%density
+              
+              sol%buff%densityout=sol%density
               call CalcExcessCharges(genLoc,atomic,sol)
               call CalcDipoles(genLoc,atomic,sol)
               call ComputeMagneticMoment(genLoc,atomic,sol,ioLoc)
               if (ioLoc%Verbosity >= k_highVerbos) then
 !                 if (.not.genLoc%compElec) then
 !                   if (genLoc%k_electrostatics==tbu_multi) call init_qvs(densityout)
-!                 endif
-              call MatrixCeaApbB(sol%h2,sol%h,sol%hin,k_cOne,-k_cOne,ioLoc)
+!                 endif              
+                call MatrixCeaApbB(sol%h2,sol%h,sol%hin,k_cOne,-k_cOne,ioLoc)
                 do i=1,atomic%atoms%natoms
 !                     if (genLoc%k_electrostatics==tbu_multi) then
 !                       call Print_QlmR(i,densityout)
@@ -176,9 +166,9 @@ contains
 !
               ierr=-1
               nmix=genLoc%scfMixn
-              do while ((genLoc%scfMixn>=1).and.(ierr/=0))
-                call InitMix(dins,douts,res,densityin,densityout,genLoc%scfMixn)
-                call MixDensity(dins,douts,res,densitynext,residual,dmax,genLoc%scfMix,n+m,genLoc%scfMixn,nit,ierr)
+              do while ((genLoc%scfMixn>=1).and.(ierr/=0))              
+               call InitMix(sol%buff%dins,sol%buff%douts,sol%buff%res,sol%buff%densityin,sol%buff%densityout,genLoc%scfMixn)
+               call MixDensity(sol%buff%dins,sol%buff%douts,sol%buff%res,sol%buff%densitynext,residual,dmax,genLoc%scfMix,n+m,genLoc%scfMixn,nit,ierr)              
                 if (ierr/=0) then
                   genLoc%scfMixn=genLoc%scfMixn-1
                   call error("Singularity in mixing matrix, no of iterations mixed reduced by one ",smyname,.false.,ioLoc)
@@ -188,8 +178,8 @@ contains
                 call error("Singularity in mixing matrix, iterations to mix reduced up to 2",smyname,.true.,ioLoc)
               endif
               genLoc%scfMixn=nmix
-              densityin = densitynext
-              sol%density = densitynext
+              sol%buff%densityin = sol%buff%densitynext
+              sol%density = sol%buff%densitynext
               call CopyMatrix(sol%h,sol%hin,ioLoc)
 !               if (ioLoc%Verbosity >=k_highVerbos) then
 !                   call Print_density(densityin,"density in")
@@ -202,7 +192,7 @@ contains
                 call RepulsiveForces(genLoc,atomic%atoms,tbMod)
                 call electronicForces(atomic,genLoc,tbMod,sol,ioLoc)
                 call ScfForces(genLoc,atomic,sol,ioLoc)
-                sol%density=densitynext
+                sol%density=sol%buff%densitynext
                 call PrintForces(atomic%atoms,ioLoc)
                 ee = ElectronicEnergy(genLoc,sol,ioLoc)
                 re = RepulsiveEnergy(genLoc,atomic%atoms,tbMod)
@@ -210,7 +200,7 @@ contains
                 write(ioLoc%uout,'(a,f16.8)')"Electronic: ",ee
                 write(ioLoc%uout,'(a,f16.8)')" Repulsive: ",re
                 scfe = ScfEnergy(genLoc,atomic,sol,ioLoc)
-                sol%density=densitynext
+                sol%density=sol%buff%densitynext
                 write(ioLoc%uout,'(a,f16.8)')"       SCF: ",scfe
                 write(ioLoc%uout,'(a,f16.8)')"     Total: ",ee+re+scfe
               endif
@@ -244,13 +234,7 @@ contains
             call ZeroForces(atomic)
             call RepulsiveForces(genLoc,atomic%atoms,tbMod)
             call ElectronicForces(atomic,genLoc,tbMod,sol,ioLoc)
-            call ScfForces(genLoc,atomic,sol,ioLoc)            
-            deallocate(dins)
-            deallocate(douts)
-            deallocate(res)
-            deallocate(densityin)
-            deallocate(densityout)
-            deallocate(densitynext)
+            call ScfForces(genLoc,atomic,sol,ioLoc)                        
 !             call Print_eigens(eigenval,eigenvec,555,.false.)
 !             call write_density_matrix("rho.bin",rho%a,rho%dim)
             if (ioLoc%verbosity >= k_mediumVerbos) then
@@ -303,12 +287,15 @@ contains
     integer ::l1,l2,l3,l4,m1,m2,m3,m4,o1,o2,o3,o4,sp,shift
     real(k_pr) :: rAddAcc,rTmp,hij,hijf,hijd
     integer :: m,n
-    real(k_pr) :: q0,q0up,q0down,aux,udq
+    real(k_pr) :: q0,q0up,q0down,aux,udq,elec
 
     n=sol%h%dim
     m=n*(n-1)/2
     shift=n/2
-
+    q0=0.0_k_pr
+    q0up=0.0_k_pr
+    q0down=0.0_k_pr 
+    elec=k_e2/(4.0_k_pr*k_pi*k_epsilon0)    
     select case(gen%scfType)
       case(k_scfTbuj)
         rTmp=0.0_k_pr
@@ -317,10 +304,10 @@ contains
           i=atomic%atoms%scf(k)
           call ScfChargeNumbers(i,q0,q0up,q0down,atomic,sol)
 ! spin down
-          udq=atomic%species%ulocal(atomic%atoms%sp(i))*q0*k_e2/(4.0_k_pr*k_pi*k_epsilon0)
-          rAddAcc=-atomic%species%jlocal(atomic%atoms%sp(i))*q0down*k_e2/(4.0_k_pr*k_pi*k_epsilon0)
+          udq=atomic%species%ulocal(atomic%atoms%sp(i))*q0*elec
+          rAddAcc=-atomic%species%jlocal(atomic%atoms%sp(i))*q0down*elec
 ! spin up
-          rTmp=-atomic%species%jlocal(atomic%atoms%sp(i))*q0up*k_e2/(4.0_k_pr*k_pi*k_epsilon0)
+          rTmp=-atomic%species%jlocal(atomic%atoms%sp(i))*q0up*elec
           if (io%Verbosity >= k_highVerbos) then
             write(io%uout,'(a,i5,a,i5,a,a2)')" Atom: ", i,"  specie ",atomic%atoms%sp(i),&
                 " element ",symbol(atomic%species%z(atomic%atoms%sp(i)))
@@ -335,7 +322,8 @@ contains
             call SpmPut(sol%h,o2,o2,cmplx(hij,0.0_k_pr,k_pr))
 !spin up
             hij=sol%h%a(o3,o3)+rTmp+udq
-            call SpmPut(sol%h,o3,o3,cmplx(hij,0.0_k_pr,k_pr))
+             write(66,*)o2,o3, sol%h%a(o2,o2),hij, rAddAcc, rTmp, udq, q0, q0down, q0up
+            call SpmPut(sol%h,o3,o3,cmplx(hij,0.0_k_pr,k_pr))            
           enddo
         enddo
     end select
@@ -351,7 +339,7 @@ contains
           endif
           do o1=1,atomic%species%norbs(atomic%atoms%sp(i))
             hij=sol%h%a(atomic%atoms%orbs(i,o1),atomic%atoms%orbs(i,o1))+sol%potential(i)
-            call SpmPut(sol%h,atomic%atoms%orbs(i,o1),atomic%atoms%orbs(i,o1),cmplx(hij,0.0_k_pr,k_pr))
+            call SpmPut(sol%h,atomic%atoms%orbs(i,o1),atomic%atoms%orbs(i,o1),cmplx(hij,0.0_k_pr,k_pr))            
           enddo
         enddo
       case(k_electrostaticsMultipoles)
@@ -394,7 +382,7 @@ contains
 !                   enddo
 !                enddo
 !             enddo
-    end select
+    end select    
   end subroutine AddH2
 
 !> \brief computes the electron numbers for an atom
@@ -413,7 +401,10 @@ contains
     type(atomicxType), intent(in) :: atomic
     integer :: from,to,m
 
+      q0up=0.0_k_pr
+      q0down=0.0_k_pr
 ! spin down
+      
       m=atomic%basis%norbitals*(atomic%basis%norbitals-1)/2
       from=m+atomic%atoms%orbs(at,1)
       to=-1+from+atomic%species%norbs(atomic%atoms%sp(at))/2
@@ -421,7 +412,7 @@ contains
 !spin up
       from=m+atomic%atoms%orbs(at,1)+atomic%basis%norbitals/2
       to=-1+from+atomic%species%norbs(atomic%atoms%sp(at))/2
-      q0up=sum(sol%density(from:to))
+      q0up=sum(sol%density(from:to))      
 ! total charge
       q0=q0down+q0up
    end subroutine ScfChargeNumbers

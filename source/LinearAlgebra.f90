@@ -48,7 +48,12 @@ contains
 
     a%isSparse = .false.
     a%dim = m
+    a%nonZero=1
+    allocate(a%indx(1:1))  
+    allocate(a%jndx(1:1))   
     allocate(a%a(m,m))
+   a%indx=0
+   a%jndx=0 
     if (zeroout) then
 #if OPENMP     
 !$OMP PARALLEL DO  DEFAULT(shared) PRIVATE(i,j) SCHEDULE(static)
@@ -59,7 +64,7 @@ contains
     enddo 
 !$OMP END PARALLEL DO    
 #else    
-    a%a = cmplx(0.0_k_pr,0.0_k_pr,k_pr)
+    a%a(1:a%dim,1:a%dim) = cmplx(0.0_k_pr,0.0_k_pr,k_pr)
 #endif
    endif 
     a%created = .true.
@@ -79,21 +84,24 @@ contains
     a%isSparse = .true.
     a%dim = m
     a%nonZero = 0
-    allocate(a%a(m,m))
-    allocate(a%indx(m*m))
-    allocate(a%jndx(m*m))
-
+    allocate(a%a(1:m,1:m))
+    allocate(a%indx(1:m*m))
+    allocate(a%jndx(1:m*m))    
     if (zeroout) then
 #if OPENMP    
  !$OMP PARALLEL DO  DEFAULT(shared) PRIVATE(i,j) SCHEDULE(static)
     do i=1,m
       do j=1,m  
         a%a(i,j) = cmplx(0.0_k_pr,0.0_k_pr,k_pr)
+        a%indx((i-1)*m+j)=0
+        a%jndx((i-1)*m+j)=0
       enddo
     enddo    
 !$OMP END PARALLEL DO          
 #else    
-    a%a = cmplx(0.0_k_pr,0.0_k_pr,k_pr)
+    a%a(1:a%dim,1:a%dim) = cmplx(0.0_k_pr,0.0_k_pr,k_pr)
+    a%indx(1:a%dim*a%dim)=0
+    a%jndx(1:a%dim*a%dim)=0      
 #endif
     endif
     a%created = .true.
@@ -117,8 +125,8 @@ contains
     do i=1,a%nonZero
       a%a(a%indx(i),a%jndx(i)) = cmplx(0.0_k_pr,0.0_k_pr,k_pr)
     end do
-    a%indx = 0
-    a%jndx = 0 
+    a%indx(1:a%nonZero) = 0
+    a%jndx(1:a%nonZero) = 0 
 #endif    
     a%nonZero = 0
   end subroutine ResetSparseMatrix
@@ -195,9 +203,9 @@ contains
 
     if (.not.a%created) then
       call error("Cannot diagonalize unexistant matrix",myname,.true.,io)
-    endif
-    call CopyMatrix(c,a,io)      
-    call heev(c%a,lambda,'V','U',info)  
+    endif    
+    call CopyMatrix(c,a,io)         
+    call heev(c%a,lambda,'V','U',info)        
     if(info/=0) then
       call error("Diagonalization failed",myname,.true.,io)
     endif
@@ -214,10 +222,10 @@ contains
       deallocate(a%a)
       a%dim = 0
       a%created = .false.
+      deallocate(a%indx)
+      deallocate(a%jndx)
       if (a%isSparse) then
-        a%isSparse = .false.
-        deallocate(a%indx)
-        deallocate(a%jndx)
+        a%isSparse = .false.        
       endif
     else
       call error("Cannot destroy unexistant matrix",myname,.true.,io)
@@ -272,7 +280,7 @@ contains
     enddo 
  !$OMP END PARALLEL DO         
 #else    
-       a%a = a%a*s
+       a%a(1:a%dim,1:a%dim) = a%a(1:a%dim,1:a%dim)*s
 #endif
     
   end subroutine ScalarTMatrix   
@@ -293,8 +301,8 @@ contains
       if (.not.b%created) then
         call CreateSparseMatrix(b,a%dim,.true.)
       endif
-      if (b%isSparse) then
-        b%nonZero=a%nonZero
+      if (b%isSparse == .true.) then
+        b%nonZero=a%nonZero        
 #if OPENMP        
         !$OMP PARALLEL DO DEFAULT(shared) PRIVATE(i) SCHEDULE(static)
         do i=1,a%nonZero
@@ -302,9 +310,10 @@ contains
           b%jndx(i)=a%jndx(i)
         enddo
         !$OMP END PARALLEL DO            
-#else
-          b%indx=a%indx
-          b%jndx=a%jndx
+#else  
+         
+          b%indx(1:a%nonZero)=a%indx(1:a%nonZero)          
+          b%jndx(1:a%nonZero)=a%jndx(1:a%nonZero)         
 #endif        
       endif    
     else
@@ -320,8 +329,8 @@ contains
       enddo
     enddo 
 !$OMP END PARALLEL DO            
-#else
-     b%a = a%a
+#else     
+     b%a(1:a%dim,1:a%dim) = a%a(1:a%dim,1:a%dim)     
 #endif
   end subroutine CopyMatrix
   
@@ -587,7 +596,6 @@ contains
 #endif        
       endif
     else
-#if OPENMP
 !$OMP PARALLEL DO DEFAULT(shared) PRIVATE(i,j) SCHEDULE(static)    
      do i=1, c%dim
        do j=1,c%dim
@@ -595,9 +603,6 @@ contains
        enddo
      enddo 
  !$OMP END PARALLEL DO    
-#else
-      c%a = alpha*a%a + beta*b%a 
-#endif      
     endif
   end subroutine MatrixCeaApbB
 !> \brief perform a matrix-matrix operation using Hermitian matrices. 
@@ -614,8 +619,8 @@ contains
     real(k_pr), intent(in) :: alpha,beta
     integer, intent(in) :: n
     integer :: i
-    
-    call herk(a,c,'U', 'N',alpha,beta)
+   
+    call herk(a,c,'U', 'N',alpha,beta)       
     ! this fills in the lower triangle
 #if OPENMP    
 !$OMP PARALLEL DO DEFAULT(shared) PRIVATE(i)  SCHEDULE(static)        
