@@ -83,25 +83,40 @@ set(MKLSOLVER_LIBRARIES)
 
 if(MKLSOLVER_FIND_QUIETLY OR NOT MKLSOLVER_FIND_REQUIRED)
   find_package(BLAS)
+  find_package(LAPACK)
 else(MKLSOLVER_FIND_QUIETLY OR NOT MKLSOLVER_FIND_REQUIRED)
   find_package(BLAS REQUIRED)
+  find_package(LAPACK REQUIRED)
 endif(MKLSOLVER_FIND_QUIETLY OR NOT MKLSOLVER_FIND_REQUIRED)
 
 if(BLAS_FOUND)
   set(MKLSOLVER_LINKER_FLAGS ${BLAS_LINKER_FLAGS})
 
 #intel MKLSOLVER
+
+IF (WIN32)
 if ( NOT MKLSOLVER_LIBRARIES )
     check_MKLSOLVER_libraries(
     MKLSOLVER_LIBRARIES
     MKLSOLVER
-    cheev
+    djacobi_solve
     ""
-    "mkl_lapack95;mkl_solver"
-    "${BLAS_LIBRARIES}"
+    "mkl_solver"
+    "${BLAS_LIBRARIES};${LAPACK_LIBRARIES}"
     )
-  endif ( NOT MKLSOLVER_LIBRARIES )
-
+  endif (NOT MKLSOLVER_LIBRARIES)
+ELSE (WIN32)
+if ( NOT MKLSOLVER_LIBRARIES )
+    check_MKLSOLVER_libraries(
+    MKLSOLVER_LIBRARIES
+    MKLSOLVER
+    djacobi_solve
+    ""
+    "mkl_solver_lp64"
+    "${BLAS_LIBRARIES};${LAPACK_LIBRARIES}"
+    )
+  endif (NOT MKLSOLVER_LIBRARIES)
+ENDIF (WIN32)
 else(BLAS_FOUND)
   message(STATUS "MKLSOLVE Rrequires BLAS")
 endif(BLAS_FOUND)

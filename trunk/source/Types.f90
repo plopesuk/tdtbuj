@@ -241,6 +241,20 @@ module m_Types
     integer, allocatable :: indx(:), jndx(:) !< the indeces of the non zero elements for sparse
     complex(kind=k_pr), allocatable :: a(:,:) !< keeps the data
   end type matrixType
+ type :: buffersType
+    real(k_pr), allocatable :: densityin(:)
+    real(k_pr), allocatable :: densityout(:)
+    real(k_pr), allocatable :: densitynext(:) 
+    real(k_pr), allocatable:: dins(:,:)
+    real(k_pr), allocatable:: douts(:,:)
+    real(k_pr), allocatable::  res(:,:)
+    real(k_pr),allocatable :: tmpA(:)
+    type(matrixType) :: tmpB  
+    real(k_pr),allocatable  :: f(:) ,g(:)
+    complex(k_pr),allocatable :: a(:,:)
+    integer, allocatable :: pos1(:), pos2(:)
+    real(k_pr), allocatable :: nstart(:)  
+ end type buffersType 
 
 !> defines the type for the the data needed to solve the problem
   type,public :: solutionType
@@ -263,6 +277,7 @@ module m_Types
     type(matrixType) :: rho !< density matrix
     real(k_pr) :: electronicEntropy !< electronic entropy of the system
     real(k_pr) :: totalEnergy !< total energy of the system
+    type(buffersType) :: buff 
 !    type(qvs), allocatable :: delq(:), vs(:)
   end type solutionType
 end module m_Types

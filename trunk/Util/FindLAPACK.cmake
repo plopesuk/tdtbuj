@@ -120,7 +120,6 @@ if(BLAS_FOUND)
   )
   endif(NOT LAPACK95_LIBRARIES)
 
-
 #acml lapack
   if(NOT LAPACK_LIBRARIES)
 

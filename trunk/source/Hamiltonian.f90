@@ -74,7 +74,7 @@ contains
       enddo
     enddo
 !!$OMP END PARALLEL DO    
-  elseif( gen%collinear) then
+  elseif( gen%collinear) then  
 !$OMP PARALLEL DO DEFAULT(shared) PRIVATE(i,j,k,o,hij,rij,l,m,n,norbsi,norbsj)  SCHEDULE(static)        
     do i=1,atomic%atoms%natoms
       norbsi=atomic%species%norbs(atomic%atoms%sp(i))/2 
@@ -89,14 +89,14 @@ contains
                     atomic%basis%orbitals(atomic%atoms%orbs(j,o)),gen,tbMod,sol)
               if (abs(hij)>=gen%hElementThreshold) then
                 call SpmPut(sol%h,atomic%atoms%orbs(i,k),atomic%atoms%orbs(j,o),cmplx(hij,0.0_k_pr,k_pr))
-              endif
+              endif  
               hij = hmn(rij,l,m,n,atomic%basis%orbitals(atomic%atoms%orbs(i,k+norbsi)),&
-                    atomic%basis%orbitals(atomic%atoms%orbs(j,o+norbsj)),gen,tbMod,sol)
+                    atomic%basis%orbitals(atomic%atoms%orbs(j,o+norbsj)),gen,tbMod,sol)  
               if (abs(hij)>=gen%hElementThreshold) then
                 call SpmPut(sol%h,atomic%atoms%orbs(i,k+norbsi),atomic%atoms%orbs(j,o+norbsj),cmplx(hij,0.0_k_pr,k_pr))
               endif
             enddo
-          enddo
+          enddo         
         else
 !            Onsite terms           
           do k=1,norbsi
@@ -157,38 +157,42 @@ contains
     type(generalType), intent(inout) :: gen
     type(solutionType), intent(inout) :: sol
     type(atomicxType), intent(inout) :: atomic
-    integer :: n,ns
-    real(k_pr),allocatable :: tmpA(:)
-    type(matrixType) :: tmpB
-
-
-    if (gen%spin) then
+    integer :: n,ns,i,j
+     if (gen%spin) then
       n=sol%h%dim
       ns=sol%hup%dim
-      sol%eigenvals=0.0_k_pr
-      call ZeroMatrix(sol%eigenvecs,io)
-      sol%hdown%a(1:ns,1:ns)=sol%h%a(1:ns,1:ns)
-! allocate temporary variables
-      allocate(tmpA(1:ns))
-      tmpA=0.0_k_pr
-      call CreateMatrix(tmpB,ns,.true.)
-      call DiagonalizeMatrix(sol%hdown,tmpB,tmpA,io)
-      sol%eigenvals(1:ns)=tmpA(1:ns)
-      sol%eigenvecs%a(1:ns,1:ns)=tmpB%a(1:ns,1:ns)
-      tmpA=0.0_k_pr
-      call ZeroMatrix(tmpB,io)
-      sol%hup%a(1:ns,1:ns)=sol%h%a(ns+1:n,ns+1:n)
-      call DiagonalizeMatrix(sol%hup,tmpB,tmpA,io)
-      sol%eigenvals(1+ns:n)=tmpA(1:ns)
-      sol%eigenvecs%a(1+ns:n,1+ns:n)=tmpB%a(1:ns,1:ns)
-      deallocate(tmpA)
-      call DestroyMatrix(tmpB,io)
+      sol%eigenvals(1:n)=0.0_k_pr
+      call ZeroMatrix(sol%eigenvecs,io)            
+      do i=1,ns
+         do j=1,ns
+             sol%hdown%a(i,j)=sol%h%a(i,j)
+         enddo
+      enddo      
+      sol%buff%tmpA=0.0_k_pr
+      call ZeroMatrix(sol%buff%tmpB,io)          
+      call DiagonalizeMatrix(sol%hdown,sol%buff%tmpB,sol%buff%tmpA,io)        
+      sol%eigenvals(1:ns)=sol%buff%tmpA(1:ns)      
+      do i=1,ns
+         do j=1,ns       
+             sol%eigenvecs%a(i,j)=sol%buff%tmpB%a(i,j)
+            sol%hup%a(i,j)=sol%h%a(i+ns,j+ns) 
+          enddo
+      enddo             
+      sol%buff%tmpA=0.0_k_pr
+      call ZeroMatrix(sol%buff%tmpB,io)      
+      call DiagonalizeMatrix(sol%hup,sol%buff%tmpB,sol%buff%tmpA,io)
+      sol%eigenvals(1+ns:n)=sol%buff%tmpA(1:ns)      
+      do i=1,ns
+         do j=1,ns       
+             sol%eigenvecs%a(i+ns,j+ns)=sol%buff%tmpB%a(i,j)      
+          enddo
+      enddo 
+               
       if (gen%lIsExcited) then
         call CreateDensityMatrixExcited(gen,atomic,sol,io)
       else
-        call CreateDensityMatrixSpin(gen,atomic,sol,io)
-      endif
-
+        call CreateDensityMatrixSpin(gen,atomic,sol,io)                  
+      endif                       
     else
       sol%eigenvals=0.0_k_pr
       call ZeroMatrix(sol%eigenvecs,io)

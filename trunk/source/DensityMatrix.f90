@@ -35,7 +35,7 @@ contains
     integer :: i
     real(k_pr) :: qtotal
     character(len=k_ml) :: saux
-
+    
     call ZeroMatrix(sol%rho,io)
     qtotal = 0.0_k_pr
     do i=1,atomic%atoms%natoms
@@ -45,11 +45,9 @@ contains
     if (abs(qtotal-int(qtotal))>gen%qTolerance) then
       write(saux,'(a,f0.8)')"Fractional charge detected found ",qtotal
       call error(trim(saux),myname,.true.,io)
-    endif
-
-    call FindFermi(gen,sol,io,qtotal)
-    call GenerateRho(gen,sol,io)
-
+    endif    
+    call FindFermi(gen,sol,io,qtotal)   
+    call GenerateRho(gen,sol,io)    
   end subroutine CreateDensityMatrixSpin
 
 !> \brief finds the chemical potential
@@ -116,48 +114,39 @@ contains
 !> \param io type(ioType) contains all the info about I/O files
 !> \param gen type(generalType) contains the info needed by the program to k_run
 !> \param sol type(solutionType) contains information about the solution space
-
   subroutine GenerateRho(gen,sol,io)
     character(len=*), parameter :: myname = 'GenerateRho'
     type(generalType), intent(in) :: gen
     type(ioType), intent(in) :: io
     type(solutionType), intent(inout) :: sol
-    integer      :: i,k
-    real(k_pr),allocatable  :: f(:)
+    integer      :: i,k    
     real(k_pr) :: fa,fb,entropy,tiny
-    complex(k_pr),allocatable :: a(:,:)
-    integer, allocatable :: pos1(:), pos2(:)
-
-      allocate(f(1:sol%eigenvecs%dim))
-      allocate(a(1:sol%eigenvecs%dim,1:sol%eigenvecs%dim))
-
-
+   
     ! set the occupations according to mu
       do k=1,sol%rho%dim
-        f(k) = fermi(gen%electronicTemperature,sol%eigenvals(k),gen%electronicMu)
+        sol%buff%f(k) = fermi(gen%electronicTemperature,sol%eigenvals(k),gen%electronicMu)
       enddo
-
     ! The density matrix is built from the diagonal representation in the
     ! basis of the eigenstates of H (rho') by transforming with the
     ! matrix of eigenvectors that diagonalize H
     ! rho = U rho' U*
     ! this loop multiplies sqrt(rho') times U
-      a=sol%eigenvecs%a
+      sol%buff%a=sol%eigenvecs%a
       do k=1,sol%eigenvecs%dim
-        a(:,k) = sqrt(f(k))*a(:,k)
+        sol%buff%a(:,k) = sqrt(sol%buff%f(k))*sol%buff%a(:,k)
       enddo
-
+   
     ! this does (U sqrt(rho'))(U sqrt(rho'))* , only the upper triangle is calculated
     ! ----- ---- unnocupied vectors are not multiplied not tr
-    call ZeroMatrix(sol%rho,io)
-    call aastar(a,sol%rho%a,1.0_k_pr,0.0_k_pr,sol%rho%dim)
-      entropy = 0.0_k_pr
-      select case(gen%smearMethod)
+      call ZeroMatrix(sol%rho,io)   
+      call aastar(sol%buff%a,sol%rho%a,1.0_k_pr,0.0_k_pr,sol%rho%dim)
+      entropy = 0.0_k_pr     
+    select case(gen%smearMethod)
       case(k_smFD)
         tiny = epsilon(1.0_k_pr)
         do i=1,sol%rho%dim
-          fa = max(f(i),tiny)
-          fb = max(1-f(i),tiny)
+          fa = max(sol%buff%f(i),tiny)
+          fb = max(1-sol%buff%f(i),tiny)
           entropy = entropy + fa*log(fa)+fb*log(fb)
         enddo
         entropy = k_kb * entropy
@@ -165,29 +154,27 @@ contains
 !          do i=1,rho%dim
 !             entropy=entropy+sn((eigenvals(i)-general%electronic_mu)/general%electronic_temperature,general%mp_N)
 !          enddo
-      end select
+    end select
 
-      sol%electronicEntropy=-entropy
-      allocate(pos1(1:sol%rho%dim),pos2(1:sol%rho%dim))
-      call order(sol%eigenvals,pos1,pos2)
+      sol%electronicEntropy=-entropy      
+      sol%buff%pos1=0
+      sol%buff%pos2=0
+      call order(sol%eigenvals,sol%buff%pos1,sol%buff%pos2)
       if (io%Verbosity>=k_highVerbos) then
         write(io%uout,*) &
             '--Occupation Numbers-------------------------------------------'
         do i=1,sol%rho%dim
-          if (pos1(i) <=sol%rho%dim/2) then
+          if (sol%buff%pos1(i) <=sol%rho%dim/2) then
             write(io%uout,'(2f16.8,a)') &
-              sol%eigenvals(pos1(i)),f(pos1(i))," down"
+              sol%eigenvals(sol%buff%pos1(i)),sol%buff%f(sol%buff%pos1(i))," down"
           else
             write(io%uout,'(2f16.8,a)') &
-              sol%eigenvals(pos1(i)),f(pos1(i))," up"
+              sol%eigenvals(sol%buff%pos1(i)),sol%buff%f(sol%buff%pos1(i))," up"
           endif
         enddo
         write(io%uout,*) &
             '------------------------------------------------------------'
-      endif
-    deallocate (pos1,pos2)
-    deallocate(f,a)
-
+      endif    
    end subroutine GenerateRho
 
 !> \brief sorts the eigenvalues recording the old positions
@@ -241,8 +228,7 @@ contains
     type(ioType), intent(inout) :: io
     type(solutionType), intent(inout) :: sol
       integer      :: i,k
-      real(k_pr)              :: a,b
-      real(k_pr),allocatable  :: f(:)
+      real(k_pr)              :: a,b      
       real(k_pr) :: qtotal,q
       real(k_pr) :: entropy,tiny,fa,fb
       integer :: upper_occ_state, upper_non_one
@@ -255,8 +241,8 @@ contains
     enddo
     qtotal = qtotal - gen%netcharge
     qtotal = 0.5_k_pr * qtotal
-    allocate(f(sol%rho%dim))
-    f=0.0_k_pr
+    
+    sol%buff%f=0.0_k_pr
     if (gen%smearMethod /= k_smCMU) then
        ! bisection to find the proper mu       !
          a = sol%eigenvals(1)
@@ -290,9 +276,9 @@ contains
        upper_occ_state = 1
        upper_non_one = 0
        do k=1,sol%rho%dim
-          f(k) = fermi(gen%electronicTemperature,sol%eigenvals(k),gen%electronicMu)
-          if (f(k) > gen%dmOccupationTolerance) upper_occ_state = k
-          if (abs(f(k) - 1.0_k_pr) < gen%dmOccupationTolerance) upper_non_one = k
+          sol%buff%f(k) = fermi(gen%electronicTemperature,sol%eigenvals(k),gen%electronicMu)
+          if (sol%buff%f(k) > gen%dmOccupationTolerance) upper_occ_state = k
+          if (abs(sol%buff%f(k) - 1.0_k_pr) < gen%dmOccupationTolerance) upper_non_one = k
        enddo
 !
      ! The density matrix is built from the diagonal representation in the
@@ -301,7 +287,7 @@ contains
      ! rho = U rho' U*
      ! this loop multiplies sqrt(rho') times U
        do k=upper_non_one+1,upper_occ_state
-          sol%eigenvecs%a(:,k) = sqrt(f(k))*sol%eigenvecs%a(:,k)
+          sol%eigenvecs%a(:,k) = sqrt(sol%buff%f(k))*sol%eigenvecs%a(:,k)
        enddo
 
      ! this does (U sqrt(rho'))(U sqrt(rho'))* , only the upper triangle is calculated
@@ -313,8 +299,8 @@ contains
          case(k_smFD)
            tiny = epsilon(1.0_k_pr)
            do i=upper_non_one+1,upper_occ_state
-              fa = max(f(i),tiny)
-             fb = max(1-f(i),tiny)
+              fa = max(sol%buff%f(i),tiny)
+             fb = max(1-sol%buff%f(i),tiny)
              entropy = entropy + fa*log(fa)+fb*log(fb)
           enddo
           entropy = -k_kb * 2.0_k_pr * entropy
@@ -333,11 +319,9 @@ contains
             "Ocupation Numbers"
          do i=1,sol%rho%dim
             write(io%uout,'(i0,1x,f16.8,1x,f16.8)') &
-               i,sol%eigenvals(i),2.0_k_pr*f(i)
+               i,sol%eigenvals(i),2.0_k_pr*sol%buff%f(i)
          enddo
       endif
-      deallocate(f)
-
   end subroutine CreateDensityMatrixNoSpin
 
 !> \brief computes the charge excess \f$ \delta q\f$ array
@@ -353,24 +337,22 @@ contains
     type(atomicxType), intent(in) :: atomic
     type(generalType),intent(in), optional :: gen
     type(solutionType), intent(inout) :: sol
-    integer :: i,n,m,j,k
-    real(k_pr), allocatable :: nstart(:)
+    integer :: i,n,m,j,k    
 
   if (present(first)) then
     if (first) then
-      allocate(nstart(1:atomic%basis%norbitals))
+      sol%buff%nstart=0.0_k_pr
       do i=1,atomic%atoms%natoms
         do k=1,atomic%species%norbs(atomic%atoms%sp(i))
           j= atomic%atoms%orbs(i,k)
-          nstart(j) = atomic%basis%orbitals(j)%occup-gen%netcharge/atomic%basis%norbitals
+          sol%buff%nstart(j) = atomic%basis%orbitals(j)%occup-gen%netcharge/atomic%basis%norbitals
         end do
       end do
       m=(atomic%basis%norbitals-1)*atomic%basis%norbitals/2
       sol%rho%a=cmplx(0.0_k_pr,0.0_k_pr)
       do i=1,atomic%basis%norbitals
-        sol%rho%a(i,i)=cmplx(nstart(i),0.0_k_pr)
-      end do
-    deallocate(nstart)
+        sol%rho%a(i,i)=cmplx(sol%buff%nstart(i),0.0_k_pr)
+      end do    
     endif
   else
 ! store the off diagonal terms
@@ -414,17 +396,13 @@ contains
     type(solutionType), intent(inout)    :: sol
     type(generalType), intent(inout) :: gen
     type(ioType), intent(inout) :: io
-    type(atomicxType), intent(inout) :: atomic
-
-    integer, allocatable :: pos1(:), pos2(:)
+    type(atomicxType), intent(inout) :: atomic    
     integer      :: i,homo,extra
     real(k_pr) :: qtotal
     !-------------------------------------------------!
 
     call ZeroMatrix(sol%rho,io)
 
-
-    allocate(pos1(1:sol%rho%dim),pos2(1:sol%rho%dim))
 
     ! calculate number of electrons
     qtotal = 0.0_k_pr
@@ -440,14 +418,14 @@ contains
 !     array (ascending)
 !      pos2(i) would give you the position of the i-th value of original eigenvals
 !     in the ordered eigenvals
-    call order(sol%eigenvals,pos1,pos2)
+    call order(sol%eigenvals,sol%buff%pos1,sol%buff%pos2)
     call FindFermi(gen,sol,io,qtotal)
-    call FindHomo(gen,sol,io,pos1,homo)
-    call CheckExcitation(gen,sol,io,homo,pos2,extra)
+    call FindHomo(gen,sol,io,sol%buff%pos1,homo)
+    call CheckExcitation(gen,sol,io,homo,sol%buff%pos2,extra)
 !     qtotal=qtotal+real(extra,dp)
 !     call find_fermi(eigenvecs,eigenvals,qtotal)
 !     print *, qtotal, general%electronic_mu
-    call GenerateRhoExcited(gen,sol,io,homo,pos1,pos2)
+    call GenerateRhoExcited(gen,sol,io,homo,sol%buff%pos1,sol%buff%pos2)
 !       if (control_var%output_level>ol_verbose) then
 !          trace = matrix_trace(rho)
 !          write(control_var%output_file,*) &
@@ -465,8 +443,7 @@ contains
 !          enddo
 !          write(control_var%output_file,*) &
 !             '---------------------------------------------------------------'
-!       endif
-    deallocate(pos1,pos2)
+!       endif    
   end subroutine CreateDensityMatrixExcited
 
   subroutine FindHomo(gen,sol,io,pos,homoLevel)
@@ -477,18 +454,16 @@ contains
     type(generalType), intent(inout) :: gen
     type(ioType), intent(inout) :: io
     !--internal variables ----------------------------!
-    integer      :: k
-    real(k_pr),allocatable  :: f(:)
+    integer      :: k    
     !-------------------------------------------------!
 
-    allocate(f(1:sol%rho%dim))
-    ! set the occupations according to mu
+        ! set the occupations according to mu
     homoLevel=1
     do k=1,sol%rho%dim
-      f(pos(k)) = fermi(gen%electronicTemperature,sol%eigenvals(pos(k)),gen%electronicMu)
+      sol%buff%f(pos(k)) = fermi(gen%electronicTemperature,sol%eigenvals(pos(k)),gen%electronicMu)
     enddo
     do k=1,sol%rho%dim
-      if (f(pos(k))<gen%dmOccupationTolerance) then
+      if (sol%buff%f(pos(k))<gen%dmOccupationTolerance) then
         homoLevel=k-1
         exit
       endif
@@ -498,7 +473,6 @@ contains
       write(io%uout,"(a,i0,a,i0)") &
           "HOMO is at: ",homoLevel, " in the output ", pos(homoLevel)
     endif
-    deallocate(f)
   end subroutine FindHomo
 
 
@@ -533,26 +507,21 @@ contains
     type(generalType), intent(inout) :: gen
     type(ioType), intent(inout) :: io
     integer, intent(in) :: pos1(:),pos2(:),homo
-    integer      :: i,k,hole,excite,n
-    real(k_pr),allocatable  :: f(:),g(:)
+    integer      :: i,k,hole,excite,n    
     real(k_pr) :: fa,fb,entropy,tiny
-    complex(k_pr),allocatable :: a(:,:)
-
-
-    n=sol%rho%dim
-    allocate(f(1:n),g(1:n))
-    allocate(a(1:n,1:n))
+    
+    n=sol%rho%dim    
     ! set the occupations according to mu
     do k=1,n
-      f(k) = fermi(gen%electronicTemperature,sol%eigenvals(pos1(k)),gen%electronicMu)
+      sol%buff%f(k) = fermi(gen%electronicTemperature,sol%eigenvals(pos1(k)),gen%electronicMu)
     enddo
     hole=gen%holeState + gen%holeSpin * n/2
     excite=gen%exciteState + gen%exciteSpin * n/2
-    g=f
+    sol%buff%g=sol%buff%f
 !     print *, pos2(excite),f(pos2(excite)),pos2(hole),f(pos2(hole))
-    tiny=f(pos2(excite))
-    f(pos2(excite))=f(pos2(hole))
-    f(pos2(hole))=tiny
+    tiny=sol%buff%f(pos2(excite))
+    sol%buff%f(pos2(excite))=sol%buff%f(pos2(hole))
+    sol%buff%f(pos2(hole))=tiny
 !     print *, pos2(excite),f(pos2(excite)),pos2(hole),f(pos2(hole))
 !     do k=homo+1,pos2(excite)-1
 !     f(k)=1.0_k_pr-f(k)
@@ -564,22 +533,22 @@ contains
     ! matrix of eigenvectors that diagonalize H
     ! rho = U rho' U*
     ! this loop multiplies sqrt(rho') times U
-    a=sol%eigenvecs%a
+    sol%buff%a=sol%eigenvecs%a
     do k=1,n
-      a(:,pos1(k)) = sqrt(f(k))*a(:,pos1(k))
+      sol%buff%a(:,pos1(k)) = sqrt(sol%buff%f(k))*sol%buff%a(:,pos1(k))
     enddo
 
     call ZeroMatrix(sol%rho,io)
     ! this does (U sqrt(rho'))(U sqrt(rho'))* , only the upper triangle is calculated
     ! ----- ---- unnocupied vectors are not multiplied not tr
-    call aastar(a,sol%rho%a,1.0_k_pr,0.0_k_pr,n)
+    call aastar(sol%buff%a,sol%rho%a,1.0_k_pr,0.0_k_pr,n)
     entropy = 0.0_k_pr
     select case(gen%smearMethod)
       case(k_smFD)
         tiny = epsilon(1.0_k_pr)
         do i=1,sol%rho%dim
-          fa = max(f(i),tiny)
-          fb = max(1-f(i),tiny)
+          fa = max(sol%buff%f(i),tiny)
+          fb = max(1-sol%buff%f(i),tiny)
           entropy = entropy + fa*log(fa)+fb*log(fb)
         enddo
         entropy = k_kb * entropy
@@ -595,11 +564,10 @@ contains
         '--Occupation Numbers Altered-----------------------------------'
       do i=1,n
         write(io%uout,'(3f16.8)') &
-             sol%eigenvals(pos1(i)),f(i),g(i)
+             sol%eigenvals(pos1(i)),sol%buff%f(i),sol%buff%g(i)
       enddo
       write(io%uout,*) &
             '------------------------------------------------------------'
-    endif
-    deallocate(f,g,a)
+    endif    
    end subroutine GenerateRhoExcited
 end module m_DensityMatrix

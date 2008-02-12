@@ -1140,32 +1140,39 @@ end subroutine CloseIoGeneral
     allocate(atomix%atoms%norbs(1:atomix%atoms%natoms))
     allocate(atomix%atoms%MagMom(1:atomix%atoms%natoms))
 
-    atomix%atoms%vx=0.0_k_pr
-    atomix%atoms%vy=0.0_k_pr
-    atomix%atoms%vz=0.0_k_pr
-    atomix%atoms%vxo=0.0_k_pr
-    atomix%atoms%vyo=0.0_k_pr
-    atomix%atoms%vzo=0.0_k_pr
-    atomix%atoms%xo=0.0_k_pr
-    atomix%atoms%yo=0.0_k_pr
-    atomix%atoms%zo=0.0_k_pr
-    atomix%atoms%dx=0.0_k_pr
-    atomix%atoms%dy=0.0_k_pr
-    atomix%atoms%dz=0.0_k_pr
-    atomix%atoms%fx=0.0_k_pr
-    atomix%atoms%fy=0.0_k_pr
-    atomix%atoms%fz=0.0_k_pr
-    atomix%atoms%fxo=0.0_k_pr
-    atomix%atoms%fyo=0.0_k_pr
-    atomix%atoms%fzo=0.0_k_pr
-    atomix%atoms%chrg=0.0_k_pr
-    atomix%atoms%chrg0=0.0_k_pr
-    atomix%atoms%ismoving=.true.
-    atomix%atoms%isscf=.true.
+    atomix%atoms%id(1:atomix%atoms%natoms)=0.0_k_pr
+    atomix%atoms%sp(1:atomix%atoms%natoms)=0.0_k_pr
+    atomix%atoms%bias(1:atomix%atoms%natoms)=0.0_k_pr
+    atomix%atoms%x(1:atomix%atoms%natoms)=0.0_k_pr
+    atomix%atoms%y(1:atomix%atoms%natoms)=0.0_k_pr
+    atomix%atoms%z(1:atomix%atoms%natoms)=0.0_k_pr 
+    atomix%atoms%vx(1:atomix%atoms%natoms)=0.0_k_pr
+    atomix%atoms%vy(1:atomix%atoms%natoms)=0.0_k_pr
+    atomix%atoms%vz(1:atomix%atoms%natoms)=0.0_k_pr
+    atomix%atoms%vxo(1:atomix%atoms%natoms)=0.0_k_pr
+    atomix%atoms%vyo(1:atomix%atoms%natoms)=0.0_k_pr
+    atomix%atoms%vzo(1:atomix%atoms%natoms)=0.0_k_pr
+    atomix%atoms%xo(1:atomix%atoms%natoms)=0.0_k_pr
+    atomix%atoms%yo(1:atomix%atoms%natoms)=0.0_k_pr
+    atomix%atoms%zo(1:atomix%atoms%natoms)=0.0_k_pr
+    atomix%atoms%dx(1:atomix%atoms%natoms)=0.0_k_pr
+    atomix%atoms%dy(1:atomix%atoms%natoms)=0.0_k_pr
+    atomix%atoms%dz(1:atomix%atoms%natoms)=0.0_k_pr
+    atomix%atoms%fx(1:atomix%atoms%natoms)=0.0_k_pr
+    atomix%atoms%fy(1:atomix%atoms%natoms)=0.0_k_pr
+    atomix%atoms%fz(1:atomix%atoms%natoms)=0.0_k_pr
+    atomix%atoms%fxo(1:atomix%atoms%natoms)=0.0_k_pr
+    atomix%atoms%fyo(1:atomix%atoms%natoms)=0.0_k_pr
+    atomix%atoms%fzo(1:atomix%atoms%natoms)=0.0_k_pr
+    atomix%atoms%chrg(1:atomix%atoms%natoms)=0.0_k_pr
+    atomix%atoms%chrg0(1:atomix%atoms%natoms)=0.0_k_pr
+    atomix%atoms%ismoving(1:atomix%atoms%natoms)=.true.
+    atomix%atoms%isscf(1:atomix%atoms%natoms)=.true.
+    atomix%atoms%MagMom(1:atomix%atoms%natoms)=0.0_k_pr 
+    atomix%atoms%norbs(1:atomix%atoms%natoms)=0 
     atomix%atoms%nmoving=0
     atomix%atoms%nscf=0
-    atomix%atoms%norbs=0
-    atomix%atoms%MagMom=0.0_k_pr
+        
 
     if (GetBlock(io,"AtomsData",nt)) then
       do i = 1, atomix%atoms%natoms
@@ -1449,7 +1456,18 @@ end subroutine CloseIoGeneral
     integer, allocatable :: tmpid(:)
 
     allocate(atomix%speciesBasis(1:atomix%species%nspecies,1:gen%maxOrbitalsPerAtom))
-    allocate(tmpid(1:atomix%species%nspecies))
+    do i=1, atomix%species%nspecies
+      do j=1, gen%maxOrbitalsPerAtom  
+            atomix%speciesBasis(i,j)%sp = 0
+            atomix%speciesBasis(i,j)%atom = 0
+            atomix%speciesBasis(i,j)%spin=.false.
+            atomix%speciesBasis(i,j)%n=0
+            atomix%speciesBasis(i,j)%l=0
+            atomix%speciesBasis(i,j)%m=0
+            atomix%speciesBasis(i,j)%occup=0.0_k_pr
+      enddo     
+    enddo 
+    allocate(tmpid(1:atomix%species%nspecies))    
     tmpid=0
     if (GetBlock(io,"Basis",nt)) then
       do i = 1,atomix%species%nspecies
@@ -1517,6 +1535,11 @@ end subroutine CloseIoGeneral
 ! allocate the basis for the atoms
     k=maxval(atomix%species%norbs)
     allocate(atomix%atoms%orbs(1:atomix%atoms%natoms,1:k))
+   do i=1, atomix%atoms%natoms
+      do j=1, k
+            atomix%atoms%orbs(i,j) = 0            
+      enddo     
+    enddo  
     atomix%basis%norbitals = 0
     do i=1,atomix%atoms%natoms
       atomix%basis%norbitals = atomix%basis%norbitals + atomix%species%norbs(atomix%atoms%sp(i))
@@ -1895,7 +1918,7 @@ end subroutine ReadBasis
     if (GetBlock(io,"DeltaPol",nt)) then
       allocate(tbMod%delta(1:atomix%species%nspecies))
       allocate(tmpid(1:atomix%species%nspecies))
-      tmpid=0
+      tmpid(1:atomix%species%nspecies)=0
       do i = 1,atomix%species%nspecies
         read(nt,fmt=*,iostat=errno) sp
         if (errno/=0) then
@@ -1934,6 +1957,7 @@ end subroutine ReadBasis
           enddo
         enddo
       enddo
+      deallocate(tmpid)
       else
         call error("DeltaPol block is missing",sMyName,.true.,io)
       endif
@@ -1963,9 +1987,6 @@ end subroutine ReadBasis
 !> \param tbMod type(modelType) contains iformation about the tight binding model parameters
 !> \param sol type(solutionType) contains information about the solution space
 !> \param io type(ioType) contains all the info about I/O files
-
-
-
   subroutine CleanMemory(io,atomic,general,tbMod,Sol)
     character(len=*), parameter :: sMyName="CleanMemory"
     type(ioType), intent(in) :: io
@@ -1973,9 +1994,8 @@ end subroutine ReadBasis
     type(generalType), intent(inout) :: general
     type(modelType),intent(inout) :: tbMod
     type(solutionType), intent(inout) :: sol
-
     integer :: i,j
-
+    
     deallocate(atomic%species%id)
     deallocate(atomic%species%mass)
     deallocate(atomic%species%z)
@@ -2022,6 +2042,7 @@ end subroutine ReadBasis
     deallocate(atomic%speciesBasis)
     deallocate(atomic%basis%orbitals)
     deallocate(atomic%atoms%orbs)
+    deallocate(atomic%atoms%MagMom) 
 
     do i=1,atomic%species%nspecies
       do j=1,atomic%species%nspecies
@@ -2061,6 +2082,21 @@ end subroutine ReadBasis
 
     deallocate(sol%n0)
     deallocate(sol%density)
+    deallocate(sol%buff%dins)
+    deallocate(sol%buff%douts)
+    deallocate(sol%buff%res)
+    deallocate(sol%buff%densityin)
+    deallocate(sol%buff%densityout)
+    deallocate(sol%buff%densitynext) 
+    deallocate(sol%buff%tmpA)
+    call DestroyMatrix(sol%buff%tmpB,io) 
+    deallocate(sol%buff%pos1)
+    deallocate(sol%buff%pos2)
+    deallocate(sol%buff%f)
+    deallocate(sol%buff%g) 
+    deallocate(sol%buff%a) 
+    deallocate(sol%buff%nstart)     
+   deallocate(sol%fact) 
     call MKL_FreeBuffers()
   end subroutine CleanMemory
 end module m_ReadData

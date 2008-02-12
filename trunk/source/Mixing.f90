@@ -6,6 +6,7 @@
 module m_Mixing
   use m_Constants
   use m_Types
+  use mkl95_LAPACK, only : gesv
   implicit none
   private
 
@@ -64,40 +65,45 @@ contains
     real(k_pr), allocatable ::c(:,:), beta(:),di(:),dou(:)
     integer :: i,j,nmix,info
     integer, allocatable :: wk(:)
-
+    
     allocate(di(1:n))
+    di(1:n)=0.0_k_pr 
     nmix=min(p,nit)
     info=0
 
-    if (nmix==1) then
-      dnext=alpha*co(:,1) + (1-alpha)*ci(:,1)
+    if (nmix==1) then     
+      dnext=alpha*co(:,1) + (1-alpha)*ci(:,1)      
     else
-      allocate(c(nmix+1,nmix+1))
-      allocate(beta(nmix+1))
-      allocate(wk(nmix+1))
+      allocate(c(1:nmix+1,1:nmix+1))
+      allocate(beta(1:nmix+1))
+      allocate(wk(1:nmix+1))
       allocate(dou(1:n))
-      do i=1,nmix
+      dou(1:n)=0.0_k_pr
+      do i=1,nmix-1
         do j=i+1,nmix
-          c(i,j) = sum( d(:,nmix-i+1)*d(:,nmix-j+1) )
+          c(i,j) = sum(d(:,nmix-i+1)*d(:,nmix-j+1) )
           c(j,i) = c(i,j)
         enddo
-        c(i,i) = sum( d(:,nmix-i+1)*d(:,nmix-i+1) )
+        c(i,i) = sum(d(:,nmix-i+1)*d(:,nmix-i+1) )
       enddo
-      beta=0.0_k_pr
+      c(nmix,nmix) = sum(d(:,1)*d(:,1) )
+      beta(1:nmix+1)=0.0_k_pr
+
       c(1:nmix,nmix+1)=1.0_k_pr
       c(nmix+1,1:nmix)=1.0_k_pr
       c(nmix+1,1+nmix)=0.0_k_pr
       beta(1:nmix)=0.0_k_pr
       beta(nmix+1)=1.0_k_pr
-      wk=0
-      call dgesv(nmix+1,1,c,nmix+1,wk,beta,nmix+1,info)
+      wk(1:nmix+1)=0
+      call gesv(c,beta,wk,info)
+
       if (info==0) then
-        di=0.0_k_pr
-        dou=0.0_k_pr
         do i=1,nmix
-          di=di+beta(i)*ci(:,nmix-i+1)
-          dou=dou+beta(i)*co(:,nmix-i+1)
-        enddo
+         do j=1,n
+            di(j)=di(j)+beta(i)*ci(j,nmix-i+1)
+            dou(j)=dou(j)+beta(i)*co(j,nmix-i+1)
+          enddo  
+        enddo        
         dnext=alpha*dou + (1-alpha)*di
       endif
       deallocate(c)
@@ -105,12 +111,13 @@ contains
       deallocate(wk)
       deallocate(dou)
     endif
+      
       di = co(:,nmix) - ci(:,nmix)
       dmax = abs(maxval(di))
       di = di*di
       residue = sqrt(sum(di*di))/real(n,k_pr)
       ierr=info
-      deallocate(di)
+      deallocate(di)      
    end subroutine MixDensity
 
 end module m_Mixing

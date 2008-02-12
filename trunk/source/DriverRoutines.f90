@@ -42,14 +42,18 @@ module m_DriverRoutines
     type(atomicxType), intent(inout) :: atomic
     type(modelType), intent(inout) :: tbMod
     type(solutionType), intent(inout) :: sol
-    real(k_pr) :: eenergy=0.0_k_pr,renergy=0.0_k_pr, minusts,scfE=0.0_k_pr
+    real(k_pr) :: eenergy,renergy, minusts,scfE
+
+ eenergy=0.0_k_pr
+ renergy=0.0_k_pr
+ scfE=0.0_k_pr
 
     if (genLoc%spin)  then
       call InitMagneticMoment(atomic)
       write(ioLoc%uout,"(a)")"Initial Magnetic Moment"
       call PrintMagneticMoment(atomic,sol,.false.,ioLoc)
-    endif
-    call FullSCF(ioLoc,genLoc,atomic,tbMod,sol)
+    endif        
+    call FullSCF(ioLoc,genLoc,atomic,tbMod,sol)    
     eenergy = ElectronicEnergy(genLoc,sol,ioLoc)
     renergy = RepulsiveEnergy(genLoc,atomic%atoms,tbMod)
     minusts = - genLoc%electronicTemperature * sol%electronicEntropy
@@ -810,7 +814,6 @@ module m_DriverRoutines
     if (gen%writeAnimation) then
        open(file='bfgsDyn.xyz',unit=aniunit)
     endif
-
     n = atomic%atoms%nmoving*3
     m=min(gen%HessianM,n)
     if (io%verbosity > k_highVerbos) then
@@ -826,10 +829,9 @@ module m_DriverRoutines
     gtol=gen%ftol
     info = 0
     maxfev=gen%maxFeval
-    ftol=gen%ftol
-    
-    
+    ftol=gen%ftol    
     allocate(x(1:n))
+    
     do i=1,atomic%atoms%nmoving
       atom=atomic%atoms%id(atomic%atoms%moving(i))
       x(3*(i-1)+1) = atomic%atoms%x(atom)
@@ -839,8 +841,8 @@ module m_DriverRoutines
     call lbfgs(n,m,x,epsg,epsf,epsx,xtol,gtol,ftol,maxfev,gen%nsteps,iprint,info,&
                  UpdatePoint,gen,atomic,tb,sol,io)
     res=UpdatePoint(gen,atomic,tb,sol,io,x,ftol,x)
-    deallocate(x)
-    call SinglePoint(io,gen,atomic,tb,sol)
+    deallocate(x) 
+   
        write(io%uout,'(/a)')&
           'Final forces:'
        call PrintForces(atomic%atoms,io)

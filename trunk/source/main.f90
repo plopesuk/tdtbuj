@@ -143,7 +143,6 @@ program tbuj
 ! solution spece variable
   type(solutionType) :: SolSpace
 
-  !! call VTINIT(ierr)
   call DateAndTime(dt,tm)
   narguments=iargc()
   call cpu_time(general%time%start)
@@ -200,5 +199,5 @@ program tbuj
   write(ioInfo%uout,'(a,f0.6,a)')"Program TDTB+UJ has run for "&
     ,general%time%end-general%time%start," seconds"
   call CloseIoGeneral(ioInfo)
-  !! call VTFINI(ierr)  
+
 end program tbuj

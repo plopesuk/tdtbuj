@@ -4,7 +4,7 @@
 		<Platform Name="Win32"/></Platforms>
 	<Configurations>
 		<Configuration Name="Debug|Win32" ConfigurationType="typeStaticLibrary">
-				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/Qfpp2 /Qopenmp" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" PreprocessorDefinitions="OPENMP" StandardWarnings="standardWarningsF03" WarnInterfaces="true" ModulePath="../" Traceback="true" RuntimeChecks="rtChecksAll" RuntimeLibrary="rtMultiThreadedDebug"/>
+				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/Qfpp2 /Qopenmp" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" PreprocessorDefinitions="OPENMP" StandardWarnings="standardWarningsF03" WarnInterfaces="true" ModulePath="." Traceback="true" RuntimeChecks="rtChecksAll" RuntimeLibrary="rtMultiThreadedDebug"/>
 				<Tool Name="VFLibrarianTool"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>

@@ -37,12 +37,12 @@ foreach(_library ${_list})
 
   if(_libraries_work)
 
-IF (WIN32)
+   if ( WIN32 )
     find_library(${_prefix}_${_library}_LIBRARY
     NAMES ${_library}
     PATHS ENV LIB 
     )
-ENDIF (WIN32)
+   endif ( WIN32 )
     
    if ( APPLE ) 
     find_library(${_prefix}_${_library}_LIBRARY
@@ -177,16 +177,27 @@ endif(NOT BLAS_LIBRARIES)
 
 
 
-# BLAS in intel mkl library? (shared)
+#BLAS in intel mkl 10 library? (em64t 64bit)
 if(NOT BLAS_LIBRARIES)
-  check_fortran_libraries(
-  BLAS_LIBRARIES
-  BLAS
-  sgemm
-  ""
-  "mkl;guide;pthread"
-  )
+check_fortran_libraries(
+BLAS_LIBRARIES
+BLAS
+sgemm
+""
+"mkl_intel_lp64;mkl_intel_thread;mkl_core;guide;pthread"
+)
 endif(NOT BLAS_LIBRARIES)
+if(NOT BLAS95_LIBRARIES)
+check_fortran_libraries(
+BLAS95_LIBRARIES
+BLAS
+sgemm
+""
+"mkl_blas95;mkl_intel_lp64;mkl_intel_thread;mkl_core;guide;pthread"
+)
+endif(NOT BLAS95_LIBRARIES)
+
+### windows version of intel mkl 10
 
 if(NOT BLAS_LIBRARIES)
 check_fortran_libraries(
@@ -194,7 +205,7 @@ BLAS_LIBRARIES
 BLAS
 SGEMM
 ""
-"mkl_core_dll;mkl_c_dll;mkl_intel_thread_dll;libguide40"
+"mkl_c_dll;mkl_intel_thread_dll;mkl_core_dll;libguide40"
 )
 endif(NOT BLAS_LIBRARIES)
 
@@ -207,6 +218,23 @@ sgemm
 "mkl_blas95;mkl_intel_c;mkl_intel_thread;mkl_core;libguide40"
 )
 endif(NOT BLAS95_LIBRARIES)
+
+
+
+
+
+#older vesions of intel mkl libs
+
+# BLAS in intel mkl library? (shared)
+if(NOT BLAS_LIBRARIES)
+  check_fortran_libraries(
+  BLAS_LIBRARIES
+  BLAS
+  sgemm
+  ""
+  "mkl;guide;pthread"
+  )
+endif(NOT BLAS_LIBRARIES)
 
 
 #BLAS in intel mkl library? (static, 32bit)

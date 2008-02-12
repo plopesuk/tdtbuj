@@ -47,64 +47,57 @@ contains
     type(atomicxType), intent(inout) :: atomic
     type(modelType), intent(inout) :: tbMod
     type(solutionType), intent(inout) :: sol
-    integer :: l
+    integer :: l,n,m
     real(k_pr) :: cr
 
     call cpu_time(cr)
     if (.not.sol%h%created) then
       call CreateSparseMatrix(sol%h,atomic%basis%norbitals,.true.)
       call CreateSparseMatrix(sol%forceOp,sol%h%dim,.true.)
-    else
+    endif
       call ResetSparseMatrix(sol%h)
       call ResetSparseMatrix(sol%forceOp)
-    endif
+    n=atomic%basis%norbitals
     if (.not.sol%eigenvecs%created) then
       allocate(sol%eigenvals(1:atomic%basis%norbitals))
       call CreateMatrix(sol%eigenvecs,atomic%basis%norbitals,.true.)
-    else
-      sol%eigenvals=0.0_k_pr
-      call ZeroMatrix(sol%eigenvecs,ioLoc)
     endif
+      sol%eigenvals(1:n)=0.0_k_pr
+      call ZeroMatrix(sol%eigenvecs,ioLoc)
+    
     if (genLoc%scf) then
-      if (sol%hin%created) then
-        call ResetSparseMatrix(sol%hin)
-        call ResetSparseMatrix(sol%h2)
-        sol%potential=0.0_k_pr
-        sol%field=0.0_k_pr
-      else
+      if (.not.sol%hin%created) then        
         call CreateSparseMatrix(sol%hin,atomic%basis%norbitals,.true.)
         call CreateSparseMatrix(sol%h2,atomic%basis%norbitals,.true.)
         allocate(sol%potential(1:atomic%atoms%natoms))
         allocate(sol%field(1:atomic%atoms%natoms,1:3))
+       endif 
         call ResetSparseMatrix(sol%hin)
         call ResetSparseMatrix(sol%h2)
-        sol%potential=0.0_k_pr
-        sol%field=0.0_k_pr
-      endif
-
+        sol%potential(1:atomic%atoms%natoms)=0.0_k_pr
+        sol%field(1:atomic%atoms%natoms,1:3)=0.0_k_pr  
     endif
 
     if (genLoc%spin) then
        !spin down
       if (.not.sol%hdown%created) then
         call CreateMatrix(sol%hdown,atomic%basis%norbitals/2,.true.)
-      else
-        call ZeroMatrix(sol%hdown,ioLoc)
       endif
+        call ZeroMatrix(sol%hdown,ioLoc)      
       if (.not.sol%hup%created) then
         call CreateMatrix(sol%hup,atomic%basis%norbitals/2,.true.)
-      else
-        call ZeroMatrix(sol%hup,ioLoc)
       endif
+        call ZeroMatrix(sol%hup,ioLoc)      
     endif
     if (.not.sol%rho%created) then
       call CreateMatrix(sol%rho,atomic%basis%norbitals,.true.)
-    else
-      call ZeroMatrix(sol%rho,ioLoc)
     endif
+      call ZeroMatrix(sol%rho,ioLoc)
+    
 
     l= maxval(tbMod%hopping(:,:)%l2)
     allocate(sol%fact(0:(6*(l+1)+1)))
+    sol%fact(0:(6*(l+1)+1))=0.0_k_pr
     call initFact(6*(l+1)+1,sol%fact)
 
     if ((genLoc%scf).and.(genLoc%electrostatics==k_electrostaticsMultipoles)) then
@@ -113,13 +106,47 @@ contains
     if (.not.allocated(sol%n0)) then
       allocate(sol%n0(1:atomic%basis%norbitals))
     endif
-    sol%n0=0.0_k_pr
+    sol%n0(1:n)=0.0_k_pr
     call Buildn0(genLoc,atomic,sol)
     l=sol%h%dim*(sol%h%dim-1)/2
     allocate(sol%density(1:l+sol%h%dim))
+    sol%density(1:l+sol%h%dim)=0.0_k_pr
     call setTails(ioLoc,genLoc,atomic,tbMod,sol)
     call rmarin(int((cr-int(cr))*3132),int(genLoc%ranseed*30081),sol%seed,ioLoc)
-
+   
+    
+    if (.not.allocated(sol%buff%dins)) then
+      n=atomic%basis%norbitals 
+      m=sol%hup%dim     
+      allocate(sol%buff%dins(1:l+n,1:genLoc%scfMixn))
+      allocate(sol%buff%douts(1:l+n,1:genLoc%scfMixn))
+      allocate(sol%buff%res(1:l+n,1:genLoc%scfMixn))
+      allocate(sol%buff%densityin(1:l+n))
+      allocate(sol%buff%densityout(1:l+n))
+      allocate(sol%buff%densitynext(1:l+n))
+      allocate(sol%buff%tmpA(1:m))      
+      call CreateMatrix(sol%buff%tmpB,m,.true.)
+      allocate(sol%buff%f(1:sol%eigenvecs%dim))
+      allocate(sol%buff%g(1:sol%eigenvecs%dim))
+      allocate(sol%buff%a(1:sol%eigenvecs%dim,1:sol%eigenvecs%dim))
+      allocate(sol%buff%pos1(1:sol%rho%dim),sol%buff%pos2(1:sol%rho%dim))
+      allocate(sol%buff%nstart(1:atomic%basis%norbitals))
+    endif  
+      call ZeroMatrix(sol%buff%tmpB,ioLoc) 
+      sol%buff%dins(1:l+n,1:genLoc%scfMixn)=0.0_k_pr
+      sol%buff%douts(1:l+n,1:genLoc%scfMixn)=0.0_k_pr
+      sol%buff%res(1:l+n,1:genLoc%scfMixn)=0.0_k_pr
+      sol%buff%densityin(1:l+n)=0.0_k_pr
+      sol%buff%densityout(1:l+n)=0.0_k_pr
+      sol%buff%densitynext(1:l+n)=0.0_k_pr
+      sol%buff%tmpA(1:m)=0.0_k_pr      
+      sol%buff%f(1:n)=0.0_k_pr
+      sol%buff%g(1:n)=0.0_k_pr
+      sol%buff%a(1:n,1:n)=cmplx(0.0_k_pr,0.0_k_pr,k_pr)
+      sol%buff%nstart(1:n)=0.0_k_pr
+      sol%buff%pos1(1:n)=0
+      sol%buff%pos2(1:n)=0      
+     
   end subroutine SetSolutionSpace
 
 
@@ -308,9 +335,10 @@ end subroutine setTails
     type(ioType), intent(in) :: io
     type(solutionType), intent(inout) :: sol
     integer :: n1,n2,n3
-    integer :: i,j,k,l1,l2,l3,m1,m2,m3,ii,kk,jj,p=0
+    integer :: i,j,k,l1,l2,l3,m1,m2,m3,ii,kk,jj,p
     complex(k_pr) :: aux,tt
 
+    p=0
     n1=l1m*l1m+2*l1m+1
     n2=l2m*l2m+2*l2m+1
     n3=l3m*l3m+2*l3m+1
@@ -750,7 +778,7 @@ end subroutine setTails
     integer, intent(in) :: sp
     type(modelType), intent(in) :: tb
     !--internal variables ----------------------------!
-    real(k_pr) a1,a2,a3,a4
+    real(k_pr) :: a1,a2,a3,a4
 
     a1=tb%hopping(sp,sp)%a1
     a2=tb%hopping(sp,sp)%a2
@@ -770,7 +798,7 @@ end subroutine setTails
     integer, intent(in) :: sp
     type(modelType), intent(in) :: tb
     !--internal variables ----------------------------!
-    real(k_pr) a1,a2,a3,a4
+    real(k_pr) :: a1,a2,a3,a4
 
     a1=tb%hopping(sp,sp)%a1
     a2=tb%hopping(sp,sp)%a2
@@ -789,7 +817,7 @@ end subroutine setTails
     integer, intent(in) :: sp
     type(modelType), intent(in) :: tb
     !--internal variables ----------------------------!
-    real(k_pr) a2,a3,a4
+    real(k_pr) :: a2,a3,a4
 
 
     a2=tb%hopping(sp,sp)%a2
@@ -809,7 +837,6 @@ end subroutine setTails
   subroutine InitMagneticMoment(atomic)
   character(len=*), parameter :: myname="InitMagneticMoment"
     type(atomicxType), intent(inout) :: atomic
-
 
     real(k_pr) :: tmom,lmom
     integer :: i,k
