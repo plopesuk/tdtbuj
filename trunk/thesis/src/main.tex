@@ -1,0 +1,71 @@
+\documentclass[oneside]{thesis}
+% one side should be added here
+% it seems that if I add it in the LoadClass gets overwritten
+\usepackage{thesis}
+
+%% You can set the line spacing this way
+%\setallspacing{double}
+%% or a section at a time like this
+%\setfrontmatterspacing{double}
+
+%% PDF metadata
+\makeatletter
+\@ifpackageloaded{hyperref}{%
+\hypersetup{%
+pdftitle = {title},
+pdfsubject = {Alin M Elena's PhD thesis},
+pdfkeywords = {physics,},
+pdfauthor = {\textcopyright\ Alin Marin Elena}
+}
+}{}
+\makeatother
+
+%% Define the thesis title and author
+\title{A study of }
+\author{Alin Marin Elena}
+
+\makeglossaries
+
+\newglossaryentry{set}% the label
+{name=set, % the term
+ description={the number of objects within a set}, % brief description
+ symbol={\ensuremath{|\mathcal{S}|}} % the associated symbol
+}
+
+
+
+
+
+\makeindex 
+
+%% Start the document
+\begin{document}
+
+%% Define the un-numbered front matter (cover pages, rubrik and table of contents)
+\begin{frontmatter}
+  \input{frontmatter}
+\end{frontmatter}
+
+
+%% Start the content body of the thesis
+\begin{mainmatter}
+  
+  %% Actually, more semantic chapter filenames are better, like "chap-bgtheory.tex"
+  \input{chap1}
+  \input{chap2}
+  \input{chap3}
+\end{mainmatter}
+
+%% Produce the appendices
+\begin{appendices}
+  \input{appendices}
+\end{appendices}
+
+%% Produce the un-numbered back matter (e.g. colophon, 
+%% bibliography, tables of figures etc., index...)
+\begin{backmatter}
+  \input{backmatter}
+\end{backmatter}
+
+%% Close
+\end{document}
