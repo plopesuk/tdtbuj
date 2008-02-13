@@ -1,0 +1,23 @@
+\chapter{Continued captions}
+\label{chap:ContCaptions}
+
+Here are some funky ``continued captions'' \cite{Kohler2007}\dots
+
+\begin{figure}
+  \subfloat[][Example 1a]{\label{fig:cc1a}\rule{3cm}{3cm}}
+  \subfloat[][Example 1b]{\label{fig:cc1b}\rule{3cm}{3cm}}
+  \subfloat[][Example 1c]{\label{fig:cc1c}\rule{3cm}{3cm}}
+  \subfloat[][Example 1d]{\label{fig:cc1d}\rule{3cm}{3cm}}
+  \caption{Demonstration of \texttt{ccaption}.}
+  \label{fig:cc1}
+\end{figure}
+
+\begin{figure}
+  \ContinuedFloat
+  \subfloat[][Example 1e]{\label{fig:cc1e}\rule{3cm}{3cm}}
+  \subfloat[][Example 1f]{\label{fig:cc1f}\rule{3cm}{3cm}}
+  \subfloat[][Example 1g]{\label{fig:cc1g}\rule{3cm}{3cm}}
+  \subfloat[][Example 1h]{\label{fig:cc1h}\rule{3cm}{3cm}}
+  \caption[]{Demonstration of \texttt{ccaption} (continued).}
+  \label{fig:cc2}
+\end{figure}
