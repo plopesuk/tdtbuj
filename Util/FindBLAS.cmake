@@ -220,7 +220,16 @@ sgemm
 endif(NOT BLAS95_LIBRARIES)
 
 
-
+# linux 32 bit
+if(NOT BLAS95_LIBRARIES)
+check_fortran_libraries(
+BLAS95_LIBRARIES
+BLAS
+sgemm
+""
+"mkl_blas95;mkl_intel;mkl_intel_thread;mkl_core;guide;pthread"
+)
+endif(NOT BLAS95_LIBRARIES)
 
 
 #older vesions of intel mkl libs

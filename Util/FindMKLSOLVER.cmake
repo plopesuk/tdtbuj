@@ -116,6 +116,19 @@ if ( NOT MKLSOLVER_LIBRARIES )
     "${BLAS_LIBRARIES};${LAPACK_LIBRARIES}"
     )
   endif (NOT MKLSOLVER_LIBRARIES)
+if ( NOT MKLSOLVER_LIBRARIES )
+    check_MKLSOLVER_libraries(
+    MKLSOLVER_LIBRARIES
+    MKLSOLVER
+    djacobi_solve
+    ""
+    "mkl_solver"
+    "${BLAS_LIBRARIES};${LAPACK_LIBRARIES}"
+    )
+  endif (NOT MKLSOLVER_LIBRARIES)
+
+
+
 ENDIF (WIN32)
 else(BLAS_FOUND)
   message(STATUS "MKLSOLVE Rrequires BLAS")
