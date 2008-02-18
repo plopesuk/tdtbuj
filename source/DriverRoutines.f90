@@ -15,6 +15,7 @@ module m_DriverRoutines
   use m_Dynamics
   use m_DensityMatrix
   use m_LBFGS
+  use m_SCF2
   implicit none
 
   private
