@@ -52,8 +52,8 @@ ${src_dir}/LinearAlgebra.F90
 )
 
 ####################
-set_source_files_properties(${src_dir}/SCF2.f90
-	PROPERTIES COMPILE_FLAGS /O3)
+#~ set_source_files_properties(${src_dir}/SCF2.f90
+#~ 	PROPERTIES COMPILE_FLAGS /Od)
 
 
 ####################
@@ -71,7 +71,6 @@ ${src_dir}/SlaterKoster.f90
 ${src_dir}/DensityMatrix.f90
 ${src_dir}/Hamiltonian.f90
 ${src_dir}/Mixing.f90
-${src_dir}/SCF2.f90
 ${src_dir}/SCF.f90
 ${src_dir}/Simplex.f90
 ${src_dir}/SA.f90
