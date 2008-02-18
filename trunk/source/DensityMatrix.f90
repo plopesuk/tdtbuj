@@ -61,8 +61,8 @@ contains
     character(len=*), parameter :: myname = 'FindFermi'
     real(k_pr), intent(in) :: qtotal
     type(generalType), intent(inout) :: gen
-    type(ioType), intent(in) :: io
-    type(solutionType), intent(in) :: sol
+    type(ioType), intent(inout) :: io
+    type(solutionType), intent(inout) :: sol
     integer      :: i,k
     real(k_pr)              :: a,b
     real(k_pr) :: q
@@ -116,8 +116,8 @@ contains
 !> \param sol type(solutionType) contains information about the solution space
   subroutine GenerateRho(gen,sol,io)
     character(len=*), parameter :: myname = 'GenerateRho'
-    type(generalType), intent(in) :: gen
-    type(ioType), intent(in) :: io
+    type(generalType), intent(inout) :: gen
+    type(ioType), intent(inout) :: io
     type(solutionType), intent(inout) :: sol
     integer      :: i,k    
     real(k_pr) :: fa,fb,entropy,tiny
@@ -334,8 +334,8 @@ contains
   subroutine BuildDensity(atomic,sol,gen,first)
     character(len=*), parameter :: myname = 'BuildDensity'
     logical, intent(in),optional :: first
-    type(atomicxType), intent(in) :: atomic
-    type(generalType),intent(in), optional :: gen
+    type(atomicxType), intent(inout) :: atomic
+    type(generalType),intent(inout), optional :: gen
     type(solutionType), intent(inout) :: sol
     integer :: i,n,m,j,k    
 
@@ -382,7 +382,7 @@ contains
     character(len=*), parameter :: myname = 'Getn0'
     !--subroutine parameters -------------------------!
     integer, intent(in) :: i,j
-    type(solutionType), intent(in) :: sol
+    type(solutionType), intent(inout) :: sol
     if (i==j) then
       Getn0=sol%n0(j)
     else
