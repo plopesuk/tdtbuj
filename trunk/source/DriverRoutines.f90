@@ -520,7 +520,6 @@ module m_DriverRoutines
     call CreateMatrix(rho0,sol%h%dim,.true.)
     call CreateMatrix(deltaRho,sol%h%dim,.true.)
     call CopyMatrix(rho0,sol%rho,io)
-
     call CreateDensityMatrixExcited(gen,atomic,sol,io)
     ! get the starting density matrix
 !     call GetRho(sol%rho)
