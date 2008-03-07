@@ -10,10 +10,10 @@ Units  RY
 MaxOrbsPerAtom 10
 
 
-RunType SinglePoint
+#RunType SinglePoint
 #RunType BODynamics
 #RunType Ehrenfest
-#RunType EhrenfestDamped
+RunType EhrenfestDamped
 #RunType Fit
 #RunType GeometryOptimization
 
@@ -35,7 +35,7 @@ SCFMixIterations      4
 
 #Time evolution
 DeltaT 0.001
-Nsteps 100
+Nsteps 100000
 WriteAnimation Yes
 
 ScaleVelocities  No
@@ -44,7 +44,7 @@ IonicTemperature 550.0
 Gamma 0.05
 EulerSteps 100
 # excitation
-Excite No 
+Excite Yes 
 HoleState 3
 HoleSpin  U
 ExciteState 4
