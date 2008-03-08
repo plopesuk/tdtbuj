@@ -190,14 +190,14 @@ program tbuj
 
 !!!!!! closes all the units associated with blocks and deallocated the trees for tokens and blocks
   call CleanMemory(ioInfo,atomicx,general,tbModel,SolSpace)
-  call cpu_time(general%time%endd)
+  call cpu_time(general%time%end)
   write(ioInfo%uout,'(a,a,a,a)',advance="no")"Program TDTB+UJ has started at ",dt," ",tm
   call DateAndTime(dt,tm)
   write(ioInfo%uout,'(a,a,a,a)')" ended at ",dt," ",tm
   write(ioInfo%udeb,'(a,f16.6,a)')"Program TDTB+UJ has run for "&
-     ,general%time%endd-general%time%start," seconds"
+     ,general%time%end-general%time%start," seconds"
   write(ioInfo%uout,'(a,f0.6,a)')"Program TDTB+UJ has run for "&
-     ,general%time%endd-general%time%start," seconds"
+     ,general%time%end-general%time%start," seconds"
   call CloseIoGeneral(ioInfo)
 
 end program tbuj

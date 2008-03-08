@@ -59,19 +59,19 @@ contains
     call cpu_time(genLoc%time%int)
 
     call ParseFile(ioLoc)
-    call cpu_time(genLoc%time%endd)
-    aux=genLoc%time%endd-genLoc%time%int
+    call cpu_time(genLoc%time%end)
+    aux=genLoc%time%end-genLoc%time%int
 
     call cpu_time(genLoc%time%int)
 
     call ReadIo(ioLoc)
 
     if (ioLoc%debug>=k_mediumDebug) then
-      call cpu_time(genLoc%time%endd)
+      call cpu_time(genLoc%time%end)
       write(ioLoc%udeb,'(a,f16.6,a)')"Parsing time "&
         ,aux," seconds"
       write(ioLoc%udeb,'(a,f16.6,a)')"Setting ioInfo "&
-        ,genLoc%time%endd-genLoc%time%int," seconds"
+        ,genLoc%time%end-genLoc%time%int," seconds"
     endif
 
     if (ioLoc%debug>=k_mediumDebug) call timing(ioLoc,genLoc%time,1)
@@ -1074,11 +1074,11 @@ end subroutine CloseIoGeneral
     integer, intent(in) :: stage
 
     if (stage==1) then
-      call cpu_time(times%endd)
+      call cpu_time(times%end)
     elseif (stage==2) then
-      call cpu_time(times%endd)
+      call cpu_time(times%end)
       write(io%udeb,'(a,f16.6,a)')"parsing and setting "&
-        ,times%endd-times%int," seconds"
+        ,times%end-times%int," seconds"
     endif
 
   end subroutine timing
