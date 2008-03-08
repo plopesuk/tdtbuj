@@ -38,7 +38,7 @@ module m_Types
 !> \brief time keeping type
   type ,public :: timeType
   real(k_pr) :: start !< start time
-  real(k_pr) :: end !< end time
+  real(k_pr) :: endd !< end time
   real(k_pr) :: int !< interk_mediate time
   end type timeType
 
