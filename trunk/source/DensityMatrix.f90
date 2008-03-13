@@ -568,6 +568,6 @@ contains
       enddo
       write(io%uout,*) &
             '------------------------------------------------------------'
-    endif    
+    endif
    end subroutine GenerateRhoExcited
 end module m_DensityMatrix
