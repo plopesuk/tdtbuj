@@ -501,9 +501,9 @@ IF (LATEX_USE_GLOSSARY)
       ${MAKEINDEX_COMPILER} ${MAKEINDEX_COMPILER_FLAGS} -s ${LATEX_TARGET}.ist -t ${LATEX_TARGET}.glg -o ${LATEX_TARGET}.gls ${LATEX_TARGET}.glo)
     FILE(GLOB files ${output_dir}/*.ist)
     FOREACH(glossary_file ${files})
-	SET(make_dvi_depends ${make_dvi_depends} ${output_dir}/${glossary_file})
-        SET(make_pdf_depends ${make_pdf_depends} ${output_dir}/${glossary_file})
-    ENDFOREACH(glossary_file ${files})	      
+	    SET(make_dvi_depends ${make_dvi_depends} ${glossary_file})
+      SET(make_pdf_depends ${make_pdf_depends} ${glossary_file})
+    ENDFOREACH(glossary_file ${files})
   ENDIF (LATEX_USE_GLOSSARY)
 
   SET(make_dvi_command ${make_dvi_command}

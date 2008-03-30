@@ -10,14 +10,15 @@ endif(COMMAND cmake_policy)
 SET(LATEX_OUTPUT_PATH bin)
 SET(CMAKE_CURRENT_SOURCE_DIR src)
 
-ADD_LATEX_DOCUMENT(main.tex
-  INPUTS chap1.tex chap2.tex chap3.tex 
-  appendices.tex SphericalHarmonics.tex
-  backmatter.tex frontmatter.tex glossary.tex
+ADD_LATEX_DOCUMENT(thesis.tex
+  INPUTS 
+  abstract.tex glossary.tex acknowledgement.tex
+  introduction.tex chapter1.tex chapter2.tex
+  appendixA.tex appendixB.tex
   xkeyval.tex xkvtxhdr.tex  pst-xkey.tex  keyval.tex
-  BIBFILES mythesis.bib
+  BIBFILES mythesis.bib 
   IMAGE_DIRS figures
-  USE_INDEX  
-  USE_GLOSSARIES
+  USE_GLOSSARY
+  USE_INDEX
   DEFAULT_PDF
   )
