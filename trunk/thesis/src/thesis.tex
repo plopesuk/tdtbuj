@@ -1,0 +1,143 @@
+%it uses aprilthesis.cls just a simple customisation of the standard book latex package
+% with different tips and tricks 
+% there is also an extramath.sty package that contains
+% macros needed to write physics and mathematics
+
+\documentclass[twoside,a4paper,12pt]{aprilthesis}
+
+\usepackage[titletoc]{appendix} % appendices
+\usepackage[english]{babel}  %good spelling
+\usepackage{amssymb,amsmath} %nicer math
+\usepackage{fancyhdr}  %funky headers
+\usepackage{varwidth} %minipages made easier
+\usepackage{makeidx} %index
+\usepackage{hepunits}  %gives you units
+\usepackage{braket}    %Dirac brakets
+
+\usepackage[backref,colorlinks=true,bookmarks=true,plainpages=false]{hyperref} %links in pdf
+\usepackage[numbers,sort&compress]{natbib} %references
+\usepackage{hypernat} %references
+\usepackage[style=justsymbols,toc,nonumberlist]{glossaries} %glossaries a little bit non standard
+
+
+\makeglossaries
+% the file containting the glossary entry
+\input{glossary}
+\makeindex
+
+
+\title{Time Dependent Tight Binding+U: Applications to Fluorescent Molecules}
+\author{Alin Marin Elena}
+\acadtitle{Licentiate in Physics}
+\affiliation{The Queen's University of Belfast}
+\tdesc{A thesis  submitted to the School of Mathematics and Physics\\in partial fulfilment 
+of the requirements for the degree of\\Doctor of Philosophy}
+%not official asked but nice to have it
+\logo[3cm]{figures/qub}
+% uncomment if you want a certain date
+%\date{April 1, 2008}
+
+
+\hypersetup{%
+pdftitle = {Time Dependent Tight Binding+U: Applications to Fluorescent Molecules},
+pdfsubject = {Alin M Elena's PhD thesis},
+pdfkeywords = {time dependent, tight binding, fluorescent, electronic structure, atoms, molecules, dft, oprimisation},
+pdfauthor = {\textcopyright\ Alin Marin Elena}
+}
+
+
+\begin{document}
+% you get no style for the frontmatter
+\pagestyle{empty}
+\frontmatter
+% generates the title page
+% according to QUB requirements
+\maketitle
+
+%if uncommented will insert a dedication page
+%the dedication gets centered in the middle of the page
+%first argument is intended to be used only for a short word
+%second argument contains the dedication text you can use \\ to break the line 
+\makededication{to}{be added}
+
+
+%if uncommented will insert main quote page
+% the quote will be centered on the page
+% there is another command \chapterquote{}{} that will insert a quote
+% aligned to right.
+\mainquote{to be decided
+}{\quad \quad ....}
+
+
+\chapter{Abstract}
+\input{abstract}
+
+\chapter{Acknowledgement}
+\input{acknowledgement}
+
+\setcounter{tocdepth}{1}
+\tableofcontents
+
+\glsaddall
+\renewcommand{\glossaryname}{Glossary of Symbols}
+\printglossaries
+
+
+% the mainmatter is fancy
+\mainmatter
+\pagestyle{fancy}
+
+% it is simple to include the files
+%chapter by chapter
+% the introduction does not get numbered.
+% check introduction.tex to see how
+\input{introduction}
+\input{chapter1}
+\input{chapter2}
+
+% appendices now
+\begin{appendices}
+\chapter[Spherical Harmonics]{Spherical Harmonics}
+ \input{appendixA}
+\end{appendices}
+
+\begin{appendices}
+\chapter{Not a Nice title}
+ \input{appendixB}
+\end{appendices}
+
+
+\backmatter
+% references. First we redifine the default \bibname
+% the phantomsection trick is useful for the links
+\renewcommand{\bibname}{References}
+\phantomsection
+\addcontentsline{toc}{chapter}{\bibname}
+% the style used for the references adjust according to taste
+\bibliographystyle{plainnat}
+%the file that contains the .bib references
+\bibliography{mythesis}
+
+%we generate the list of tables and figures here at the end
+% it is a matter of taste again the phantomsection trick
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{\listtablename}
+\listoftables
+
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{\listfigurename}
+\listoffigures
+
+% the index if there is one.
+% the \addtolength trick is to give us all the chapters starting at the same place on the page
+\cleardoublepage
+\addtolength{\topmargin}{0.81cm}
+\phantomsection
+\addcontentsline{toc}{chapter}{Index}
+\printindex
+\addtolength{\topmargin}{-0.81cm}
+%enjoy
+\end{document}
+%
