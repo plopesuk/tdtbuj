@@ -35,7 +35,7 @@ SCFMixIterations      4
 
 #Time evolution
 DeltaT 0.001
-Nsteps 40000
+Nsteps 200000
 WriteAnimation Yes
 
 ScaleVelocities  No

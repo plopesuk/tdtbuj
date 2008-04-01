@@ -37,6 +37,7 @@ module m_Useful
   public :: Swap
   public :: AssertEq
   public :: ExpRep
+  public :: ComputeEuclideanMatrix
 
   interface Swap
     module procedure SwapScalar,SwapVector
@@ -760,4 +761,52 @@ contains
     end if
   end function ExpRep
       
+  subroutine ComputeEuclideanMatrix(atoms,io,euclidDistances)
+    character(len=*), parameter :: myname="ComputeEuclideanMatrix"
+    type(ioType), intent(in) :: io
+    type(atomicType), intent(in) :: atoms
+    real(k_pr), intent(inout),optional :: euclidDistances(:,:)
+    real(k_pr),allocatable :: tmp(:,:)
+    integer :: i,j
+    
+    if (.not.present(euclidDistances)) then
+      allocate(tmp(1:atoms%natoms,1:atoms%natoms))
+      tmp=0.0_k_pr
+    endif
+    do i=1,atoms%natoms-1
+      do j=i+1,atoms%natoms
+         if (.not.present(euclidDistances)) then
+            tmp(i,j)=Distance(atoms,i,j)
+            tmp(j,i)=tmp(i,j)
+         else
+            euclidDistances(i,j)=Distance(atoms,i,j)
+            euclidDistances(j,i)=euclidDistances(i,j)
+         endif
+      enddo
+    enddo
+    
+    if (.not.present(euclidDistances)) then
+      write(io%uout,*) "==Euclidean Distances Matrix======"      
+      write(io%uout,'(7x)',advance="no")
+      do i=1,atoms%natoms
+         write(io%uout,'(i12,1x)',advance="no") i
+      enddo
+      write(io%uout,*)
+      do i=1,atoms%natoms
+         write(io%uout,'(i6,1x)',advance="no") i
+         do j=1,atoms%natoms
+            write(io%uout,'(f12.6,1x)',advance="no") tmp(i,j)
+         enddo
+         write(io%uout,'(1x,i0)')i
+      enddo
+      write(io%uout,'(7x)',advance="no")
+      do i=1,atoms%natoms
+         write(io%uout,'(i12,1x)',advance="no") i
+      enddo
+      write(io%uout,*)
+      write(io%uout,*)"==================================="
+      deallocate(tmp)
+    endif
+ 
+  end subroutine ComputeEuclideanMatrix
 end module m_Useful
