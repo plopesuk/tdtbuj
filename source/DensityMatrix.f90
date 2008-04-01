@@ -165,11 +165,11 @@ contains
             '--Occupation Numbers-------------------------------------------'
         do i=1,sol%rho%dim
           if (sol%buff%pos1(i) <=sol%rho%dim/2) then
-            write(io%uout,'(2f16.8,a)') &
-              sol%eigenvals(sol%buff%pos1(i)),sol%buff%f(sol%buff%pos1(i))," down"
+            write(io%uout,'(i0,x,i0,2f16.8,a)') &
+              i,sol%buff%pos1(i),sol%eigenvals(sol%buff%pos1(i)),sol%buff%f(sol%buff%pos1(i))," down"
           else
-            write(io%uout,'(2f16.8,a)') &
-              sol%eigenvals(sol%buff%pos1(i)),sol%buff%f(sol%buff%pos1(i))," up"
+            write(io%uout,'(i0,x,i0,2f16.8,a)') &
+              i,sol%buff%pos1(i)-sol%rho%dim/2,sol%eigenvals(sol%buff%pos1(i)),sol%buff%f(sol%buff%pos1(i))," up"
           endif
         enddo
         write(io%uout,*) &
@@ -316,7 +316,7 @@ contains
 
       if (io%verbosity>=k_highVerbos) then
         write(io%uout,*) &
-            "Ocupation Numbers"
+            "Occupation Numbers"
          do i=1,sol%rho%dim
             write(io%uout,'(i0,1x,f16.8,1x,f16.8)') &
                i,sol%eigenvals(i),2.0_k_pr*sol%buff%f(i)

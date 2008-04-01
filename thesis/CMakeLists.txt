@@ -13,8 +13,8 @@ SET(CMAKE_CURRENT_SOURCE_DIR src)
 ADD_LATEX_DOCUMENT(thesis.tex
   INPUTS 
   abstract.tex glossary.tex acknowledgement.tex
-  introduction.tex chapter1.tex chapter2.tex
-  appendixA.tex appendixB.tex
+  introduction.tex chapter1.tex chapter2.tex chapter3.tex chapter4.tex
+  appendixA.tex appendixB.tex appendixC.tex
   xkeyval.tex xkvtxhdr.tex  pst-xkey.tex  keyval.tex
   BIBFILES mythesis.bib 
   IMAGE_DIRS figures

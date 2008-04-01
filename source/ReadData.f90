@@ -276,8 +276,8 @@ subroutine ReadGeneral(ioLoc,genLoc)
       genLoc%units = k_unitsEV
     elseif (cstr(trim(saux),'SI')) then
       genLoc%units = k_unitsSI
-    elseif (cstr(trim(saux),'RY')) then
-      genLoc%units = k_unitsRY
+    elseif (cstr(trim(saux),'ARU')) then
+      genLoc%units = k_unitsARU
     else
       call error("The requested system of units is not implemented",name,.true.,ioLoc)
     endif
@@ -651,8 +651,8 @@ end subroutine ReadGeneral
 !> \hline
 !> MaxOrbsPerAtom & integer & 8 & maximum number of orbitals per atom\\\
 !> \hline
-!> Units & AU, EVA, SI, RY & AU & system of units: atomic units(AU), electronVolt-Angstrom(eVA),
-!> International(SI) Rydeberg Atomic Units (RY)\\\
+!> Units & AU, EVA, SI, ARU & AU & system of units: atomic units(AU), electronVolt-Angstrom(eVA),
+!> International(SI) Rydeberg Atomic Units (ARU)\\\
 !> \hline
 !> BondType & Harrison, GSP &Harrison& bond type \\\
 !> \hline
@@ -789,10 +789,10 @@ end subroutine ReadGeneral
 !><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>maximum number of orbitals per atom</TD>
 !></TR>
 !><TR><TD ALIGN="CENTER">Units</TD>
-!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>AU, eVA, SI, RY</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>AU, eVA, SI, ARU</TD>
 !><TD ALIGN="CENTER">AU</TD>
 !><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>system of units: atomic units(AU), electronVolt-Angstrom(eVA),
-!> International(SI), Rydberg Atomic Units(RY)</TD>
+!> International(SI), Rydberg Atomic Units(ARU)</TD>
 !></TR>
 !><TR><TD ALIGN="CENTER">BondType</TD>
 !><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>Harrison, GSP</TD>
@@ -1099,7 +1099,7 @@ end subroutine CloseIoGeneral
     type(generalType), intent(in)  :: general
     type(atomicxType), intent(inout) :: atomix
     ! arguments of the subroutine
-    integer :: nt, errno,i,k, atomId
+    integer :: nt, errno,i,k, atomId,xyz
     character(len=k_ml) :: saux
     integer, allocatable :: ids(:)
     real(k_pr) :: vx,vy,vz
@@ -1219,6 +1219,11 @@ end subroutine CloseIoGeneral
           endif
         enddo
     endif
+    xyz=GetUnit()
+    open(xyz,file="coords.xyz",status="unknown",action="write")  
+    call PrintXYZ(xyz,atomix,.false.,"")
+    call ComputeEuclideanMatrix(atomix%atoms,io)
+    close(xyz)
 
     if (general%ReadVelocity) then
       if (GetBlock(io,"VelocitiesData",nt)) then

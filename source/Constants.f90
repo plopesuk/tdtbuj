@@ -53,12 +53,12 @@ module m_Constants
   integer,parameter, public :: k_unitsEV=1
   integer,parameter, public :: k_unitsAU=2
   integer,parameter, public :: k_unitsSI=3
-  integer,parameter, public :: k_unitsRY=4
+  integer,parameter, public :: k_unitsARU=4
 !> units
   integer, parameter, public :: k_simplex=1
   integer, parameter, public :: k_SA=2
   integer, parameter, public :: k_simplexSA=3
-    integer, parameter, public :: k_TrustRegion=4
+  integer, parameter, public :: k_TrustRegion=4
 !> fitting methods
 
  ! mathematics
@@ -140,16 +140,14 @@ contains
         k_charge2SI= 1.0_k_pr !Cm
         k_length2SI=1.0_k_pr !m
         k_time2SI=1.0D-15 !fs
-        case(k_unitsRY)
+      case(k_unitsARU)
         k_amuToInternal =  1836.15267247_k_pr
         k_kb = 6.3361921D-6 !Rydberg/K
         k_hbar = 1.0_k_pr
         k_epsilon0 = 1.0_k_pr/(4.0_k_pr*k_pi)
         k_e2=2.0_k_pr
         k_me=0.5_k_pr
-         ! it should be devided by sqrt(2.0) but because we do want to see the charges in meaningful
-         ! numbers we do not do it
-        k_charge2SI= 1.60217653D-19!/sqrt(2.0_k_pr)
+        k_charge2SI= 1.60217653D-19/sqrt(2.0_k_pr)
         k_length2SI=0.5291772108D-10 !m
         k_time2SI=4.83776865301D-2!fs
       end select
@@ -162,7 +160,7 @@ contains
 !> \param iz integer Z of the atom
   character(len=2) function Symbol(iz)
     !--subroutine name--------------------------------!
-    character(len=*), parameter :: myname = 'symbol'
+    character(len=*), parameter :: myname = 'Symbol'
     !--subroutine parameters--------------------------!
     integer, intent(in) :: iz
     character(len=2) :: dummy(1:k_nz)

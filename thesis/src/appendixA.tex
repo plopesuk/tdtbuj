@@ -286,7 +286,9 @@ the angular dependence of ${\bf x}$. If $r_1<r_2$ we get
   expanded in series as (the so-called {\it Clebsch-Gordan series})}
 \begin{equation}
 \label{product2}
-Y_{l_1m_1}(\vartheta,\varphi)Y_{l_2m_2}(\vartheta,\varphi)=\sum_{L=0}^{\infty}\sum_{M=-L}^{L}\sqrt{\frac{(2l_1+1)(2l_2+1)}{4\pi(2L+1)}}C_{l_10l_20}^{L0}C_{l_1m_1l_2m_2}^{LM}Y_{LM}(\vartheta,\varphi)
+\begin{split}
+Y_{l_1m_1}(\vartheta,\varphi)Y_{l_2m_2}(\vartheta,\varphi)=&\sum_{L=0}^{\infty}\sum_{M=-L}^{L}\sqrt{\frac{(2l_1+1)(2l_2+1)}{4\pi(2L+1)}}\\&\times C_{l_10l_20}^{L0}C_{l_1m_1l_2m_2}^{LM}Y_{LM}(\vartheta,\varphi)
+\end{split}
 \end{equation}
 \par{The inverse relation may be written as}
 \begin{equation}
@@ -295,12 +297,12 @@ C_{l_10l_20}^{L0}Y_{LM}(\vartheta,\varphi)=&\sqrt{\frac{(2l_1+1)(2l_2+1)}{4\pi(2
 \end{split}
 \end{equation}
 \par{Product of three spherical harmonics can be decomposed as}
-\begin{equation}
+\begin{equation*}
 \begin{split}
 Y_{l_1m_1}(\vartheta,\varphi)Y_{l_2m_2}(\vartheta,\varphi)Y_{l_3m_3}(\vartheta,\varphi)=&\sum_{L,L^{\prime},M,M^{\prime}}\sqrt{\frac{(2l_1+1)(2l_2+1)(2l_3+1)}{(4\pi)^2(2L+1)}}\\&\times C_{l_10l_20}^{L^{\prime}0}C_{L^{\prime}0l_30}^{L0}
 C_{l_1m_1l_2m_2}^{L^{\prime}M^{\prime}}C_{L^{\prime}M^{\prime}l_2m_2}^{LM}Y_{LM}(\vartheta,\varphi)
 \end{split}
-\end{equation}
+\end{equation*}
 \subsection[Integrals ...]{Integrals over Total Solid Angle}
 \begin{equation}
 \int_{0}^{2\pi}\td \varphi\int_{0}^{\pi}\td \vartheta \sin \vartheta Y_{lm}(\vartheta,\varphi)=\sqrt{4\pi}\delta_{l0}\delta_{m0}
@@ -407,14 +409,14 @@ with $G_{l_1m_1l_2m_2}^{lm}$ the Gaunt coefficient. Summation over $m_2$
 disappers due to selection rule of Gaunt coefficients, $m_2=m-m_1$. $l$
 obbeys the triangle inequality $|l_1-l_2|\le l\le |l_1+l_2|$. 
 \par{Combining \gref{p1} with \gref{p2} we get}
-\begin{equation}
+\begin{equation*}
 i^lj_l(kR)Y_{lm}(\hat{\bf R})=4\pi\sum_{l_1=0}^{\infty}\sum_{m_1=-l_1}^{l_1}\sum_{l_2=0}^{\infty}i^{l_1+l_2}j_{l_1}(ka)j_{l_2}(kb)Y_{l_1m_1}(\hat{\bf a})Y_{l_2m_2}(\hat{\bf b})G_{l_1m_1l_2m_2}^{lm}
-\end{equation}
+\end{equation*}
 using the behaviour of $j_l(kR)$ when $k\rightarrow 0$,
 $j_l(kR)\xrightarrow{k\rightarrow 0}\frac{(kR)^l}{(2l+1)!!}$ we get
-\begin{equation}
+\begin{equation*}
 \frac{i^lR^{l}}{(2l+1)!!}Y_{lm}(\hat{\bf R})=4\pi\sum_{l_1=0}^{\infty}\sum_{m_1=-l_1}^{l_1}\sum_{l_2=0}^{\infty}\frac{i^{l_1+l_2}k^{l_1+l_2-l}a^{l_1}b^{l_2}}{(2l_1+1)!!(2l_2+1)!!}Y_{l_1m_1}(\hat{\bf a})Y_{l_2m_2}(\hat{\bf b})G_{l_1m_1l_2m_2}^{lm}
-\end{equation}
+\end{equation*}
 and because in the limit  $k\rightarrow 0$ left hand side should be always
 finite we get $l=l_1+l_2$ and relation becomes
 \begin{equation*}
@@ -506,10 +508,10 @@ X_{l\mu}(\vartheta,\varphi)=\sum_{m=-l}^{l}U_{lm}^{\mu}Y_{lm}(\vartheta,\varphi)
 where $\mu=\overline{-l...l}$, $U_{lm}^{\mu}$ represents a $(2l+1)\times (2l+1)$
 unitary matrix for a fixed $l$ and has the
 elements
-\begin{equation}
+\begin{equation*}
 U_{lm}^{\mu}=\delta_{m0}\delta_{\mu 0}+\frac{1}{\sqrt{2}}\left((-1)^m
   \Theta(\mu)\delta_{m\mu}+i\Theta(-\mu)\delta_{m\mu}-i(-1)^m \Theta(-\mu)\delta_{m-\mu}+\Theta(\mu)\delta_{m-\mu}\right)
-\end{equation}
+\end{equation*}
 \par{$\Theta(\mu)$} is given by
 \begin{equation}
 \Theta(\mu)=\left\{\begin{array}{ll}
@@ -639,21 +641,23 @@ e^{i\bm{r}_1\cdot\bm{r}_2}=4\pi\sum_{l=0}^{\infty}\sum_{m=-l}^{l}i^lj_l(r_1r_2)X
   $\mc{R}_{lm}$ as suggested in \citep{Chakrabarti95},\citep{Deb83}}
 \par{Multiplying relation \gref{rwave} by $X_{l_1m_1}(\hat{\bm{r}}_1)$ and
   integrating over $\td \hat{\bm{r}}_1$ we get}
+\begin{equation*}
+Q=\int \td \hat{\bm{r}}_1
+e^{i\bm{r}_1\cdot\bm{r}_2}X_{l_1m_1}(\hat{\bm{r}}_1)=4\pi\sum_{l=0}^{\infty}\sum_{m=-l}^{l}i^lj_l(r_1r_2)X_{lm}(\hat{\bm{r}}_2)\int \td \hat{\bm{r}}_1
+X_{lm}(\hat{\bm{r}}_1)X_{l_1m_1}(\hat{\bm{r}}_1)
+\end{equation*}
+\begin{equation*}
+Q=4\pi\sum_{l=0}^{\infty}\sum_{m=-l}^{l}i^lj_l(r_1r_2)X_{lm}(\hat{\bm{r}}_2)\delta_{ll_1}\delta_{mm_1}
+\end{equation*}
 \begin{equation}
 \label{part1}
-\begin{split}
-Q&=\int \td \hat{\bm{r}}_1
-e^{i\bm{r}_1\cdot\bm{r}_2}X_{l_1m_1}(\hat{\bm{r}}_1)=4\pi\sum_{l=0}^{\infty}\sum_{m=-l}^{l}i^lj_l(r_1r_2)X_{lm}(\hat{\bm{r}}_2)\int \td \hat{\bm{r}}_1
-X_{lm}(\hat{\bm{r}}_1)X_{l_1m_1}(\hat{\bm{r}}_1)\\
-Q&=4\pi\sum_{l=0}^{\infty}\sum_{m=-l}^{l}i^lj_l(r_1r_2)X_{lm}(\hat{\bm{r}}_2)\delta_{ll_1}\delta_{mm_1}\\
-Q&=4\pi i^lj_l(r_1r_2)X_{lm}(\hat{\bm{r}}_2)
-\end{split}
+Q=4\pi i^lj_l(r_1r_2)X_{lm}(\hat{\bm{r}}_2)
 \end{equation}
 \par{Considering $\bm{r}=\bm{a}+\bm{b}$ we get
 $e^{i\bm{r}_1\cdot\bm{r}_2}=e^{i\bm{r}_1\cdot\bm{a}}e^{i\bm{r}_1\cdot\bm{b}}$
 and inserting an expansion \gref{rwave} for each exponential, and then,
 multiplying relation by $X_{lm}(\hat{\bm{r}}_1)$ and integrating over $\td \hat{\bm{r}}_1$ we get}
-\begin{equation}
+\begin{equation*}
 \begin{split}
 e^{i\bm{r}_1\cdot(\bm{a}+\bm{b})}=(4\pi)^2\sum_{l_1,m_1}i^{l_1}j_{l_1}(r_1a)X_{l_1m_1}(\hat{\bm{a}})X_{l_1m_1}(\hat{\bm{r}}_1)\sum_{l_2,m_2}i^{l_2}j_{l_2}(r_1b)X_{l_2m_2}(\hat{\bm{b}})X_{l_2m_2}(\hat{\bm{r}}_1)\\
 Q=\sum_{\begin{subarray}{l}l_1,m_1\\
@@ -662,7 +666,7 @@ l_2,m_2
 }i^{l_1+l_2}j_{l_1}(r_1a)j_{l_2}(r_1b)X_{l_1m_1}(\hat{\bm{a}})X_{l_2m_2}(\hat{\bm{b}})\int
 \td \hat{\bm{r}}_1 X_{l_1m_1}(\hat{\bm{r}}_1)X_{l_2m_2}(\hat{\bm{r}}_1)X_{lm}(\hat{\bm{r}}_1)
 \end{split}
-\end{equation}
+\end{equation*}
 \par{The integral is nothing else than Gaunt coefficient for real spherical
   harmonics $\mc{G}_{l_1m_1l_2m_2}^{lm}=\int \td \hat{\bm{r}}_1
   X_{l_1m_1}(\hat{\bm{r}}_1)X_{l_2m_2}(\hat{\bm{r}}_1)X_{lm}(\hat{\bm{r}}_1)$.

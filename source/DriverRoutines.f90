@@ -577,9 +577,6 @@ module m_DriverRoutines
 !             if (.not.gen%comp_elec) then
 !                if (gen%electrostatics==tbu_multi) call init_qvs(density)
 !             endif
-!      write(888,'(29f16.8)')gen%CurrSimTime, sol%rho%a(1,1),sol%rho%a(2,2),sol%rho%a(3,3),sol%rho%a(4,4),&
-!		sol%rho%a(5,5),sol%rho%a(6,6),sol%rho%a(7,7),sol%rho%a(8,8),&
-!		sol%rho%a(9,9),sol%rho%a(10,10),sol%rho%a(11,11),sol%rho%a(12,12), sol%rho%a(1,2),sol%rho%a(7,8)
       call AddH2(gen,atomic,sol,tb,io)
       call ZeroMatrix(rhodot,io)
       call Commutator(rhodot,sol%h,sol%rho,io)
