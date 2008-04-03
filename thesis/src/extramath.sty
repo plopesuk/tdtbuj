@@ -1,15 +1,13 @@
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{extramath}[2008/03/28 Alin's Useful Math Commands]
-
+%
 % This package provides many useful mathemtical-related commands for
 % use in articles, essays, writeups, etc. Please feel free to use it,
 % or adapt it to you own needs. The comments below should explain
 % roughly what the various bits do.
-
+%
 \ProcessOptions\relax %relax prevents look-ahead due to * form
-
-
-
+%
 \DeclareRobustCommand{\thesismath}[1]{\ensuremath{#1}}
 \DeclareRobustCommand{\parenths}[1]{\thesismath{\left({#1}\right)}}
 \DeclareRobustCommand{\braces}[1]{\thesismath{\left\{{#1}\right\}}}
