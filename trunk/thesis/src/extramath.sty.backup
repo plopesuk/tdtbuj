@@ -50,6 +50,10 @@
 \DeclareRobustCommand{\lagrangian}{\Lagrangian}
 \DeclareRobustCommand{\hamiltonian}{\Hamiltonian}
 
+\DeclareRobustCommand{\be}{\begin{equation}}
+\DeclareRobustCommand{\ben}{\begin{equation*}}
+\DeclareRobustCommand{\ee}{\end{equation}}
+\DeclareRobustCommand{\een}{\end{equation*}}
 
 %------------------------------------------------------------------------
 % Reduce space around central operator in the eqnarray environment,

@@ -1,6 +1,6 @@
 \SetKwComment{tcf}{!}{}
 \section{Introduction}
-\par{For the density matrix which is associated with a determinant wave function of Slater type 
+\par{For the density matrix which is associated with a determinant wave function of Slater type
 we can define the operator}
 \begin{equation}
 {\hat\rho}=\sum_{n=0}^{\infty}f_n\ket{n}\bra{n}
@@ -16,7 +16,7 @@ about systems which are open, and can not be fully described by their own wavefu
 \begin{equation}
 f_n=2, \quad n<N/2
 \end{equation}
-\par{The density operator can be generalised for finite temperature in a very straight forward way. Within the 
+\par{The density operator can be generalised for finite temperature in a very straight forward way. Within the
 model of independent particles $f_n$ follows a \emph {Fermi distribution}}
 \begin{equation}
 f_{n}=2f_F(\epsilon_n)
@@ -31,7 +31,7 @@ f_{n}=f_F(\epsilon_n)
 f_F(\epsilon)=\frac{1}{1+e^{\frac{\epsilon-\mu}{k_BT}}}
 \end{equation}
 where $k_B$ is Boltzmann constant, $T$ is the electronic temperature, $\epsilon$ the energy
-and $\mu$ is the chemical potential. $\mu$ is defined in such a way to ensure that 
+and $\mu$ is the chemical potential. $\mu$ is defined in such a way to ensure that
 the total number of electrons $N$ is achieved
 \begin{equation}
 N=\sum_{n=0}^{\infty}2f_F(\epsilon_n)
@@ -62,46 +62,46 @@ The charge density is
 \subsection{Spinless case}
 \label{spinless}
 \par{{\bf The problem.} Having a Hamiltonian $n \times n$. Let us consider its eigenvalues
-$\epsilon_i, \; i=1,n$ such that $\epsilon_i < \epsilon_j$ if $i<j$ and its eigenvectors 
-in a matrix $n \times n$ $a$ such that column $i$ contains the eigenvector associated 
+$\epsilon_i, \; i=1,n$ such that $\epsilon_i < \epsilon_j$ if $i<j$ and its eigenvectors
+in a matrix $n \times n$ $a$ such that column $i$ contains the eigenvector associated
 with eigenvalue $\epsilon_i$. Find the density matrix $\rho$. We also know $q_{total}$, total charge.
 }
 \par{{\bf Solution:}}
-\par{{\bf Step 1} finding the chemical potential, or Fermi level, $\mu$}
+\par{{\bf Step 1} finding the chemical potential or Fermi level, $\mu$}
 
 \begin{algorithm}[H]
 \label{fermilevel}
-\KwData{$\{\epsilon_i\}_{i=1,n},\; a(1:n,1:n),\;T,\;k_B,\; q_{total},\;maxit$}
-\KwResult{finds chemical potential $\mu$}
-$a=\epsilon_1-k_BT\ln(-1+\frac{100}{q_{total}})$\;
-$b=\epsilon_n+k_BT\ln(-1+\frac{100}{q_{total}})$\;
-$q=-1$\;
-$k=0$\;
-\While{$(2q \neq q_{total}) || (k < maxit)$}{
-\tcf{$2q$ because of spin degeneracy}
-$\mu=\frac{b-a}{2}+a$\;
-$q=\sum_{i=1}^{n}f_F(\epsilon_i;\mu)$\;
-\eIf{$2q-q_{total}>0$}{
-$b=\mu$\;
-}{
-$a=\mu$\;
-}
-$k=k+1$\;
-}
-\If{k=maxit}{
-call error("could not find $\mu$ to desired precision in $maxit$ iterations")\;
-}
-\caption{How to find chemical potential $\mu$}
+\KwData{$\{\epsilon_i\}_{i=1,n},\; a(1:n,1:n),\;T,\;k_B,\; q_{total},\;maxit$}%
+\KwResult{finds chemical potential $\mu$}%
+$a=\epsilon_1-k_BT\ln(-1+\frac{100}{q_{total}})$\;%
+$b=\epsilon_n+k_BT\ln(-1+\frac{100}{q_{total}})$\;%
+$q=-1$\;%
+$k=0$\;%
+\While{$(2q \neq q_{total}) || (k < maxit)$}{%
+\tcf{$2q$ because of spin degeneracy}%
+$\mu=\frac{b-a}{2}+a$\;%
+$q=\sum_{i=1}^{n}f_F(\epsilon_i;\mu)$\;%
+\eIf{$2q-q_{total}>0$}{%
+$b=\mu$\;%
+}{%
+$a=\mu$\;%
+}%
+$k=k+1$\;%
+}%
+\If{k=maxit}{%
+call error("could not find $\mu$ to desired precision in $maxit$ iterations")\;%
+}%
+\caption{How to find chemical potential $\mu$}%
 \end{algorithm}
 
-\par{The execution without error of the algorithm \gref{fermilevel} would give the 
+\par{The execution without error of the algorithm \gref{fermilevel} would give the
 $\mu$ consistent with the number of electrons. function $f_F$ returns the occupation number according
 to Fermi distribution see eq. \gref{fermidistribution}.}
 
 \par{{\bf Step2:} computing the density matrix elements.}
 \par{To save computation time we employ some tricks (see algorithm \gref{matrixelements}).}
 \begin{algorithm}
-\label{matrixelements} 
+\label{matrixelements}
 \caption{Density matrix elements}
 \KwData{$\{\epsilon_i\}_{i=1,n},\; a(1:n,1:n),\;T,\;k_B,\; \mu $}
 \KwResult{density matrix $\rho$}
@@ -128,9 +128,9 @@ $\bm{S}=\bm{S}-2k_B\left(f_F(\epsilon_i)\ln(f_F(\epsilon_i)+(1-f_F(\epsilon_i))\
 \end{algorithm}
 
 \begin{algorithm}
-\label{uppertriangle} 
-\caption{Computes upper triangle part of density matrix $\rho$}
-\KwData{$a(1:n,1:k)$}
+\label{uppertriangle}
+\caption{Computes upper triangle part of density matrix $\rho$}%
+\KwData{$a(1:n,1:k)$}%
 \KwResult{upper triangle of density matrix $\rho$}
 \tcf{Probably the best thing is to use ?herk from Blas Level 3}
 \For{j=1,n}{
@@ -158,10 +158,10 @@ H=\left(
 \end{equation}
 \par{$\uparrow \downarrow$ and $\downarrow \uparrow$ parts of the Hamiltonian are
 zero for colinear spins. So we can split our Hamiltonian in two $n \times n$
-Hamiltonians one for spin up and one for spin down. For each of them we can apply 
+Hamiltonians one for spin up and one for spin down. For each of them we can apply
 the method from section \gref{spinless}}.
 \par{For spin up Hamiltonian $H^{\uparrow}$ we have $q_{total}^{\uparrow}$ and we get
-$\mu^{\uparrow},\;\rho^{\uparrow},\;\bm{S}^{\uparrow}$. Similarly for spin down Hamiltonian $H^{\downarrow}$ 
+$\mu^{\uparrow},\;\rho^{\uparrow},\;\bm{S}^{\uparrow}$. Similarly for spin down Hamiltonian $H^{\downarrow}$
 we have $q_{total}^{\downarrow}$ and we get
 $\mu^{\downarrow},\;\rho^{\downarrow},\;\bm{S}^{\downarrow}$. So, we get}
 \begin{equation}
@@ -209,7 +209,7 @@ call error("could not find $\mu$ to desired precision in $maxit$ iterations")\;
 \end{algorithm}
 %
 \begin{algorithm}
-\label{spinmatrixelements} 
+\label{spinmatrixelements}
 \caption{Density matrix elements (non-colinear spins)}
 \KwData{$\{\epsilon_i\}_{i=1,m},\; a(1:m,1:m),\;T,\;k_B,\; \mu $}
 \KwResult{density matrix $\rho$}
