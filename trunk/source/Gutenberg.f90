@@ -20,6 +20,7 @@ module m_Gutenberg
   public :: PrintDelta
   public :: PrintMagneticMoment
   public :: PrintMatrix
+  public :: PrintMatrixBlocks
   public :: PrintVector
   public :: PrintForces
   public :: PrintCharges
@@ -588,6 +589,98 @@ contains
       endif
       write(io%uout,*) "==End ",trim(label),"======"
    end subroutine PrintMatrix
+
+
+!> \brief prints a matrix from matrixType block by block
+!> \details the matrix is supposed to be composed by 4 blocks
+!> \author Alin M Elena
+!> \date 16/04/08, 16:24:28
+!> \param mat type(matrixType) the matrixType
+!> \param label character a label that should be added as a caption
+!> \param io type(ioType) i/o units
+!> \param isComplex logical optional on/off complex part if present and true complex part is printed
+  subroutine PrintMatrixBlocks(mat,label,io,isComplex,isSecondaryDiagonal)
+    character(len=*), parameter :: myname = 'PrintMatrixBlocks'
+    type(matrixType), intent(in) :: mat
+    character(len=*), intent(in) :: label(4)
+    type(ioType), intent(in) :: io
+    logical, intent(in) :: isComplex
+    logical, intent(in) :: isSecondaryDiagonal
+    integer :: i,j,m,n,shiftRow,shiftColumn
+      n=1
+      m=mat%dim/2
+      shiftRow=0
+      shiftColumn=0
+      call PrintBlock(1)
+      n=mat%dim/2+1
+      m=mat%dim
+      shiftRow=0
+      shiftColumn=0
+      call PrintBlock(2)
+      if (isSecondaryDiagonal) then
+        n=1
+        m=mat%dim/2
+        shiftRow=0
+        shiftColumn=mat%dim/2
+        call PrintBlock(3)
+        n=1
+        m=mat%dim/2
+        shiftRow=mat%dim/2
+        shiftColumn=0
+        call PrintBlock(4)
+      endif
+   contains
+!> \brief prints a block from a matrix
+!> \author Alin M Elena
+!> \date 16/04/08, 16:24:28
+!> param block integer the block that we print
+     subroutine PrintBlock(block)
+      character(len=*), parameter :: myname = 'PrintBlock'
+      integer :: block
+      write(io%uout,*) "==",trim(label(block)),"======"
+      write(io%uout,*) '==Real part==='
+      write(io%uout,'(7x)',advance="no")
+      do i=n+shiftColumn,m+shiftColumn
+         write(io%uout,'(i12,1x)',advance="no") i
+      enddo
+      write(io%uout,*)
+      do i=n+shiftRow,m+shiftRow
+         write(io%uout,'(i6,1x)',advance="no") i
+         do j=n+shiftColumn,m+shiftColumn
+            write(io%uout,'(f12.6,1x)',advance="no") real(mat%a(i,j))
+         enddo
+         write(io%uout,'(1x,i0)')i
+      enddo
+      write(io%uout,'(7x)',advance="no")
+      do i=n+shiftColumn,m+shiftColumn
+         write(io%uout,'(i12,1x)',advance="no") i
+      enddo
+      write(io%uout,*)
+      if (isComplex) then
+        write(io%uout,*) '==Imaginary part==='
+        write(io%uout,'(7x)',advance="no")
+        do i=n+shiftColumn,m+shiftColumn
+          write(io%uout,'(i12,1x)',advance="no") i
+        enddo
+        write(io%uout,*)
+        do i=n,m
+          write(io%uout,'(i6,1x)',advance="no") i
+          do j=n+shiftRow,m+shiftRow
+              write(io%uout,'(f12.6,1x)',advance="no") aimag(mat%a(i,j))
+          enddo
+          write(io%uout,'(1x,i0)')i
+        enddo
+        write(io%uout,'(7x)',advance="no")
+        do i=n+shiftColumn,m+shiftColumn
+          write(io%uout,'(i12,1x)',advance="no") i
+        enddo
+        write(io%uout,*)
+      endif
+      write(io%uout,*) "==End ",trim(label(block)),"======"
+     end subroutine PrintBlock
+   end subroutine PrintMatrixBlocks
+
+
 
 !> \brief prints a vector
 !> \details it can be printed on row or column, with index or without
