@@ -47,7 +47,7 @@ contains
     integer :: l,ml, i,j,nmix
     complex(k_pr) :: trace
     character(len=k_ml) :: saux
-    
+    character(len=k_mw) :: labels(1:4),labelsH2(1:4)
     dmax=0.0_k_pr
     genLoc%lIsSCFConverged=.true.
     n=atomic%basis%norbitals
@@ -58,7 +58,7 @@ contains
         case (k_scfTbuj)
           if (.not.genLoc%spin) then
             call error("This model should be spin polarised!",smyname,.true.,ioLoc)
-          endif          
+          endif
 !           if((.not.genLoc%compElec).and.(genLoc%k_electrostatics==k_electrostaticsMultipoles)) then
 !             call allocate_qvs
 !           endif
@@ -69,16 +69,32 @@ contains
           sol%buff%densityin=0.0_k_pr
           sol%buff%densityout=0.0_k_pr
           sol%buff%densitynext=0.0_k_pr
-          
-          call BuildHamiltonian(ioLoc,genLoc,atomic,tbMod,sol)                   
-          call AddBias(1.0_k_pr,atomic,sol)          
-          call CopyMatrix(sol%hin,sol%h,ioLoc)                      
-          call DiagHamiltonian(ioLoc,genLoc,atomic,sol)                    
+
+          call BuildHamiltonian(ioLoc,genLoc,atomic,tbMod,sol)
+          call AddBias(1.0_k_pr,atomic,sol)
+          call CopyMatrix(sol%hin,sol%h,ioLoc)
+          if (ioLoc%Verbosity >= k_highVerbos) then
+            write(ioLoc%uout,'(a)') "Before entering the SCF LOOP"
+!
+!               if (.not.genLoc%compElec) then
+!                   if (genLoc%k_electrostatics==tbu_multi)call init_qvs(densityin)
+!               endif
+            labels(1)="Hin: Spin DD"
+            labels(2)="Hin: Spin UU"
+            labels(3)="Hin: Spin DU"
+            labels(4)="Hin: Spin UD"
+            call PrintMatrixBlocks(sol%h,labels,ioLoc,.false.,.not.genLoc%collinear)
+            labelsH2(1)="H2: Spin DD"
+            labelsH2(2)="H2: Spin UU"
+            labelsH2(3)="H2: Spin DU"
+            labelsH2(4)="H2: Spin UD"
+          endif
+          call DiagHamiltonian(ioLoc,genLoc,atomic,sol)
 !           if (genLoc%alter_dm) then
 !             call create_dm_spin_altered(eigenvec,eigenval)
 !           endif
 !           ! this one in fact builds the initial guess for density matrix
-          call BuildDensity(atomic,sol,genLoc,.true.)                            
+          call BuildDensity(atomic,sol,genLoc,.true.)
           call BuildDensity(atomic,sol)                  
           sol%buff%densityin=sol%density
           scfe=ScfEnergy(genLoc,atomic,sol,ioLoc)
@@ -86,12 +102,10 @@ contains
           call CalcDipoles(genLoc,atomic,sol)
           call ComputeMagneticMoment(genLoc,atomic,sol,ioLoc)
           if (ioLoc%Verbosity >= k_highVerbos) then
-            write(ioLoc%uout,'(a)') "Before entering the SCF LOOP"
 !
 !               if (.not.genLoc%compElec) then
 !                   if (genLoc%k_electrostatics==tbu_multi)call init_qvs(densityin)
 !               endif
-            call PrintMatrix(sol%h,"Hamiltonian Matrix:",ioLoc,.false.)
             do i=1,atomic%atoms%natoms
 !                   if (genLoc%k_electrostatics==tbu_multi) then
 !                     call Print_QlmR(i,densityin)
@@ -108,7 +122,7 @@ contains
 !                         endif
 !                     enddo
 !                   endif
-                call PrintAtomMatrix(i,atomic,sol%hin,"H0",ioLoc,.false.)
+                call PrintAtomMatrix(i,atomic,sol%hin,"Hin",ioLoc,.false.)
                 call PrintAtomMatrix(i,atomic,sol%rho,"Density",ioLoc,.false.)
               enddo
               call PrintCharges(genLoc,atomic,ioLoc)
@@ -120,26 +134,21 @@ contains
               write(ioLoc%uout,*) 'SCF'
               write(ioLoc%uout,*) &
                   'nit          energy          res        drmax      Tr[rho]           mu'
-            endif            
-            do nit=1,genLoc%maxscf                          
+            endif
+            do nit=1,genLoc%maxscf
               if (ioLoc%Verbosity >=k_highVerbos)  then
                    write(ioLoc%uout,'(a,i0)') "SCF LOOP iteration: ",nit
               endif
 !               if (.not.genLoc%compElec) then
 !                   if (genLoc%k_electrostatics==tbu_multi) call init_qvs(densityin)
-!               endif              
-              call AddH2(genLoc,atomic,sol,tbMod,ioLoc)                            
-              call DiagHamiltonian(ioLoc,genLoc,atomic,sol)              
-              
-              if (ioLoc%Verbosity >= k_highVerbos) then
-                call PrintMatrix(sol%hdown,"Hamiltonian Matrix Spin Down:",ioLoc,.false.)
-                call PrintMatrix(sol%hup,"Hamiltonian Matrix Spin Up:",ioLoc,.false.)
-              endif
+!               endif
+              call AddH2(genLoc,atomic,sol,tbMod,ioLoc)
+              call DiagHamiltonian(ioLoc,genLoc,atomic,sol)
 !               if (genLoc%alter_dm) then
 !                   call create_dm_spin_altered(eigenvec,eigenval)
 !               endif
               call BuildDensity(atomic,sol)
-              
+
               sol%buff%densityout=sol%density
               call CalcExcessCharges(genLoc,atomic,sol)
               call CalcDipoles(genLoc,atomic,sol)
@@ -147,8 +156,10 @@ contains
               if (ioLoc%Verbosity >= k_highVerbos) then
 !                 if (.not.genLoc%compElec) then
 !                   if (genLoc%k_electrostatics==tbu_multi) call init_qvs(densityout)
-!                 endif              
+!                 endif
                 call MatrixCeaApbB(sol%h2,sol%h,sol%hin,k_cOne,-k_cOne,ioLoc)
+                call PrintMatrixBlocks(sol%h,labels,ioLoc,.false.,.not.genLoc%collinear)
+                call PrintMatrixBlocks(sol%h2,labelsH2,ioLoc,.false.,.not.genLoc%collinear)
                 do i=1,atomic%atoms%natoms
 !                     if (genLoc%k_electrostatics==tbu_multi) then
 !                       call Print_QlmR(i,densityout)
