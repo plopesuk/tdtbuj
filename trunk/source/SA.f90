@@ -83,7 +83,7 @@ contains
         fopt = f
         fstar(1) = f
           write(io%uout,*)
-          call PrintVector(x,"initial x",.true.,.false.,io)
+          call PrintVectorA(x,"initial x",.true.,.false.,io)
           if (max) then
             write(io%uout,'(a,g25.18)')" )initial f: ", f
           else
@@ -234,13 +234,13 @@ contains
     logical, intent(in) ::  max
     type(ioType), intent(inout) :: io
         write(io%uout,'(''  '')')
-        call PrintVector(x,'current x',.true.,.false.,io)
+        call PrintVectorA(x,'current x',.true.,.false.,io)
         if (max) then
             write(io%uout,'(a,g25.18)')"  current f: ", f
         else
             write(io%uout,'(a,g25.18)') -f
         end if
-          call PrintVector(xp,'trial x',.true.,.false.,io)
+          call PrintVectorA(xp,'trial x',.true.,.false.,io)
         write(io%uout,*)"  point rejected since out of bounds "
     end subroutine prt3
 
@@ -250,14 +250,14 @@ contains
       type(ioType), intent(inout) :: io
       
       write(io%uout,*)
-      call PrintVector(x,'current x',.true.,.false.,io)
+      call PrintVectorA(x,'current x',.true.,.false.,io)
       if (max) then
         write(io%uout,'(a,g25.18)')" current f: ", f
-        call PrintVector(xp,'trial x',.true.,.false.,io)
+        call PrintVectorA(xp,'trial x',.true.,.false.,io)
         write(io%uout,'(a,g25.18)')" resulting f: ", fp
       else
         write(io%uout,'(a,g25.18)')" current f: ", -f
-        call PrintVector(xp,'trial x',.true.,.false.,io)
+        call PrintVectorA(xp,'trial x',.true.,.false.,io)
         write(io%uout,'(a,g25.18)')" resulting f: ", -fp
       end if     
     end subroutine prt4
@@ -268,9 +268,9 @@ contains
         
 
         write(io%uout,*)" intermediate results after step length adjustment"
-          call PrintVector(vm,'new step length (vm)',.true.,.false.,io)
-          call PrintVector(xopt,'current optimal x',.true.,.false.,io)
-          call PrintVector(x,'current x',.true.,.false.,io)
+          call PrintVectorA(vm,'new step length (vm)',.true.,.false.,io)
+          call PrintVectorA(xopt,'current optimal x',.true.,.false.,io)
+          call PrintVectorA(x,'current x',.true.,.false.,io)
         write(io%uout,*)
     end subroutine prt8
 
@@ -301,8 +301,8 @@ contains
             write(io%uout,'(a,i8)')  "out of bounds trials:       ",lnobds
             write(io%uout,'(a,i8)')"  new minima this temperature:", nnew
         end if
-          call PrintVector(xopt,'current optimal x',.true.,.false.,io)
-          call PrintVector(vm,'step length (vm)',.true.,.false.,io)
+          call PrintVectorA(xopt,'current optimal x',.true.,.false.,io)
+          call PrintVectorA(vm,'step length (vm)',.true.,.false.,io)
         write(io%uout,'('' '')')
   end subroutine prt9
   

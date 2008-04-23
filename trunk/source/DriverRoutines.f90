@@ -56,7 +56,7 @@ module m_DriverRoutines
     call FullSCF(ioLoc,genLoc,atomic,tbMod,sol)    
     eenergy = ElectronicEnergy(genLoc,sol,ioLoc)
     renergy = RepulsiveEnergy(genLoc,atomic%atoms,tbMod)
-    minusts = - genLoc%electronicTemperature * sol%electronicEntropy
+    minusts = sol%electronicEntropy
    
     write(ioLoc%uout,'(/a)')&
          '--Single Point Run----------------------------------------------'
@@ -128,7 +128,7 @@ module m_DriverRoutines
     call PrintForces(atomic%atoms,io)
     eenergy = ElectronicEnergy(gen,sol,io)
     renergy = RepulsiveEnergy(gen,atomic%atoms,tb)
-    minusts = - gen%electronicTemperature * sol%electronicEntropy
+    minusts = sol%electronicEntropy
     if (gen%scf) then
       scfE = ScfEnergy(gen,atomic,sol,io)
     else
@@ -194,7 +194,7 @@ module m_DriverRoutines
        ! now calculate the energies
       eenergy = ElectronicEnergy(gen,sol,io)
       renergy = RepulsiveEnergy(gen,atomic%atoms,tb)
-      minusts = - gen%electronicTemperature * sol%electronicEntropy
+      minusts = sol%electronicEntropy
       if (gen%scf) then
         scfE = ScfEnergy(gen,atomic,sol,io)
       else

@@ -2101,7 +2101,10 @@ end subroutine ReadBasis
     deallocate(sol%buff%g) 
     deallocate(sol%buff%a) 
     deallocate(sol%buff%nstart)     
-   deallocate(sol%fact) 
+    deallocate(sol%fact)
+    if (general%smearMethod == k_smMP) then
+      deallocate(sol%hermite)
+    endif
     call MKL_FreeBuffers()
   end subroutine CleanMemory
 end module m_ReadData

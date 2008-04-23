@@ -14,6 +14,12 @@ module m_Electrostatics
   public :: Charge
   public :: ChargeOnGroup
   public :: BuildField
+  public :: ChargeOnL
+
+  interface ChargeOnL
+    module procedure ChargeOnLSpin, ChargeOnLNoSpin
+  end interface
+
 
 contains
 
@@ -193,6 +199,59 @@ contains
     endif
     charge=aux
   end function charge
+
+
+  subroutine ChargeOnLSpin(at,l,atomic,gen,sol,qld,qlu)
+    character(len=*), parameter :: myname = 'ChargeOnLSpin'
+    integer, intent(in) :: at
+    integer, intent(in) :: l
+    type(solutionType),intent(in) :: sol
+    type(atomicxType), intent(inout) :: atomic
+    type(generalType), intent(in) :: gen
+    real(k_pr) :: qld,qlu
+    integer :: from,to,m,j,i
+    real(k_pr) :: aux
+
+     qlu=0.0_k_pr
+     qld=0.0_k_pr
+     j=l*l
+! spin down 
+    m=atomic%atoms%orbs(at,1)
+     from=m+j
+     to=-1+from+2*l+1
+     do i=from,to
+       qld=qld+real(sol%rho%a(i,i),k_pr)
+     enddo
+   !spin up
+     from=m+atomic%basis%norbitals/2+j
+     to=-1+from+2*l+1
+     do i=from,to
+       qlu=qlu+real(sol%rho%a(i,i),k_pr)
+     enddo
+  end subroutine ChargeOnLSpin
+
+
+ subroutine ChargeOnLNoSpin(at,l,atomic,gen,sol,ql)
+    character(len=*), parameter :: myname = 'ChargeOnLNoSpin'
+    integer, intent(in) :: at
+    integer, intent(in) :: l
+    type(solutionType),intent(in) :: sol
+    type(atomicxType), intent(inout) :: atomic
+    type(generalType), intent(in) :: gen
+    real(k_pr) :: ql
+    integer :: from,to,m,j,i
+    real(k_pr) :: aux
+
+     ql=0.0_k_pr
+     j=l*l
+     m=atomic%atoms%orbs(at,1)
+     from=m+j
+     to=-1+from+2*l+1
+     do i=from,to
+       ql=ql+real(sol%rho%a(i,i),k_pr)
+     enddo
+  end subroutine ChargeOnLNoSpin
+
 
 !> \brief builds the electrostatics potential for all the atoms
 !> \details there are two kinds of electrostatics potential screened or bare Coulomb

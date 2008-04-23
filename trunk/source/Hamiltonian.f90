@@ -74,8 +74,8 @@ contains
       enddo
     enddo
 !!$OMP END PARALLEL DO    
-  elseif( gen%collinear) then  
-!$OMP PARALLEL DO DEFAULT(shared) PRIVATE(i,j,k,o,hij,rij,l,m,n,norbsi,norbsj)  SCHEDULE(static)        
+  elseif( gen%collinear) then
+!$OMP PARALLEL DO DEFAULT(shared) PRIVATE(i,j,k,o,hij,rij,l,m,n,norbsi,norbsj)  SCHEDULE(static)
     do i=1,atomic%atoms%natoms
       norbsi=atomic%species%norbs(atomic%atoms%sp(i))/2 
       do j=1,atomic%atoms%natoms        
@@ -162,37 +162,37 @@ contains
       n=sol%h%dim
       ns=sol%hup%dim
       sol%eigenvals(1:n)=0.0_k_pr
-      call ZeroMatrix(sol%eigenvecs,io)            
+      call ZeroMatrix(sol%eigenvecs,io)
       do i=1,ns
          do j=1,ns
              sol%hdown%a(i,j)=sol%h%a(i,j)
          enddo
-      enddo      
+      enddo
       sol%buff%tmpA=0.0_k_pr
-      call ZeroMatrix(sol%buff%tmpB,io)          
-      call DiagonalizeMatrix(sol%hdown,sol%buff%tmpB,sol%buff%tmpA,io)        
-      sol%eigenvals(1:ns)=sol%buff%tmpA(1:ns)      
+      call ZeroMatrix(sol%buff%tmpB,io)
+      call DiagonalizeMatrix(sol%hdown,sol%buff%tmpB,sol%buff%tmpA,io)
+      sol%eigenvals(1:ns)=sol%buff%tmpA(1:ns)
       do i=1,ns
-         do j=1,ns       
+         do j=1,ns
              sol%eigenvecs%a(i,j)=sol%buff%tmpB%a(i,j)
             sol%hup%a(i,j)=sol%h%a(i+ns,j+ns) 
           enddo
-      enddo             
+      enddo
       sol%buff%tmpA=0.0_k_pr
-      call ZeroMatrix(sol%buff%tmpB,io)      
+      call ZeroMatrix(sol%buff%tmpB,io)
       call DiagonalizeMatrix(sol%hup,sol%buff%tmpB,sol%buff%tmpA,io)
-      sol%eigenvals(1+ns:n)=sol%buff%tmpA(1:ns)      
+      sol%eigenvals(1+ns:n)=sol%buff%tmpA(1:ns)
       do i=1,ns
-         do j=1,ns       
-             sol%eigenvecs%a(i+ns,j+ns)=sol%buff%tmpB%a(i,j)      
+         do j=1,ns
+             sol%eigenvecs%a(i+ns,j+ns)=sol%buff%tmpB%a(i,j)
           enddo
       enddo 
-               
+
       if (gen%lIsExcited) then
         call CreateDensityMatrixExcited(gen,atomic,sol,io)
       else
-        call CreateDensityMatrixSpin(gen,atomic,sol,io)                  
-      endif                       
+        call CreateDensityMatrixSpin(gen,atomic,sol,io)
+      endif
     else
       sol%eigenvals=0.0_k_pr
       call ZeroMatrix(sol%eigenvecs,io)

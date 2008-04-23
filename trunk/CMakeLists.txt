@@ -1,5 +1,14 @@
 PROJECT(tdtbuj Fortran)
 
+set(CMAKE_BUILD_TYPE "Debug")
+
+cmake_minimum_required(VERSION 2.4.8)
+if(COMMAND cmake_policy)
+  cmake_policy(VERSION 2.6)
+endif(COMMAND cmake_policy)
+
+
+
 ##########################
 ###source files
 set(src_dir source)
