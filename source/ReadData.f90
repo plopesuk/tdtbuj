@@ -423,7 +423,7 @@ subroutine ReadGeneral(ioLoc,genLoc)
           ,genLoc%MPW
         genLoc%mpN=GetInteger(ioLoc,"MPN",2)
         write( ioLoc%uout,'(a,i0)')"Order of Hermite polynomials used find Fermi level(MPN): "&
-          ,genLoc%maxit
+          ,genLoc%mpN
       case(k_smCMU)
         genLoc%electronicMu=GetReal(ioLoc,"ElectronicMu",0.0_k_pr)
         write( ioLoc%uout,'(a,ES12.4)')"Chemical Potential(ElectronicMu): "&
