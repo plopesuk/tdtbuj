@@ -41,6 +41,8 @@ module m_Useful
   public :: InitializeHermite
   public :: occupMP
   public :: sn
+  public :: MarzariF
+  public :: MarzariS
   interface Swap
     module procedure SwapScalar,SwapVector
   end interface
