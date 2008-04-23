@@ -404,6 +404,8 @@ subroutine ReadGeneral(ioLoc,genLoc)
       genLoc%smearMethod = k_smFD
     elseif (cstr(trim(saux),'MP')) then
       genLoc%smearMethod = k_smMP
+    elseif (cstr(trim(saux),'CS')) then
+      genLoc%smearMethod = k_smCS
     elseif (cstr(trim(saux),'CMU')) then
       genLoc%smearMethod = k_smCMU
     else
@@ -416,16 +418,20 @@ subroutine ReadGeneral(ioLoc,genLoc)
         write( ioLoc%uout,'(a,ES12.4)')"Electronic Temperature(ElectronicTemperature): "&
           ,genLoc%electronicTemperature
       case(k_smMP)
-        genLoc%MPW=GetReal(ioLoc,"ElectronicW",0.05_k_pr)
+        genLoc%MPW=GetReal(ioLoc,"ElectronicW",0.005_k_pr)
         write( ioLoc%uout,'(a,ES12.4)')"Electronic W(ElectronicW): "&
           ,genLoc%MPW
-        genLoc%mpN=GetInteger(ioLoc,"MPN",500)
-        write( ioLoc%uout,'(a,i0)')"Order of Germite polynomials used find Fermi level(MPN): "&
+        genLoc%mpN=GetInteger(ioLoc,"MPN",2)
+        write( ioLoc%uout,'(a,i0)')"Order of Hermite polynomials used find Fermi level(MPN): "&
           ,genLoc%maxit
       case(k_smCMU)
         genLoc%electronicMu=GetReal(ioLoc,"ElectronicMu",0.0_k_pr)
         write( ioLoc%uout,'(a,ES12.4)')"Chemical Potential(ElectronicMu): "&
           ,genLoc%electronicMu
+      case(k_smCS)
+        genLoc%MPW=GetReal(ioLoc,"ElectronicW",0.005_k_pr)
+        write( ioLoc%uout,'(a,ES12.4)')"Electronic W(ElectronicW): "&
+          ,genLoc%MPW
     end select
    genLoc%dmOccupationTolerance=GetReal(ioLoc,"DMOccTol",1.0e-10_k_pr)
    write( ioLoc%uout,'(a,ES12.4)')"density matrix occupation tolerance(DMOccTol): "&

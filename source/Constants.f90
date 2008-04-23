@@ -48,6 +48,7 @@ module m_Constants
 
   integer, parameter, public :: k_smFD=1
   integer, parameter, public :: k_smMP=2
+  integer, parameter, public :: k_smCS=4
   integer, parameter, public :: k_smCMU=3
 !> smearing methods
   integer,parameter, public :: k_unitsEV=1

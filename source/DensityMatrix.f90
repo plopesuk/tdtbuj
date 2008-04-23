@@ -73,7 +73,7 @@ contains
           a = sol%eigenvals(1)-gen%electronicTemperature*k_kb*log(-1.0_k_pr+1.0_k_pr/gen%qTolerance*100.0_k_pr)
           b = sol%eigenvals(sol%eigenvecs%dim)+ &
             gen%electronicTemperature*k_kb*log(-1.0_k_pr+1.0_k_pr/gen%qTolerance*100.0_k_pr)
-         case(k_smMP)
+         case(k_smMP,k_smCS)
             a = sol%eigenvals(1)-log(-1.0_k_pr+1.0_k_pr/gen%qTolerance*100.0_k_pr)/gen%mpW
             b = sol%eigenvals(sol%eigenvecs%dim)+log(-1.0_k_pr+1.0_k_pr/gen%qTolerance*100.0_k_pr)/gen%mpW
       end select
@@ -91,6 +91,10 @@ contains
         case(k_smMP)
           do k=1,sol%eigenvecs%dim
             q = q + occupMP(gen,sol,sol%eigenvals(k))
+          enddo
+        case(k_smCS)
+          do k=1,sol%eigenvecs%dim
+            q = q + MarzariF((gen%electronicMu-sol%eigenvals(k))/gen%MPW)
           enddo
         end select
         if ((q-qtotal)>0.0_k_pr) then
@@ -134,6 +138,10 @@ contains
         do k=1,sol%eigenvecs%dim
           sol%buff%f(k) = occupMP(gen,sol,sol%eigenvals(k))
         enddo
+      case(k_smCS)
+        do k=1,sol%eigenvecs%dim
+          sol%buff%f(k) =MarzariF((gen%electronicMu-sol%eigenvals(k))/gen%MPW)
+        enddo
       end select
 
     ! The density matrix is built from the diagonal representation in the
@@ -165,8 +173,12 @@ contains
             entropy=entropy+sn((sol%eigenvals(i)-gen%electronicMU)/gen%MPW,gen%mpN,sol)
        enddo
       entropy=gen%MPW*entropy
+      case(k_smCS)
+        do i=1,sol%rho%dim
+          entropy=entropy+MarzariS((sol%eigenvals(i)-gen%electronicMU)/gen%MPW)
+        enddo
+      entropy=gen%MPW*entropy
     end select
-
       sol%electronicEntropy=-entropy
       sol%buff%pos1=0
       sol%buff%pos2=0
@@ -257,6 +269,10 @@ contains
                 do k=1,sol%eigenvecs%dim
                   q = q + occupMP(gen,sol,sol%eigenvals(k))
                 enddo
+            case(k_smCS)
+                do k=1,sol%eigenvecs%dim
+                  q = q + MarzariF((gen%electronicMu-sol%eigenvals(k))/gen%mpW)
+                enddo
             end select
             if ((q-qtotal)>0.0_k_pr) then
              ! we have more electrons than we need
@@ -283,6 +299,8 @@ contains
               sol%buff%f(k) = fermi(gen%electronicTemperature,sol%eigenvals(k),gen%electronicMu)
             case(k_smMP)
                 sol%buff%f(k) =  occupMP(gen,sol,sol%eigenvals(k))
+            case(k_smCS)
+              sol%buff%f(k) = MarzariF((gen%electronicMu-sol%eigenvals(k))/gen%mpW)
           end select
           if (sol%buff%f(k) > gen%dmOccupationTolerance) upper_occ_state = k
           if (abs(sol%buff%f(k) - 1.0_k_pr) < gen%dmOccupationTolerance) upper_non_one = k
@@ -314,6 +332,11 @@ contains
        case(k_smMP)
           do i=1,sol%rho%dim
             entropy=entropy+sn((sol%eigenvals(i)-gen%electronicMU)/gen%MPW,gen%mpN,sol)
+          enddo
+          entropy=-2.0_k_pr*entropy*gen%MPW
+        case(k_smCS)  
+          do i=1,sol%rho%dim
+            entropy=entropy+MarzariS((-sol%eigenvals(i)+gen%electronicMU)/gen%MPW)
           enddo
           entropy=-2.0_k_pr*entropy*gen%MPW
        end select
@@ -467,6 +490,10 @@ contains
         do k=1,sol%eigenvecs%dim
           sol%buff%f(pos(k)) = occupMP(gen,sol,sol%eigenvals(pos(k)))
         enddo
+        case(k_smCS)
+          do k=1,sol%eigenvecs%dim
+          sol%buff%f(pos(k)) = MarzariS((-sol%eigenvals(pos(k))+gen%electronicMu)/gen%mpW)
+        enddo
     end select
 
     do k=1,sol%rho%dim
@@ -530,6 +557,10 @@ contains
         do k=1,sol%eigenvecs%dim
           sol%buff%f(k) =occupMP(gen,sol,sol%eigenvals(pos1(k)))
         enddo
+       case(k_smCS)
+        do k=1,sol%eigenvecs%dim
+          sol%buff%f(k) =MarzariF((-sol%eigenvals(pos1(k))+gen%electronicMu)/gen%mpW)
+        enddo         
     end select
 
     hole=gen%holeState + gen%holeSpin * n/2
@@ -572,6 +603,11 @@ contains
       case(k_smMP)
         do i=1,sol%rho%dim
          entropy=entropy+sn((sol%eigenvals(i)-gen%electronicMU)/gen%MPW,gen%mpN,sol)
+       enddo
+       entropy=gen%MPW*entropy
+      case(k_smCS)
+       do i=1,sol%rho%dim
+         entropy=entropy+MarzariS((-sol%eigenvals(i)+gen%electronicMU)/gen%MPW)
        enddo
        entropy=gen%MPW*entropy
     end select
