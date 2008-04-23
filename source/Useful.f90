@@ -903,7 +903,7 @@ contains
     else
         expo = exp(-aux)
     endif
-    MarzariF=expo/sqrt(2.0_k_pr*k_pi)+0.0_k_pr*derfc(1.0_k_pr/sqrt(2.0_k_pr)-x)
+    MarzariF=expo/sqrt(2.0_k_pr*k_pi)+0.5_k_pr*derfc(1.0_k_pr/sqrt(2.0_k_pr)-x)
   end function MarzariF
 
   real(k_pr) function MarzariS(x)
