@@ -272,12 +272,13 @@ module m_Types
     real(k_pr), allocatable :: field(:,:) !< electrostatic field
     real(k_pr), allocatable :: gcoeff(:,:,:) !< precomputed Gaunt Coefficients
     real(k_pr), allocatable ::  rgc(:,:,:) !< precomputed real Gaunt coefficients
-    real(k_pr), allocatable :: fact(:) !< precomputed factorial values
+    real(k_pr), pointer,dimension(:) :: fact(:)=> NULL() !< precomputed factorial values
     real(k_pr) :: seed(97) !< seeds for the random number generator \see rmarin
     type(matrixType) :: rho !< density matrix
     real(k_pr) :: electronicEntropy !< electronic entropy of the system
     real(k_pr) :: totalEnergy !< total energy of the system
-    type(buffersType) :: buff 
+    type(buffersType) :: buff
+    real(k_pr),pointer, dimension(:) :: hermite => NULL() !< hermite polynomials used for Methfessel&Paxton smearing method 
 !    type(qvs), allocatable :: delq(:), vs(:)
   end type solutionType
 end module m_Types

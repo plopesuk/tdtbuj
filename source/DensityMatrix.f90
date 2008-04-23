@@ -82,10 +82,17 @@ contains
         gen%electronicMu = (b - a)/2.0_k_pr + a
           ! calculate total charge with current mu
         q = 0.0_k_pr
-        do k=1,sol%eigenvecs%dim
-          q = q + fermi(gen%electronicTemperature,sol%eigenvals(k),gen%electronicMu)
-        enddo
 
+       select case(gen%smearMethod)
+        case(k_smFD)
+          do k=1,sol%eigenvecs%dim
+            q = q + fermi(gen%electronicTemperature,sol%eigenvals(k),gen%electronicMu)
+          enddo
+        case(k_smMP)
+          do k=1,sol%eigenvecs%dim
+            q = q + occupMP(gen,sol,sol%eigenvals(k))
+          enddo
+        end select
         if ((q-qtotal)>0.0_k_pr) then
              ! we have more electrons than we need
              ! set mu to be the right of the interval
@@ -99,12 +106,6 @@ contains
       enddo
       if (i==(gen%maxit+1)) call error("Could not find the fermi level",myname,.true.,io)
     endif
-
-    if (io%verbosity>=k_highVerbos) then
-      write(io%uout,"(a,f16.8)") &
-            "chemical potential: ",gen%electronicMu
-    endif
-
    end subroutine FindFermi
 
 
@@ -121,11 +122,20 @@ contains
     type(solutionType), intent(inout) :: sol
     integer      :: i,k    
     real(k_pr) :: fa,fb,entropy,tiny
-   
+
     ! set the occupations according to mu
-      do k=1,sol%rho%dim
-        sol%buff%f(k) = fermi(gen%electronicTemperature,sol%eigenvals(k),gen%electronicMu)
-      enddo
+
+    select case(gen%smearMethod)
+      case(k_smFD)
+        do k=1,sol%rho%dim
+          sol%buff%f(k) = fermi(gen%electronicTemperature,sol%eigenvals(k),gen%electronicMu)
+        enddo
+      case(k_smMP)
+        do k=1,sol%eigenvecs%dim
+          sol%buff%f(k) = occupMP(gen,sol,sol%eigenvals(k))
+        enddo
+      end select
+
     ! The density matrix is built from the diagonal representation in the
     ! basis of the eigenstates of H (rho') by transforming with the
     ! matrix of eigenvectors that diagonalize H
@@ -140,7 +150,7 @@ contains
     ! ----- ---- unnocupied vectors are not multiplied not tr
       call ZeroMatrix(sol%rho,io)   
       call aastar(sol%buff%a,sol%rho%a,1.0_k_pr,0.0_k_pr,sol%rho%dim)
-      entropy = 0.0_k_pr     
+      entropy = 0.0_k_pr
     select case(gen%smearMethod)
       case(k_smFD)
         tiny = epsilon(1.0_k_pr)
@@ -149,32 +159,18 @@ contains
           fb = max(1-sol%buff%f(i),tiny)
           entropy = entropy + fa*log(fa)+fb*log(fb)
         enddo
-        entropy = k_kb * entropy
+        entropy = -gen%electronicTemperature*k_kb * entropy
       case(k_smMP)
-!          do i=1,rho%dim
-!             entropy=entropy+sn((eigenvals(i)-general%electronic_mu)/general%electronic_temperature,general%mp_N)
-!          enddo
+          do i=1,sol%rho%dim
+            entropy=entropy+sn((sol%eigenvals(i)-gen%electronicMU)/gen%MPW,gen%mpN,sol)
+       enddo
+      entropy=gen%MPW*entropy
     end select
 
-      sol%electronicEntropy=-entropy      
+      sol%electronicEntropy=-entropy
       sol%buff%pos1=0
       sol%buff%pos2=0
       call order(sol%eigenvals,sol%buff%pos1,sol%buff%pos2)
-      if (io%Verbosity>=k_highVerbos) then
-        write(io%uout,*) &
-            '--Occupation Numbers-------------------------------------------'
-        do i=1,sol%rho%dim
-          if (sol%buff%pos1(i) <=sol%rho%dim/2) then
-            write(io%uout,'(i0,x,i0,2f16.8,a)') &
-              i,sol%buff%pos1(i),sol%eigenvals(sol%buff%pos1(i)),sol%buff%f(sol%buff%pos1(i))," down"
-          else
-            write(io%uout,'(i0,x,i0,2f16.8,a)') &
-              i,sol%buff%pos1(i)-sol%rho%dim/2,sol%eigenvals(sol%buff%pos1(i)),sol%buff%f(sol%buff%pos1(i))," up"
-          endif
-        enddo
-        write(io%uout,*) &
-            '------------------------------------------------------------'
-      endif    
    end subroutine GenerateRho
 
 !> \brief sorts the eigenvalues recording the old positions
@@ -252,10 +248,16 @@ contains
             gen%electronicMu = (b - a)/2.0_k_pr + a
           ! calculate total charge with current mu
             q = 0.0_k_pr
-            do k=1,sol%rho%dim
-               q = q + fermi(gen%electronicTemperature,sol%eigenvals(k),gen%electronicMu)
-            enddo
-
+            select case(gen%smearMethod)
+              case(k_smFD)
+                do k=1,sol%eigenvecs%dim
+                  q = q + fermi(gen%electronicTemperature,sol%eigenvals(k),gen%electronicMu)
+                enddo
+              case(k_smMP)
+                do k=1,sol%eigenvecs%dim
+                  q = q + occupMP(gen,sol,sol%eigenvals(k))
+                enddo
+            end select
             if ((q-qtotal)>0.0_k_pr) then
              ! we have more electrons than we need
              ! set mu to be the right of the interval
@@ -276,7 +278,12 @@ contains
        upper_occ_state = 1
        upper_non_one = 0
        do k=1,sol%rho%dim
-          sol%buff%f(k) = fermi(gen%electronicTemperature,sol%eigenvals(k),gen%electronicMu)
+          select case(gen%smearMethod)
+            case(k_smFD)
+              sol%buff%f(k) = fermi(gen%electronicTemperature,sol%eigenvals(k),gen%electronicMu)
+            case(k_smMP)
+                sol%buff%f(k) =  occupMP(gen,sol,sol%eigenvals(k))
+          end select
           if (sol%buff%f(k) > gen%dmOccupationTolerance) upper_occ_state = k
           if (abs(sol%buff%f(k) - 1.0_k_pr) < gen%dmOccupationTolerance) upper_non_one = k
        enddo
@@ -303,25 +310,16 @@ contains
              fb = max(1-sol%buff%f(i),tiny)
              entropy = entropy + fa*log(fa)+fb*log(fb)
           enddo
-          entropy = -k_kb * 2.0_k_pr * entropy
+          entropy = gen%electronicTemperature*k_kb * 2.0_k_pr * entropy
        case(k_smMP)
-!          do i=1,sol%rho%dim
-!             entropy=entropy+sn((eigenvals(i)-gen%electronicMu)/gen%electronic_temperature,gen%mp_N)
-!          enddo
-!          entropy=-2.0_k_pr*entropy
+          do i=1,sol%rho%dim
+            entropy=entropy+sn((sol%eigenvals(i)-gen%electronicMU)/gen%MPW,gen%mpN,sol)
+          enddo
+          entropy=-2.0_k_pr*entropy*gen%MPW
        end select
 
     ! now put it in the global variable
       sol%electronicEntropy = entropy
-
-      if (io%verbosity>=k_highVerbos) then
-        write(io%uout,*) &
-            "Occupation Numbers"
-         do i=1,sol%rho%dim
-            write(io%uout,'(i0,1x,f16.8,1x,f16.8)') &
-               i,sol%eigenvals(i),2.0_k_pr*sol%buff%f(i)
-         enddo
-      endif
   end subroutine CreateDensityMatrixNoSpin
 
 !> \brief computes the charge excess \f$ \delta q\f$ array
@@ -352,7 +350,7 @@ contains
       sol%rho%a=cmplx(0.0_k_pr,0.0_k_pr)
       do i=1,atomic%basis%norbitals
         sol%rho%a(i,i)=cmplx(sol%buff%nstart(i),0.0_k_pr)
-      end do    
+      end do
     endif
   else
 ! store the off diagonal terms
@@ -459,9 +457,18 @@ contains
 
         ! set the occupations according to mu
     homoLevel=1
-    do k=1,sol%rho%dim
-      sol%buff%f(pos(k)) = fermi(gen%electronicTemperature,sol%eigenvals(pos(k)),gen%electronicMu)
-    enddo
+
+    select case(gen%smearMethod)
+      case(k_smFD)
+        do k=1,sol%rho%dim
+          sol%buff%f(pos(k)) = fermi(gen%electronicTemperature,sol%eigenvals(pos(k)),gen%electronicMu)
+        enddo
+      case(k_smMP)
+        do k=1,sol%eigenvecs%dim
+          sol%buff%f(pos(k)) = occupMP(gen,sol,sol%eigenvals(pos(k)))
+        enddo
+    end select
+
     do k=1,sol%rho%dim
       if (sol%buff%f(pos(k))<gen%dmOccupationTolerance) then
         homoLevel=k-1
@@ -512,9 +519,19 @@ contains
     
     n=sol%rho%dim    
     ! set the occupations according to mu
-    do k=1,n
-      sol%buff%f(k) = fermi(gen%electronicTemperature,sol%eigenvals(pos1(k)),gen%electronicMu)
-    enddo
+    
+
+   select case(gen%smearMethod)
+    case(k_smFD)
+        do k=1,n
+          sol%buff%f(k) = fermi(gen%electronicTemperature,sol%eigenvals(pos1(k)),gen%electronicMu)
+        enddo
+      case(k_smMP)
+        do k=1,sol%eigenvecs%dim
+          sol%buff%f(k) =occupMP(gen,sol,sol%eigenvals(pos1(k)))
+        enddo
+    end select
+
     hole=gen%holeState + gen%holeSpin * n/2
     excite=gen%exciteState + gen%exciteSpin * n/2
     sol%buff%g=sol%buff%f
@@ -551,11 +568,12 @@ contains
           fb = max(1-sol%buff%f(i),tiny)
           entropy = entropy + fa*log(fa)+fb*log(fb)
         enddo
-        entropy = k_kb * entropy
+        entropy = -gen%electronicTemperature*k_kb * entropy
       case(k_smMP)
-!          do i=1,rho%dim
-!             entropy=entropy+sn((eigenvals(i)-general%electronic_mu)/general%electronic_temperature,general%mp_N)
-!          enddo
+        do i=1,sol%rho%dim
+         entropy=entropy+sn((sol%eigenvals(i)-gen%electronicMU)/gen%MPW,gen%mpN,sol)
+       enddo
+       entropy=gen%MPW*entropy
     end select
     sol%electronicEntropy=-entropy
 

@@ -39,7 +39,7 @@ contains
     type(atomicxType), intent(inout) :: atomic
     type(modelType), intent(inout) :: tbMod
     type(solutionType), intent(inout) :: sol
-    integer :: nit,m,n    
+    integer :: nit,m,n
     real(k_pr)  :: residual, dmax
     real(k_pr)  :: ee,re,scfe,te
     logical   :: exists,first
@@ -73,6 +73,7 @@ contains
           call BuildHamiltonian(ioLoc,genLoc,atomic,tbMod,sol)
           call AddBias(1.0_k_pr,atomic,sol)
           call CopyMatrix(sol%hin,sol%h,ioLoc)
+          call DiagHamiltonian(ioLoc,genLoc,atomic,sol)
           if (ioLoc%Verbosity >= k_highVerbos) then
             write(ioLoc%uout,'(a)') "Before entering the SCF LOOP"
 !
@@ -84,23 +85,36 @@ contains
             labels(3)="Hin: Spin DU"
             labels(4)="Hin: Spin UD"
             call PrintMatrixBlocks(sol%h,labels,ioLoc,.false.,.not.genLoc%collinear)
+            labels(1)="Eigenvectors: Spin DD"
+            labels(2)="Eigenvectors: Spin UU"
+            labels(3)="Eigenvectors: Spin DU"
+            labels(4)="Eigenvectors: Spin UD"
+            call PrintMatrixBlocks(sol%eigenvecs,labels,ioLoc,.false.,.not.genLoc%collinear)
+            labels(1)="Hin: Spin DD"
+            labels(2)="Hin: Spin UU"
+            labels(3)="Hin: Spin DU"
+            labels(4)="Hin: Spin UD"
             labelsH2(1)="H2: Spin DD"
             labelsH2(2)="H2: Spin UU"
             labelsH2(3)="H2: Spin DU"
             labelsH2(4)="H2: Spin UD"
+            call PrintOccupationNumbers(genLoc,sol,ioLoc)
+            write(ioLoc%uout,"(a,f16.8)") "chemical potential: ",genLoc%electronicMu
+            write(ioLoc%uout,'(a,f16.8)')"Entropy term: ",sol%electronicEntropy
           endif
-          call DiagHamiltonian(ioLoc,genLoc,atomic,sol)
 !           if (genLoc%alter_dm) then
 !             call create_dm_spin_altered(eigenvec,eigenval)
 !           endif
 !           ! this one in fact builds the initial guess for density matrix
-          call BuildDensity(atomic,sol,genLoc,.true.)
-          call BuildDensity(atomic,sol)                  
+!           call BuildDensity(atomic,sol,genLoc,.true.)
+          call BuildDensity(atomic,sol)
           sol%buff%densityin=sol%density
-          scfe=ScfEnergy(genLoc,atomic,sol,ioLoc)
+
+!           scfe=ScfEnergy(genLoc,atomic,sol,ioLoc)
           call CalcExcessCharges(genLoc,atomic,sol)
           call CalcDipoles(genLoc,atomic,sol)
           call ComputeMagneticMoment(genLoc,atomic,sol,ioLoc)
+
           if (ioLoc%Verbosity >= k_highVerbos) then
 !
 !               if (.not.genLoc%compElec) then
@@ -122,6 +136,7 @@ contains
 !                         endif
 !                     enddo
 !                   endif
+                call PrintAtomChargeAnalysis(i,atomic,sol,genLoc,ioLoc)
                 call PrintAtomMatrix(i,atomic,sol%hin,"Hin",ioLoc,.false.)
                 call PrintAtomMatrix(i,atomic,sol%rho,"Density",ioLoc,.false.)
               enddo
@@ -160,11 +175,15 @@ contains
                 call MatrixCeaApbB(sol%h2,sol%h,sol%hin,k_cOne,-k_cOne,ioLoc)
                 call PrintMatrixBlocks(sol%h,labels,ioLoc,.false.,.not.genLoc%collinear)
                 call PrintMatrixBlocks(sol%h2,labelsH2,ioLoc,.false.,.not.genLoc%collinear)
+                call PrintOccupationNumbers(genLoc,sol,ioLoc)
+                write(ioLoc%uout,"(a,f16.8)") "chemical potential: ",genLoc%electronicMu
+                write(ioLoc%uout,'(a,f16.8)')"Entropy term: ",sol%electronicEntropy
                 do i=1,atomic%atoms%natoms
 !                     if (genLoc%k_electrostatics==tbu_multi) then
 !                       call Print_QlmR(i,densityout)
 !                       call Print_VlmR(i,densityout)
 !                     endif
+                  call PrintAtomChargeAnalysis(i,atomic,sol,genLoc,ioLoc)
                   call PrintAtomMatrix(i,atomic,sol%h,"H",ioLoc,.false.)
                   call PrintAtomMatrix(i,atomic,sol%hin,"Hin",ioLoc,.false.)
                   call PrintAtomMatrix(i,atomic,sol%h2,"H2",ioLoc,.false.)
@@ -212,10 +231,10 @@ contains
                 write(ioLoc%uout,'(a,f16.8)')" Repulsive: ",re
                 scfe = ScfEnergy(genLoc,atomic,sol,ioLoc)
                 sol%density=sol%buff%densitynext
+                write(ioLoc%uout,'(a,f16.8)')" -TS: ",sol%electronicEntropy
                 write(ioLoc%uout,'(a,f16.8)')"       SCF: ",scfe
                 write(ioLoc%uout,'(a,f16.8)')"     Total: ",ee+re+scfe
               endif
-              
               if (dmax < genLoc%scftol) exit
             end do
 !
@@ -261,7 +280,7 @@ contains
         call BuildDensity(atomic,sol)
         if (ioLoc%verbosity >= k_mediumVerbos) then
           call PrintMatrix(sol%h,"Hamiltonian Matrix:",ioLoc)
-          call PrintVector(sol%eigenvals,"Eigenvalues",.false.,.true.,ioLoc)
+          call PrintVectorA(sol%eigenvals,"Eigenvalues",.false.,.true.,ioLoc)
           call PrintMatrix(sol%eigenvecs,"Eigenvectors",ioLoc)
           trace = MatrixTrace(sol%rho,ioLoc)
           write(saux,'(a,"(",f0.4,1x,f0.4,"i)")')"Density matrix, Trace= ",trace
@@ -306,7 +325,7 @@ contains
     q0=0.0_k_pr
     q0up=0.0_k_pr
     q0down=0.0_k_pr 
-    elec=k_e2/(4.0_k_pr*k_pi*k_epsilon0)    
+    elec=k_e2/(4.0_k_pr*k_pi*k_epsilon0)
     select case(gen%scfType)
       case(k_scfTbuj)
         rTmp=0.0_k_pr
@@ -315,9 +334,9 @@ contains
           i=atomic%atoms%scf(k)
           call ScfChargeNumbers(i,q0,q0up,q0down,atomic,sol)
 !! ! spin down
-          udq=atomic%species%ulocal(atomic%atoms%sp(i))*q0*elec
-          rAddAcc=-atomic%species%jlocal(atomic%atoms%sp(i))*q0down*elec! spin up
-          rTmp=-atomic%species%jlocal(atomic%atoms%sp(i))*q0up*elec
+          udq=atomic%species%ulocal(atomic%atoms%sp(i))*q0
+          rAddAcc=-atomic%species%jlocal(atomic%atoms%sp(i))*q0down! spin up
+          rTmp=-atomic%species%jlocal(atomic%atoms%sp(i))*q0up
           if (io%Verbosity >= k_highVerbos) then
             write(io%uout,'(a,i5,a,i5,a,a2)')" Atom: ", i,"  specie ",atomic%atoms%sp(i),&
                 " element ",symbol(atomic%species%z(atomic%atoms%sp(i)))
@@ -352,7 +371,7 @@ contains
           endif
           do o1=1,atomic%species%norbs(atomic%atoms%sp(i))
             hij=sol%h%a(atomic%atoms%orbs(i,o1),atomic%atoms%orbs(i,o1))+sol%potential(i)
-            call SpmPut(sol%h,atomic%atoms%orbs(i,o1),atomic%atoms%orbs(i,o1),cmplx(hij,0.0_k_pr,k_pr))            
+            call SpmPut(sol%h,atomic%atoms%orbs(i,o1),atomic%atoms%orbs(i,o1),cmplx(hij,0.0_k_pr,k_pr))
           enddo
         enddo
       case(k_electrostaticsMultipoles)
@@ -465,8 +484,8 @@ contains
           scfe=scfe+atomic%species%ulocal(atomic%atoms%sp(i))*q0*q0
           scfx=scfx-atomic%species%jlocal(atomic%atoms%sp(i))*(q0up*q0up+q0down*q0down)
         enddo
-        scfe=scfe*0.5_k_pr*k_e2/(4.0_k_pr*k_pi*k_epsilon0)
-        scfx=scfx*0.5_k_pr*k_e2/(4.0_k_pr*k_pi*k_epsilon0)
+        scfe=scfe*0.5_k_pr!*k_e2/(4.0_k_pr*k_pi*k_epsilon0)
+        scfx=scfx*0.5_k_pr!*k_e2/(4.0_k_pr*k_pi*k_epsilon0)
         if (io%verbosity >= k_highVerbos) then
           write(io%uout,'(a,f16.8)')" SCF energy from U: ", scfe
           write(io%uout,'(a,f16.8)')" SCF energy from J: ", scfx

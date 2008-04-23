@@ -47,7 +47,7 @@ contains
     type(atomicxType), intent(inout) :: atomic
     type(modelType), intent(inout) :: tbMod
     type(solutionType), intent(inout) :: sol
-    integer :: l,n,m
+    integer :: l,n,m,z
     real(k_pr) :: cr
 
     call cpu_time(cr)
@@ -92,14 +92,18 @@ contains
     if (.not.sol%rho%created) then
       call CreateMatrix(sol%rho,atomic%basis%norbitals,.true.)
     endif
-      call ZeroMatrix(sol%rho,ioLoc)
-    
-
+    call ZeroMatrix(sol%rho,ioLoc)
     l= maxval(tbMod%hopping(:,:)%l2)
-    allocate(sol%fact(0:(6*(l+1)+1)))
-    sol%fact(0:(6*(l+1)+1))=0.0_k_pr
-    call initFact(6*(l+1)+1,sol%fact)
-
+    z=6*(l+1)+1
+    if (genLoc%smearMethod == k_smMP) then
+      z=max(z,genLoc%MPN)
+    endif
+    if (.not. associated(sol%fact)) then
+      allocate(sol%fact(0:z))
+    endif
+    sol%fact(0:z)=0.0_k_pr
+    call initFact(z,sol%fact)
+    call PrintVectorP(sol%fact,"Factorial Values",.true.,.true.,ioLoc)
     if ((genLoc%scf).and.(genLoc%electrostatics==k_electrostaticsMultipoles)) then
       call InitGaunt(2*l+1,2*l+1,4*l+2,sol,ioLoc)
     endif
@@ -108,13 +112,20 @@ contains
     endif
     sol%n0(1:n)=0.0_k_pr
     call Buildn0(genLoc,atomic,sol)
+    if (ioLoc%Verbosity >= k_highVerbos) then
+       write(ioLoc%uout,'(a)')"Diagonal part of the reference density:"
+       write(ioLoc%uout,*)
+       do l=1,n
+         write(ioLoc%uout,'(f12.8,a1,i0,a1,i0,a1,1x)',advance="no")sol%n0(l),"(",l,",",l,")"
+       enddo
+       write(ioLoc%uout,*)
+       write(ioLoc%uout,'(a)')"End reference density"
+    endif
     l=sol%h%dim*(sol%h%dim-1)/2
     allocate(sol%density(1:l+sol%h%dim))
     sol%density(1:l+sol%h%dim)=0.0_k_pr
     call setTails(ioLoc,genLoc,atomic,tbMod,sol)
     call rmarin(int((cr-int(cr))*3132),int(genLoc%ranseed*30081),sol%seed,ioLoc)
-   
-    
     if (.not.allocated(sol%buff%dins)) then
       n=atomic%basis%norbitals 
       m=sol%hup%dim     
@@ -124,7 +135,7 @@ contains
       allocate(sol%buff%densityin(1:l+n))
       allocate(sol%buff%densityout(1:l+n))
       allocate(sol%buff%densitynext(1:l+n))
-      allocate(sol%buff%tmpA(1:m))      
+      allocate(sol%buff%tmpA(1:m))
       call CreateMatrix(sol%buff%tmpB,m,.true.)
       allocate(sol%buff%f(1:sol%eigenvecs%dim))
       allocate(sol%buff%g(1:sol%eigenvecs%dim))
@@ -132,21 +143,28 @@ contains
       allocate(sol%buff%pos1(1:sol%rho%dim),sol%buff%pos2(1:sol%rho%dim))
       allocate(sol%buff%nstart(1:atomic%basis%norbitals))
     endif  
-      call ZeroMatrix(sol%buff%tmpB,ioLoc) 
-      sol%buff%dins(1:l+n,1:genLoc%scfMixn)=0.0_k_pr
-      sol%buff%douts(1:l+n,1:genLoc%scfMixn)=0.0_k_pr
-      sol%buff%res(1:l+n,1:genLoc%scfMixn)=0.0_k_pr
-      sol%buff%densityin(1:l+n)=0.0_k_pr
-      sol%buff%densityout(1:l+n)=0.0_k_pr
-      sol%buff%densitynext(1:l+n)=0.0_k_pr
-      sol%buff%tmpA(1:m)=0.0_k_pr      
-      sol%buff%f(1:n)=0.0_k_pr
-      sol%buff%g(1:n)=0.0_k_pr
-      sol%buff%a(1:n,1:n)=cmplx(0.0_k_pr,0.0_k_pr,k_pr)
-      sol%buff%nstart(1:n)=0.0_k_pr
-      sol%buff%pos1(1:n)=0
-      sol%buff%pos2(1:n)=0      
-     
+    call ZeroMatrix(sol%buff%tmpB,ioLoc) 
+    sol%buff%dins(1:l+n,1:genLoc%scfMixn)=0.0_k_pr
+    sol%buff%douts(1:l+n,1:genLoc%scfMixn)=0.0_k_pr
+    sol%buff%res(1:l+n,1:genLoc%scfMixn)=0.0_k_pr
+    sol%buff%densityin(1:l+n)=0.0_k_pr
+    sol%buff%densityout(1:l+n)=0.0_k_pr
+    sol%buff%densitynext(1:l+n)=0.0_k_pr
+    sol%buff%tmpA(1:m)=0.0_k_pr      
+    sol%buff%f(1:n)=0.0_k_pr
+    sol%buff%g(1:n)=0.0_k_pr
+    sol%buff%a(1:n,1:n)=cmplx(0.0_k_pr,0.0_k_pr,k_pr)
+    sol%buff%nstart(1:n)=0.0_k_pr
+    sol%buff%pos1(1:n)=0
+    sol%buff%pos2(1:n)=0
+! allocate space for the smearing method
+    if (genLoc%smearMethod == k_smMP) then
+      if (.not. associated(sol%hermite)) then
+         allocate(sol%hermite(0:2*genLoc%mpN+1))
+      else
+         sol%hermite=0.0_k_pr
+      endif
+    endif
   end subroutine SetSolutionSpace
 
 

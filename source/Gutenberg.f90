@@ -7,6 +7,7 @@ module m_Gutenberg
   use m_Constants
   use m_Types
   use m_Useful
+  use m_Electrostatics
   implicit none
 
   private
@@ -21,7 +22,8 @@ module m_Gutenberg
   public :: PrintMagneticMoment
   public :: PrintMatrix
   public :: PrintMatrixBlocks
-  public :: PrintVector
+  public :: PrintVectorA
+  public :: PrintVectorP
   public :: PrintForces
   public :: PrintCharges
   public :: PrintDipoles
@@ -29,6 +31,8 @@ module m_Gutenberg
   public :: PrintCoordinates
   public :: PrintVelocities
   public :: PrintXYZ
+  public :: PrintAtomChargeAnalysis
+  public :: PrintOccupationNumbers
 contains
 
 !> \brief Prints the tail parameters
@@ -686,42 +690,71 @@ contains
 !> \details it can be printed on row or column, with index or without
 !> \author Alin M Elena
 !> \date 07/11/07, 13:13:52
-!> \param vec real array to be printed
+!> \param vec real array to be printed (pointer)
 !> \param label character label to be printed
 !> \param lIsRow logical if true is printed on row else as a column
 !> \param lIsIndex logical if true the index is printed else no index
 !> \param io type(ioType) i/o units
-  subroutine PrintVector(vec,label,lIsRow,lIsIndex,io)
-    character(len=*), parameter :: sMyName="PrintVector"
+  subroutine PrintVectorP(vec,label,lIsRow,lIsIndex,io)
+    character(len=*), parameter :: sMyName="PrintVectorP"
+    real(k_pr), pointer :: vec(:)
+    character(len=*), intent(in) :: label
+    logical, intent(in) :: lIsRow, lIsIndex
+    type(ioType),intent(in) :: io
+    integer :: i
+    write(io%uout,'(a,a,a)')"==",trim(label),"==="
+    if (lisRow .and. lIsIndex) then
+      do i=lbound(vec,1),ubound(vec,1)
+        write(io%uout,'(a,1x,i0,1x,f0.8,a)',advance="no")"(",i,vec(i),")"
+      enddo
+        write(io%uout,*)
+    elseif (lisRow .and. (.not.lIsIndex)) then
+      do i=lbound(vec,1),ubound(vec,1)
+        write(io%uout,'(f0.8,1x)',advance="no")vec(i)
+      enddo
+        write(io%uout,*)
+    elseif ((.not.lisRow) .and. (.not.lIsIndex)) then
+      do i=lbound(vec,1),ubound(vec,1)
+        write(io%uout,'(f16.8)')vec(i)
+      enddo
+    else
+      do i=lbound(vec,1),ubound(vec,1)
+        write(io%uout,'(i5,f16.8,1x)')i,vec(i)
+      enddo
+    endif
+    write(io%uout,'(a,a,a)')"==End ",trim(label),"==="
+  end subroutine PrintVectorP
+
+
+ subroutine PrintVectorA(vec,label,lIsRow,lIsIndex,io)
+    character(len=*), parameter :: sMyName="PrintVectorA"
     real(k_pr), intent(in) :: vec(:)
     character(len=*), intent(in) :: label
     logical, intent(in) :: lIsRow, lIsIndex
     type(ioType),intent(in) :: io
     integer :: i
-
     write(io%uout,'(a,a,a)')"==",trim(label),"==="
     if (lisRow .and. lIsIndex) then
-      do i=1,size(vec)
+      do i=lbound(vec,1),ubound(vec,1)
         write(io%uout,'(a,1x,i0,1x,f0.8,a)',advance="no")"(",i,vec(i),")"
       enddo
         write(io%uout,*)
     elseif (lisRow .and. (.not.lIsIndex)) then
-      do i=1,size(vec)
+      do i=lbound(vec,1),ubound(vec,1)
         write(io%uout,'(f0.8,1x)',advance="no")vec(i)
       enddo
         write(io%uout,*)
     elseif ((.not.lisRow) .and. (.not.lIsIndex)) then
-      do i=1,size(vec)
+      do i=lbound(vec,1),ubound(vec,1)
         write(io%uout,'(f16.8)')vec(i)
       enddo
     else
-      do i=1,size(vec)
+      do i=lbound(vec,1),ubound(vec,1)
         write(io%uout,'(i5,f16.8,1x)')i,vec(i)
       enddo
     endif
     write(io%uout,'(a,a,a)')"==End ",trim(label),"==="
-  end subroutine PrintVector
-
+  end subroutine PrintVectorA
 
 !> \brief prints the forces
 !> \author Alin M Elena
@@ -949,4 +982,64 @@ contains
     endif
     enddo
   end subroutine PrintXYZ
+
+
+  subroutine PrintAtomChargeAnalysis(at,atomic,sol,gen,io)
+    character(len=*), parameter :: myname="PrintAtomChargeAnalysis"
+    integer, intent(in) :: at
+    type(solutionType),intent(inout) :: sol
+    type(atomicxType), intent(inout) :: atomic
+    type(generalType), intent(inout) :: gen
+    type(ioType), intent(inout) :: io
+    integer :: l,i
+    real(k_pr) :: qld,qlu
+
+   if (gen%spin) then
+    write(io%uout,'(a,i0)') "Electrons for atom: ", at
+    write(io%uout,'(a)')"Orbital(l)| Spin Down  |   Spin Up  |    Total   "
+    do i=0,GetLMax(at,atomic)
+      call ChargeOnL(at,i,atomic,gen,sol,qld,qlu)
+      write(io%uout,'(i9,1x,f12.8,1x,f12.8,1x,f12.8)')i,qld,qlu,qld+qlu
+    enddo
+      write(io%uout,'(a)')"________________________________________________"
+   else
+    write(io%uout,'(a,i0)') "Electrons for atom: ", at
+    write(io%uout,'(a)')"Orbital(l)|        #   "
+    do i=0,GetLMax(at,atomic)
+      call ChargeOnL(at,i,atomic,gen,sol,qld)
+      write(io%uout,'(i9,1x,f12.8)')i,qld
+    enddo
+      write(io%uout,'(a)')"______________________"
+   endif
+  end subroutine PrintAtomChargeAnalysis
+
+  subroutine PrintOccupationNumbers(gen,sol,io)
+   character(len=*), parameter :: myname="PrintOccupationNumbers"
+    type(solutionType),intent(in) :: sol
+    type(generalType), intent(in) :: gen
+    type(ioType), intent(in) :: io
+    integer :: i
+    if (gen%spin) then
+      write(io%uout,*) &
+            '--Occupation Numbers-------------------------------------------'
+      do i=1,sol%rho%dim
+        if (sol%buff%pos1(i) <=sol%rho%dim/2) then
+          write(io%uout,'(i0,x,i0,2f16.8,a)') &
+            i,sol%buff%pos1(i),sol%eigenvals(sol%buff%pos1(i)),sol%buff%f(sol%buff%pos1(i))," down"
+        else
+          write(io%uout,'(i0,x,i0,2f16.8,a)') i,sol%buff%pos1(i)-sol%rho%dim/2,&
+                sol%eigenvals(sol%buff%pos1(i)),sol%buff%f(sol%buff%pos1(i))," up"
+        endif
+      enddo
+      write(io%uout,*) &
+          '------------------------------------------------------------'
+    else
+      write(io%uout,*)  "Occupation Numbers"
+      do i=1,sol%rho%dim
+          write(io%uout,'(i0,1x,f16.8,1x,f16.8)') &
+            i,sol%eigenvals(i),2.0_k_pr*sol%buff%f(i)
+      enddo
+    endif
+  end subroutine PrintOccupationNumbers
+
 end module m_Gutenberg

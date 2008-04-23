@@ -276,8 +276,8 @@ end function UpdateCost
       endif
     enddo
     close(1)
-    call PrintVector(bounds(:,1),'lower bound',.true.,.false.,io)
-    call PrintVector(bounds(:,2),'upper bound',.true.,.false.,io)
+    call PrintVectorA(bounds(:,1),'lower bound',.true.,.false.,io)
+    call PrintVectorA(bounds(:,2),'upper bound',.true.,.false.,io)
   end subroutine ReadBounds
 
 !> \brief Driver routine for the fitting process
@@ -318,14 +318,14 @@ end function UpdateCost
         tol(1:gen%fit%neps)=1.0e25_k_pr
           call amoeba(p,y,gen%fit%fitTol,UpdateCost,kk,bounds,gen%fit%iter,gen,atomic,tb,sol,io)
         copt=y(1)
-        call PrintVector(p(1,:),'current parameters:',.true.,.false.,io)
+        call PrintVectorA(p(1,:),'current parameters:',.true.,.false.,io)
         do
           call amoeba(p,y,gen%fit%fitTol,UpdateCost,kk,bounds,gen%fit%iter,gen,atomic,tb,sol,io)
           do  i = gen%fit%neps, 2, -1
             tol(i) = tol(i-1)
           enddo
           tol(1)=y(1)
-          call PrintVector(p(1,:),'current parameters:',.true.,.false.,io)
+          call PrintVectorA(p(1,:),'current parameters:',.true.,.false.,io)
           quit = .false.
           if (abs(copt - tol(1)) < gen%fit%fitTol) then
             quit = .true.
@@ -341,9 +341,9 @@ end function UpdateCost
               quit = .false.
             endif
           enddo
-          call PrintVector(best,'best parameters so far:',.true.,.false.,io)
+          call PrintVectorA(best,'best parameters so far:',.true.,.false.,io)
           if (quit) then
-            call PrintVector(best,'optimal parameters:',.true.,.false.,io)
+            call PrintVectorA(best,'optimal parameters:',.true.,.false.,io)
             exit
           endif
           p(1,:)=best(:)
@@ -397,7 +397,7 @@ end function UpdateCost
             tol(i) = tol(i-1)
           enddo
           tol(1)=y(1)
-          call PrintVector(p(1,:),'current parameters:',.true.,.false.,io)
+          call PrintVectorA(p(1,:),'current parameters:',.true.,.false.,io)
           quit = .false.
           if (abs(copt - tol(1)) < gen%fit%fitTol) then
             quit = .true.
@@ -412,9 +412,9 @@ end function UpdateCost
               quit = .false.
             endif
           enddo
-            call PrintVector(best,'best parameters so far:',.true.,.false.,io)
+            call PrintVectorA(best,'best parameters so far:',.true.,.false.,io)
           if (quit) then
-            call PrintVector(best,'optimal parameters:',.true.,.false.,io)            
+            call PrintVectorA(best,'optimal parameters:',.true.,.false.,io)            
             exit
           endif
         enddo
@@ -578,11 +578,11 @@ end function UpdateCost
             /,' initial temp: ', g8.2, '   rt: ',g8.2, '   eps: ',g8.2,&
             /,' ns: ',i3, '   nt: ',i2, '   neps: ',i2,&
             /,' maxevl: ',i10)
-    call PrintVector(x,'starting values',.true.,.false.,io)
-    call PrintVector(vm,'initial step length',.true.,.false.,io)
-    call PrintVector(bounds(:,1),'lower bound',.true.,.false.,io)
-    call PrintVector(bounds(:,2),'upper bound',.true.,.false.,io)
-    call PrintVector(c,'c vector',.true.,.false.,io)
+    call PrintVectorA(x,'starting values',.true.,.false.,io)
+    call PrintVectorA(vm,'initial step length',.true.,.false.,io)
+    call PrintVectorA(bounds(:,1),'lower bound',.true.,.false.,io)
+    call PrintVectorA(bounds(:,2),'upper bound',.true.,.false.,io)
+    call PrintVectorA(c,'c vector',.true.,.false.,io)
     write(io%uout,'(a)')"/  ****   end of driver routine output   **** /"
     write(io%uout,'(a)')"****  before call to SimulAnnealing.  ****"
     call SimulAnnealing(gen%fit%iNoParams,x,max,rt,eps,ns,nt,&
@@ -590,8 +590,8 @@ end function UpdateCost
                             t,vm,xopt,fopt,nacc,nfcnev,nobds,ier,&
                     fstar,xp,nacp,UpdateCost,gen,atomic,sol,tb,io)
     write(io%uout,'(/,''  ****   results after sa   ****   '')')
-    call PrintVector(xopt,'solution',.true.,.false.,io)
-    call PrintVector(vm,'final step length',.true.,.false.,io)
+    call PrintVectorA(xopt,'solution',.true.,.false.,io)
+    call PrintVectorA(vm,'final step length',.true.,.false.,io)
     write(io%uout,1001) fopt, nfcnev, nacc, nobds, t, ier
     1001  format(/,' optimal function value: ',g20.13 &
             /,' number of function evaluations:     ',i10,&
@@ -639,7 +639,7 @@ end function UpdateCost
     temperature=gen%fit%temp
     write(io%uout,*)"simulated annealing stage"
     write(io%uout,*)"initial values:"
-    call PrintVector(p(1,:),"initial parameters",.true.,.false.,io)
+    call PrintVectorA(p(1,:),"initial parameters",.true.,.false.,io)
     write(io%uout,*)"starting temperature: ",gen%fit%temp
     write(io%uout,*)"maximum simplex iterations: ",gen%fit%iter
     write(io%uout,*)"fit tolerance: ",gen%fit%fitTol
@@ -655,7 +655,7 @@ end function UpdateCost
       enddo
       tol(1)=yb
       write(io%uout,*)"current temperature: ",temperature
-      call PrintVector(opt,'current parameters:',.true.,.false.,io)
+      call PrintVectorA(opt,'current parameters:',.true.,.false.,io)
       quit = .false.
       if (abs(copt - tol(1)) < gen%fit%fitTol) then
         quit = .true.
@@ -670,9 +670,9 @@ end function UpdateCost
           quit = .false.
         endif
       enddo
-      call PrintVector(best,'best parameters so far:',.true.,.false.,io)
+      call PrintVectorA(best,'best parameters so far:',.true.,.false.,io)
       if (quit) then
-        call PrintVector(opt,'optimal parameters:',.true.,.false.,io)        
+        call PrintVectorA(opt,'optimal parameters:',.true.,.false.,io)        
         exit
       endif
       temperature=temperature*gen%fit%rt

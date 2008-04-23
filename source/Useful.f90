@@ -38,7 +38,9 @@ module m_Useful
   public :: AssertEq
   public :: ExpRep
   public :: ComputeEuclideanMatrix
-
+  public :: InitializeHermite
+  public :: occupMP
+  public :: sn
   interface Swap
     module procedure SwapScalar,SwapVector
   end interface
@@ -587,6 +589,47 @@ contains
 
    end function fermi
 
+  real(k_pr) function occupMP(gen,sol,energy)
+    character(len=*),parameter :: myname="occupMP"
+    type(generalType), intent(inout) :: gen
+    type(solutionType), intent(inout) :: sol
+    real(k_pr), intent(in) :: energy
+    real(k_pr) :: aux,expo,sum
+    integer :: i
+
+    aux=(energy-gen%electronicMU)/gen%mpW
+    call InitializeHermite(aux,2*gen%mpN+1,sol%hermite)
+    if (aux*aux<-100.0_k_pr) then
+      expo= 1.0_k_pr
+    elseif (aux*aux>100.0_k_pr) then
+      expo = 0.0_k_pr
+    else
+      expo = exp(-aux*aux)
+    endif
+
+    sum=0.5_k_pr*derfc(aux)
+    do i=1,gen%mpN
+      sum=sum+(-1)**i/(sol%fact(i)*4.0_k_pr**i*sqrt(k_pi))*expo*sol%hermite(2*i-1)
+    enddo
+    occupMP=sum
+  end function occupMP
+
+  real(k_pr) function derfc(x)
+    character(len=*), parameter :: myname = 'derfc'
+    real(k_pr), intent(in) :: x 
+    real(k_pr) :: z, t
+    z = abs(x)
+    t = 1.0_k_pr / (1.0_k_pr + 0.5_k_pr * z)
+
+    derfc = t*exp(-(z*z)-1.26551223_k_pr+t*(1.00002368_k_pr+t*(0.37409196_k_pr+&
+      t*(0.09678418_k_pr+t*(-0.18628806_k_pr+ &
+      t*(0.27886807_k_pr+t*(-1.13520398_k_pr+ &
+      t*(1.48851587_k_pr+t*(-0.82215223_k_pr+t*.17087277_k_pr)))))))))
+
+    if (x<0.0_k_pr) derfc=2.0_k_pr-derfc
+
+   end function derfc
+
 !> \brief tells you where the line i stops \see aidx function
 !> \author Alin M Elena
 !> \date 08/11/07, 12:21:21
@@ -645,7 +688,7 @@ contains
     sum=0.0_k_pr
 !compute linf error or minmax error:sum
 !returns what percent sum represents from the exact value
-    do i=lbound(approx,1)+1,ubound(approx,1)-1
+    do i=2,size(approx)-1
       work=(approx(i+1)-approx(i-1))/(2.0_k_pr*dh)
       if (abs(exact(i)-work)>sum) then 
         sum=abs(exact(i)-work)
@@ -760,7 +803,7 @@ contains
         ExpRep = exp(rdum)
     end if
   end function ExpRep
-      
+
   subroutine ComputeEuclideanMatrix(atoms,io,euclidDistances)
     character(len=*), parameter :: myname="ComputeEuclideanMatrix"
     type(ioType), intent(in) :: io
@@ -768,23 +811,26 @@ contains
     real(k_pr), intent(inout),optional :: euclidDistances(:,:)
     real(k_pr),allocatable :: tmp(:,:)
     integer :: i,j
-    
+
     if (.not.present(euclidDistances)) then
       allocate(tmp(1:atoms%natoms,1:atoms%natoms))
       tmp=0.0_k_pr
     endif
-    do i=1,atoms%natoms-1
-      do j=i+1,atoms%natoms
-         if (.not.present(euclidDistances)) then
-            tmp(i,j)=Distance(atoms,i,j)
-            tmp(j,i)=tmp(i,j)
-         else
-            euclidDistances(i,j)=Distance(atoms,i,j)
-            euclidDistances(j,i)=euclidDistances(i,j)
-         endif
+    if (.not.present(euclidDistances)) then
+      do i=1,atoms%natoms-1
+        do j=i+1,atoms%natoms
+          tmp(i,j)=Distance(atoms,i,j)
+          tmp(j,i)=tmp(i,j)
+        enddo
       enddo
-    enddo
-    
+    else
+      do i=1,atoms%natoms-1
+        do j=i+1,atoms%natoms
+          euclidDistances(i,j)=Distance(atoms,i,j)
+          euclidDistances(j,i)=euclidDistances(i,j)
+        enddo
+      enddo
+    endif
     if (.not.present(euclidDistances)) then
       write(io%uout,*) "==Euclidean Distances Matrix======"      
       write(io%uout,'(7x)',advance="no")
@@ -806,7 +852,74 @@ contains
       write(io%uout,*)
       write(io%uout,*)"==================================="
       deallocate(tmp)
-    endif
- 
+    endif 
   end subroutine ComputeEuclideanMatrix
+
+  subroutine InitializeHermite(x, n, h)
+      character(len=*), parameter :: myname = 'InitializeHermite'
+      real(k_pr), intent(inout)  :: h(0:n)
+      real(k_pr), intent(in) :: x
+      integer, intent(in) :: n
+
+      integer :: i
+      h(0)=1.0_k_pr
+      h(1)=2.0_k_pr*x
+      do i=2,n
+         h(i)=2.0_k_pr*x*h(i-1)-2.0_k_pr*real(i-1,k_pr)*h(i-2)
+      enddo 
+   end subroutine InitializeHermite
+
+  real(k_pr) function sn(x,n,sol)
+    character(len=*), parameter :: myname = 'sn'
+    real(k_pr), intent(in) :: x
+    integer, intent(in) :: n
+    type(solutionType), intent(inout) :: sol
+    real(k_pr) :: expo
+
+    call InitializeHermite(x,2*n+1,sol%hermite)
+    if (x*x<-100.0_k_pr) then
+        expo= 1.0_k_pr
+    elseif (x*x>100.0_k_pr) then
+        expo = 0.0_k_pr
+    else
+        expo = exp(-x*x)
+    endif
+    sn=0.5_k_pr*expo*sol%hermite(2*n)*(-1)**n/(sol%fact(n)*4**n*sqrt(k_pi))
+
+   end function sn
+
+  real(k_pr) function MarzariF(x)
+    character(len=*), parameter :: myname="MarzariF"
+    real(k_pr), intent(in) :: x
+    real(k_pr) :: aux,expo
+
+    aux= (1.0_k_pr/sqrt(2.0_k_pr)-x)*(1.0_k_pr/sqrt(2.0_k_pr)-x)
+    if (aux<-100.0_k_pr) then
+        expo= 1.0_k_pr
+    elseif (aux>100.0_k_pr) then
+        expo = 0.0_k_pr
+    else
+        expo = exp(-aux)
+    endif
+    MarzariF=expo/sqrt(2.0_k_pr*k_pi)+0.0_k_pr*derfc(1.0_k_pr/sqrt(2.0_k_pr)-x)
+  end function MarzariF
+
+  real(k_pr) function MarzariS(x)
+    character(len=*), parameter :: myname="MarzariS"
+    real(k_pr), intent(in) :: x
+    real(k_pr) :: aux,expo
+
+    aux= (1.0_k_pr/sqrt(2.0_k_pr)-x)*(1.0_k_pr/sqrt(2.0_k_pr)-x)
+    if (aux<-100.0_k_pr) then
+        expo= 1.0_k_pr
+    elseif (aux>100.0_k_pr) then
+        expo = 0.0_k_pr
+    else
+        expo = exp(-aux)
+    endif
+    MarzariS=expo/sqrt(k_pi)+0.0_k_pr*(1.0_k_pr-sqrt(2.0_k_pr)*x)
+  end function MarzariS
+
+
+
 end module m_Useful
