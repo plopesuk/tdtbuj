@@ -231,7 +231,7 @@ contains
                 write(ioLoc%uout,'(a,f16.8)')" Repulsive: ",re
                 scfe = ScfEnergy(genLoc,atomic,sol,ioLoc)
                 sol%density=sol%buff%densitynext
-                write(ioLoc%uout,'(a,f16.8)')" -TS: ",sol%electronicEntropy
+                write(ioLoc%uout,'(a,f16.8)')"       -TS: ",sol%electronicEntropy
                 write(ioLoc%uout,'(a,f16.8)')"       SCF: ",scfe
                 write(ioLoc%uout,'(a,f16.8)')"     Total: ",ee+re+scfe
               endif
@@ -271,7 +271,7 @@ contains
               trace = MatrixTrace(sol%rho,ioLoc)
               write(saux,'(a,"(",f0.4,1x,f0.4,"i)")') "Density matrix, Trace= ",trace
              call PrintMatrix(sol%rho,trim(saux),ioLoc)
-            endif            
+            endif
         end select
       else
         call BuildHamiltonian(ioLoc,genLoc,atomic,tbMod,sol)

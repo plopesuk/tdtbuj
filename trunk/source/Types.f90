@@ -120,7 +120,7 @@ module m_Types
     real(k_pr) :: qTolerance !< charge tolerance used to find Fermi level
     type(timeType):: time
     type(fitType)  :: fit
-    real(k_pr) :: CurrSimTime !< keeps the time in a td simulation    
+    real(k_pr) :: CurrSimTime !< keeps the time in a td simulation
     real(k_pr) :: epsG,gtol
     real(k_pr) :: epsX,xtol
     real(k_pr) :: epsF,ftol
@@ -171,8 +171,8 @@ module m_Types
     real(k_pr), allocatable :: mass(:) !< atomic mass of specie
     integer,  allocatable :: z(:) !< Z of specie
     real(k_pr), allocatable :: zval(:) !< no of valence electrons for each specie
-    real(k_pr), allocatable :: ulocal(:) !< local U (Hubbard U)
-    real(k_pr), allocatable :: jlocal(:) !< local J
+    real(k_pr), allocatable :: ulocal(:,:) !< local U (Hubbard U) (first index deals with the species counter second with the orbital one)
+    real(k_pr), allocatable :: jlocal(:,:) !< local J (first index deals with the species counter second with the orbital one)
     real(k_pr), allocatable :: uinter(:) !< Uinter (used for the screaning of k_electrostatics)
     integer,  allocatable :: norbs(:) !< no of orbitals
   end type speciesType
@@ -244,17 +244,17 @@ module m_Types
  type :: buffersType
     real(k_pr), allocatable :: densityin(:)
     real(k_pr), allocatable :: densityout(:)
-    real(k_pr), allocatable :: densitynext(:) 
+    real(k_pr), allocatable :: densitynext(:)
     real(k_pr), allocatable:: dins(:,:)
     real(k_pr), allocatable:: douts(:,:)
     real(k_pr), allocatable::  res(:,:)
     real(k_pr),allocatable :: tmpA(:)
-    type(matrixType) :: tmpB  
+    type(matrixType) :: tmpB
     real(k_pr),allocatable  :: f(:) ,g(:)
     complex(k_pr),allocatable :: a(:,:)
     integer, allocatable :: pos1(:), pos2(:)
-    real(k_pr), allocatable :: nstart(:)  
- end type buffersType 
+    real(k_pr), allocatable :: nstart(:)
+ end type buffersType
 
 !> defines the type for the the data needed to solve the problem
   type,public :: solutionType
@@ -278,7 +278,7 @@ module m_Types
     real(k_pr) :: electronicEntropy !< electronic entropy of the system
     real(k_pr) :: totalEnergy !< total energy of the system
     type(buffersType) :: buff
-    real(k_pr),pointer, dimension(:) :: hermite => NULL() !< hermite polynomials used for Methfessel&Paxton smearing method 
+    real(k_pr),pointer, dimension(:) :: hermite => NULL() !< hermite polynomials used for Methfessel&Paxton smearing method
 !    type(qvs), allocatable :: delq(:), vs(:)
   end type solutionType
 end module m_Types
