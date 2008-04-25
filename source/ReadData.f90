@@ -619,7 +619,7 @@ subroutine ReadGeneral(ioLoc,genLoc)
       ,genLoc%xTol
     genLoc%epsf=GetReal(ioLoc,"EpsilonE",1.0e-10_k_pr)
     write( ioLoc%uout,'(a,ES12.4)')"Epsilon Energy Tolerance (during geometry optimisation)(EpsilonE): "&
-      ,genLoc%epsf    
+      ,genLoc%epsf
     genLoc%epsg=GetReal(ioLoc,"EpsilonG",1.0e-10_k_pr)
     write( ioLoc%uout,'(a,ES12.4)')"Epsilon Gradient Tolerance (during geometry optimisation)(EpsilonG): "&
       ,genLoc%epsg
@@ -631,12 +631,12 @@ subroutine ReadGeneral(ioLoc,genLoc)
           "Maximum number of evaluations for energy during each step of geometry optimisation (MaxFEval)",genLoc%maxFeval
     genLoc%nsteps=GetInteger(ioLoc,"GeometryNSteps",100)
     write( ioLoc%uout,'(a,i0)')"Number of steps for geometry optimisation (GeometryNSteps): "&
-        ,genLoc%nsteps        
+        ,genLoc%nsteps
     genLoc%HessianM=GetInteger(ioLoc,"HessianM",7)
     write(ioLoc%uout,'(a,i8)') &
-          "Number of corrections used (3<= m <=7) by bfgs to compute hessian geometry optimisation (HessianM) ",genLoc%HessianM 
+          "Number of corrections used (3<= m <=7) by bfgs to compute hessian geometry optimisation (HessianM) ",genLoc%HessianM
   endif
-  
+
 end subroutine ReadGeneral
 
 !> \page control
@@ -1151,7 +1151,7 @@ end subroutine CloseIoGeneral
     atomix%atoms%bias(1:atomix%atoms%natoms)=0.0_k_pr
     atomix%atoms%x(1:atomix%atoms%natoms)=0.0_k_pr
     atomix%atoms%y(1:atomix%atoms%natoms)=0.0_k_pr
-    atomix%atoms%z(1:atomix%atoms%natoms)=0.0_k_pr 
+    atomix%atoms%z(1:atomix%atoms%natoms)=0.0_k_pr
     atomix%atoms%vx(1:atomix%atoms%natoms)=0.0_k_pr
     atomix%atoms%vy(1:atomix%atoms%natoms)=0.0_k_pr
     atomix%atoms%vz(1:atomix%atoms%natoms)=0.0_k_pr
@@ -1174,11 +1174,11 @@ end subroutine CloseIoGeneral
     atomix%atoms%chrg0(1:atomix%atoms%natoms)=0.0_k_pr
     atomix%atoms%ismoving(1:atomix%atoms%natoms)=.true.
     atomix%atoms%isscf(1:atomix%atoms%natoms)=.true.
-    atomix%atoms%MagMom(1:atomix%atoms%natoms)=0.0_k_pr 
-    atomix%atoms%norbs(1:atomix%atoms%natoms)=0 
+    atomix%atoms%MagMom(1:atomix%atoms%natoms)=0.0_k_pr
+    atomix%atoms%norbs(1:atomix%atoms%natoms)=0
     atomix%atoms%nmoving=0
     atomix%atoms%nscf=0
-        
+
 
     if (GetBlock(io,"AtomsData",nt)) then
       do i = 1, atomix%atoms%natoms
@@ -1226,7 +1226,7 @@ end subroutine CloseIoGeneral
         enddo
     endif
     xyz=GetUnit()
-    open(xyz,file="coords.xyz",status="unknown",action="write")  
+    open(xyz,file="coords.xyz",status="unknown",action="write")
     call PrintXYZ(xyz,atomix,.false.,"")
     call ComputeEuclideanMatrix(atomix%atoms,io)
     close(xyz)
@@ -1401,15 +1401,15 @@ end subroutine CloseIoGeneral
     allocate(specs%mass(1:specs%nspecies))
     allocate(specs%z(1:specs%nspecies))
     allocate(specs%zval(1:specs%nspecies))
-    allocate(specs%ulocal(1:specs%nspecies))
-    allocate(specs%jlocal(1:specs%nspecies))
+    allocate(specs%ulocal(1:specs%nspecies,1:1))
+    allocate(specs%jlocal(1:specs%nspecies,1:1))
     allocate(specs%uinter(1:specs%nspecies))
     allocate(specs%norbs(1:specs%nspecies))
     specs%norbs=0
     specs%zval=0
     if (GetBlock(io,"SpeciesData",nt)) then
       do i = 1, specs%nspecies
-        read(nt,fmt=*,iostat=errno) sp,specs%z(i),specs%mass(i),specs%ulocal(i),specs%jlocal(i),specs%uinter(i)
+        read(nt,fmt=*,iostat=errno) sp,specs%z(i),specs%mass(i),specs%ulocal(i,1),specs%jlocal(i,1),specs%uinter(i)
         specs%id(i)=i
         if (sp/=i) then
           write(saux,'(a,i0,a,i0,a,i0)')"the id of the specie differs from the one expected by convention found ",&
@@ -1419,7 +1419,7 @@ end subroutine CloseIoGeneral
         if (errno/=0) then
           call error("block SpeciesData is not in the right format",sMyName,.true.,io)
         endif
-        write(io%udeb,'(2i6,4f16.6)') specs%id(i),specs%z(i),specs%mass(i),specs%ulocal(i),specs%jlocal(i),specs%uinter(i)
+        write(io%udeb,'(2i6,4f16.6)') specs%id(i),specs%z(i),specs%mass(i),specs%ulocal(i,1),specs%jlocal(i,1),specs%uinter(i)
       enddo
       if (isUnique(specs%id(1:specs%nspecies))) then
         call error("id must be unique for each specie",sMyName,.true.,io)
@@ -1468,7 +1468,7 @@ end subroutine CloseIoGeneral
 
     allocate(atomix%speciesBasis(1:atomix%species%nspecies,1:gen%maxOrbitalsPerAtom))
     do i=1, atomix%species%nspecies
-      do j=1, gen%maxOrbitalsPerAtom  
+      do j=1, gen%maxOrbitalsPerAtom
             atomix%speciesBasis(i,j)%sp = 0
             atomix%speciesBasis(i,j)%atom = 0
             atomix%speciesBasis(i,j)%spin=.false.
@@ -1476,9 +1476,9 @@ end subroutine CloseIoGeneral
             atomix%speciesBasis(i,j)%l=0
             atomix%speciesBasis(i,j)%m=0
             atomix%speciesBasis(i,j)%occup=0.0_k_pr
-      enddo     
-    enddo 
-    allocate(tmpid(1:atomix%species%nspecies))    
+      enddo
+    enddo
+    allocate(tmpid(1:atomix%species%nspecies))
     tmpid=0
     if (GetBlock(io,"Basis",nt)) then
       do i = 1,atomix%species%nspecies
@@ -1548,9 +1548,9 @@ end subroutine CloseIoGeneral
     allocate(atomix%atoms%orbs(1:atomix%atoms%natoms,1:k))
    do i=1, atomix%atoms%natoms
       do j=1, k
-            atomix%atoms%orbs(i,j) = 0            
-      enddo     
-    enddo  
+            atomix%atoms%orbs(i,j) = 0
+      enddo
+    enddo
     atomix%basis%norbitals = 0
     do i=1,atomix%atoms%natoms
       atomix%basis%norbitals = atomix%basis%norbitals + atomix%species%norbs(atomix%atoms%sp(i))
@@ -2006,7 +2006,7 @@ end subroutine ReadBasis
     type(modelType),intent(inout) :: tbMod
     type(solutionType), intent(inout) :: sol
     integer :: i,j
-    
+
     deallocate(atomic%species%id)
     deallocate(atomic%species%mass)
     deallocate(atomic%species%z)
@@ -2053,7 +2053,7 @@ end subroutine ReadBasis
     deallocate(atomic%speciesBasis)
     deallocate(atomic%basis%orbitals)
     deallocate(atomic%atoms%orbs)
-    deallocate(atomic%atoms%MagMom) 
+    deallocate(atomic%atoms%MagMom)
 
     do i=1,atomic%species%nspecies
       do j=1,atomic%species%nspecies
@@ -2098,15 +2098,15 @@ end subroutine ReadBasis
     deallocate(sol%buff%res)
     deallocate(sol%buff%densityin)
     deallocate(sol%buff%densityout)
-    deallocate(sol%buff%densitynext) 
+    deallocate(sol%buff%densitynext)
     deallocate(sol%buff%tmpA)
-    call DestroyMatrix(sol%buff%tmpB,io) 
+    call DestroyMatrix(sol%buff%tmpB,io)
     deallocate(sol%buff%pos1)
     deallocate(sol%buff%pos2)
     deallocate(sol%buff%f)
-    deallocate(sol%buff%g) 
-    deallocate(sol%buff%a) 
-    deallocate(sol%buff%nstart)     
+    deallocate(sol%buff%g)
+    deallocate(sol%buff%a)
+    deallocate(sol%buff%nstart)
     deallocate(sol%fact)
     if (general%smearMethod == k_smMP) then
       deallocate(sol%hermite)

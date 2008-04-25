@@ -14,6 +14,7 @@ endif(COMMAND cmake_policy)
 set(src_dir source)
 set(target_name tdtbuj)
 ##########################
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/Util")
 
 ##########################
 ## external libs
