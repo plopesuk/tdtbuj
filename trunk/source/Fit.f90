@@ -23,10 +23,10 @@ module m_Fit
   use m_DriverRoutines
   use m_Gutenberg
   use m_TightBinding
-  implicit none 
+  implicit none
   private
   public  :: fitting
-  
+
   integer, external :: djacobi_init, djacobi_solve, djacobi_delete, djacobi
   integer, external :: dtrnlspbc_get, dtrnlspbc_init, dtrnlspbc_solve, dtrnlspbc_delete
 
@@ -61,12 +61,12 @@ contains
       x(1) =  tb%hopping(1,1)%eps(0)
       x(2) =  tb%hopping(1,2)%a(0,0,0)
      x(3) =  tb%hopping(1,2)%a(1,0,0)
-     x(4) =  atomic%species%jlocal(atomic%atoms%sp(2))
-     x(5) =  atomic%species%ulocal(atomic%atoms%sp(2))
+     x(4) =  atomic%species%jlocal(atomic%atoms%sp(2),1)
+     x(5) =  atomic%species%ulocal(atomic%atoms%sp(2),1)
      x(6) =  tb%hopping(1,2)%n
      x(7) =  tb%hopping(1,2)%nc
-     x(8) =  atomic%species%jlocal(atomic%atoms%sp(1))
-     x(9) =  atomic%species%ulocal(atomic%atoms%sp(1))
+     x(8) =  atomic%species%jlocal(atomic%atoms%sp(1),1)
+     x(9) =  atomic%species%ulocal(atomic%atoms%sp(1),1)
      x(10) =  0.1_k_pr
 !     x(11) = 0.1_k_pr
 !     x(12) = tb%hopping(1,2)%rc
@@ -106,15 +106,15 @@ contains
 
 !
 !
-     atomic%species%jlocal(atomic%atoms%sp(2))=yfit(4)
-     atomic%species%ulocal(atomic%atoms%sp(2))=yfit(5)
+     atomic%species%jlocal(atomic%atoms%sp(2),1)=yfit(4)
+     atomic%species%ulocal(atomic%atoms%sp(2),1)=yfit(5)
      tb%hopping(1,2)%n=yfit(6)
      tb%hopping(1,2)%nc=yfit(7)
      tb%hopping(2,1)%n=tb%hopping(1,2)%n
      tb%hopping(2,1)%nc=tb%hopping(1,2)%nc
 !     !
-     atomic%species%jlocal(atomic%atoms%sp(1))=yfit(8)
-     atomic%species%ulocal(atomic%atoms%sp(1))=yfit(9)
+     atomic%species%jlocal(atomic%atoms%sp(1),1)=yfit(8)
+     atomic%species%ulocal(atomic%atoms%sp(1),1)=yfit(9)
 !
 !     tb%hopping(1,2)%rc = yfit(12)
 !     tb%hopping(2,1)%rc = yfit(12)
@@ -212,8 +212,8 @@ end function UpdateCost
     open(2,file=trim(cAtomicData),status="unknown",action="write")
     write(2,'(a)') "%block AtomicData"
     do j=1,atomic%species%nspecies
-      write(2,'(i0,1x,i0,4f16.8)')j,atomic%species%z(j),atomic%species%mass(j)/k_amuToInternal,atomic%species%ulocal(j),&
-        atomic%species%jlocal(j),atomic%species%uinter(j)
+      write(2,'(i0,1x,i0,4f16.8)')j,atomic%species%z(j),atomic%species%mass(j)/k_amuToInternal,atomic%species%ulocal(j,1),&
+        atomic%species%jlocal(j,1),atomic%species%uinter(j)
     enddo
     write(2,'(a)') "%endblock AtomicData"
     close(2)
@@ -301,7 +301,7 @@ end function UpdateCost
     logical ::quit
 
     call InitFit(io)
-   allocate(tol(1:gen%fit%neps)) 
+   allocate(tol(1:gen%fit%neps))
     select case(gen%fit%fitMethod)
       case(k_simplex)
                  ! simplex fit
@@ -414,7 +414,7 @@ end function UpdateCost
           enddo
             call PrintVectorA(best,'best parameters so far:',.true.,.false.,io)
           if (quit) then
-            call PrintVectorA(best,'optimal parameters:',.true.,.false.,io)            
+            call PrintVectorA(best,'optimal parameters:',.true.,.false.,io)
             exit
           endif
         enddo
@@ -453,7 +453,7 @@ end function UpdateCost
 
     deallocate(fitData%x,fitData%exper,fitData%fit)
     deallocate(bounds)
-    deallocate(tol) 
+    deallocate(tol)
   end subroutine fitting
 !
 !
@@ -672,7 +672,7 @@ end function UpdateCost
       enddo
       call PrintVectorA(best,'best parameters so far:',.true.,.false.,io)
       if (quit) then
-        call PrintVectorA(opt,'optimal parameters:',.true.,.false.,io)        
+        call PrintVectorA(opt,'optimal parameters:',.true.,.false.,io)
         exit
       endif
       temperature=temperature*gen%fit%rt
@@ -681,7 +681,7 @@ end function UpdateCost
         exit
       endif
     enddo
-   deallocate(tol) 
+   deallocate(tol)
   end subroutine SimplexSA
 
 !> \brief initializes the simplex-simulated annealing method

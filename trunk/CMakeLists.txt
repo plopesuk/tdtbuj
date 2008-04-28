@@ -98,8 +98,9 @@ ${src_dir}/main.f90
 link_directories (${LIBRARY_OUTPUT_PATH})
 target_link_libraries(${target_name} parser linalg ${LIBS})
 #################
+configure_file(${CMAKE_SOURCE_DIR}/Doxyfile.cmake Doxyfile)
 add_custom_target(docs
-${DOXYGEN_EXECUTABLE}
+${DOXYGEN_EXECUTABLE} ${PROJECT_BINARY_DIR}/Doxyfile
 )
 
 ####################

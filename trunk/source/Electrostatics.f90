@@ -93,7 +93,7 @@ contains
         enddo
       case(k_electrostaticsMultipoles)
         do i=1,atomic%atoms%natoms
-            if (GetLmax(i,atomic)>0) then
+            if (GetLmax(atomic%atoms%sp(i),atomic%speciesBasis,atomic%species)>0) then
   !              atomic%dx(i)= atomic%x(i)*atomic%chrg(i)+qlmr(i,1,1,density)
   !              atomic%dy(i)= atomic%y(i)*atomic%chrg(i)+qlmr(i,1,-1,density)
   !              atomic%dz(i)= atomic%z(i)*atomic%chrg(i)+qlmr(i,1,0,density)
@@ -193,8 +193,8 @@ contains
       to=-1+from+atomic%species%norbs(atomic%atoms%sp(at))/2
       aux=aux+sum(sol%density(from:to))
     else
-      from=atomic%atoms%orbs(at,1)
-      to=-1+atomic%atoms%orbs(at,1)+atomic%species%norbs(atomic%atoms%sp(at))
+      from=m+atomic%atoms%orbs(at,1)
+      to=-1+m+atomic%atoms%orbs(at,1)+atomic%species%norbs(atomic%atoms%sp(at))
       aux=sum(sol%density(from:to))
     endif
     charge=aux
@@ -215,7 +215,7 @@ contains
      qlu=0.0_k_pr
      qld=0.0_k_pr
      j=l*l
-! spin down 
+! spin down
     m=atomic%atoms%orbs(at,1)
      from=m+j
      to=-1+from+2*l+1
@@ -313,7 +313,7 @@ contains
 !> \author Alin M Elena
 !> \date 10/11/07, 15:40:31
 !> \param group array a list of atoms
-!> \param atomic type(atomicType) contains all info about the atoms 
+!> \param atomic type(atomicType) contains all info about the atoms
   real(k_pr) function ChargeOnGroup(group,atomic)
     character(len=*), parameter :: myname="ChargeOnGroup"
     integer, intent(in) :: group(:)
@@ -327,5 +327,5 @@ contains
     enddo
     ChargeOnGroup=sacc
   end function ChargeOnGroup
-      
+
 end module m_Electrostatics

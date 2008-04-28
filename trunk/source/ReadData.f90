@@ -90,7 +90,14 @@ contains
     call ReadBasis(ioLoc,genLoc,atomic)
     if (ioLoc%debug>=k_mediumDebug) call timing(ioLoc,genLoc%time,2)
 
-    call PrintSpecies(ioLoc,atomic%species)
+    if ((genLoc%scfType == k_scftbuo) .or.(genLoc%scfType == k_scftbujo)) then
+      if (ioLoc%debug>=k_mediumDebug) call timing(ioLoc,genLoc%time,1)
+      call ReadSpecies(ioLoc,genLoc,atomic%species,atomic%speciesBasis)
+      if (ioLoc%debug>=k_mediumDebug) call timing(ioLoc,genLoc%time,2)
+    endif
+
+
+    call PrintSpecies(genLoc,ioLoc,atomic%species)
     call PrintAtoms(ioLoc,genLoc,atomic)
     call PrintBasis(ioLoc,genLoc,atomic)
 
@@ -323,6 +330,12 @@ subroutine ReadGeneral(ioLoc,genLoc)
        ,trim(saux)
     if (cstr(trim(saux),'TB+UJ')) then
        genLoc%scfType = k_scfTbuj
+    elseif (cstr(trim(saux),'TB+U')) then
+       genLoc%scfType = k_scfTbu
+    elseif (cstr(trim(saux),'TB+UJO')) then
+       genLoc%scfType = k_scfTbujo
+    elseif (cstr(trim(saux),'TB+UO')) then
+       genLoc%scfType = k_scfTbuo
     else
        call error("The requested SCFType is not implemented",name,.true.,ioLoc)
     endif
@@ -668,7 +681,7 @@ end subroutine ReadGeneral
 !> \hline
 !> PrecomputeMultipoles & logical & .true. & on/off precompute multipoles\\\
 !> \hline
-!> SCFType & TB+UJ & TB+UJ & SCF method\\\
+!> SCFType & TB+UJ, TB+UJO,TB+U, TB+UO & TB+UJ & SCF method TB+UJ is for average U and J (spin calculations only) TD+U average U for non-spin case the O suffixed cases are for orbital dependent U and J\\\
 !> \hline
 !> SCFSteps & integer & 100 & maximum number of steps used for scf\\\
 !> \hline
@@ -821,9 +834,9 @@ end subroutine ReadGeneral
 !><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>on/off precompute multipoles</TD>
 !></TR>
 !><TR><TD ALIGN="CENTER">SCFType</TD>
-!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>TB+UJ</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>TB+UJ, TB+UJO,TB+U, TB+UO</TD>
 !><TD ALIGN="CENTER">TB+UJ</TD>
-!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>SCF method</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>SCF method TB+UJ is for average U and J (spin calculations only) TD+U average U for non-spin case the O suffixed cases are for orbital dependent U and J</TD>
 !></TR>
 !><TR><TD ALIGN="CENTER">SCFSteps</TD>
 !><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>integer</TD>
@@ -1382,13 +1395,14 @@ end subroutine CloseIoGeneral
 !> \param general type(generalType) general data
 !> \param specs type(speciesType) contains info about atoms
 
-  subroutine ReadSpecies(io,general,specs)
+  subroutine ReadSpecies(io,general,specs,specBasis)
     character(len=*), parameter :: sMyName="ReadSpecies"
     type(ioType), intent(inout) :: io
     type(generalType), intent(in)  :: general
     type(speciesType), intent(inout) :: specs
+    type(orbitalType), intent(inout),optional :: specBasis(:,:)
     !internal variables
-    integer :: nt,i,errno,sp
+    integer :: nt,i,j,errno,sp,maxL,shift
     character(len=k_ml) :: saux
 
     specs%nspecies=GetInteger(io,"NumberOfSpecies",-1)
@@ -1397,36 +1411,189 @@ end subroutine CloseIoGeneral
     endif
     specs%created = .true.
 
-    allocate(specs%id(1:specs%nspecies))
-    allocate(specs%mass(1:specs%nspecies))
-    allocate(specs%z(1:specs%nspecies))
-    allocate(specs%zval(1:specs%nspecies))
-    allocate(specs%ulocal(1:specs%nspecies,1:1))
-    allocate(specs%jlocal(1:specs%nspecies,1:1))
-    allocate(specs%uinter(1:specs%nspecies))
-    allocate(specs%norbs(1:specs%nspecies))
-    specs%norbs=0
-    specs%zval=0
-    if (GetBlock(io,"SpeciesData",nt)) then
-      do i = 1, specs%nspecies
-        read(nt,fmt=*,iostat=errno) sp,specs%z(i),specs%mass(i),specs%ulocal(i,1),specs%jlocal(i,1),specs%uinter(i)
-        specs%id(i)=i
-        if (sp/=i) then
-          write(saux,'(a,i0,a,i0,a,i0)')"the id of the specie differs from the one expected by convention found ",&
-            sp," expected ",i," will make it ",i
-          call error(trim(saux),sMyName,.false.,io)
-        endif
-        if (errno/=0) then
-          call error("block SpeciesData is not in the right format",sMyName,.true.,io)
-        endif
-        write(io%udeb,'(2i6,4f16.6)') specs%id(i),specs%z(i),specs%mass(i),specs%ulocal(i,1),specs%jlocal(i,1),specs%uinter(i)
-      enddo
-      if (isUnique(specs%id(1:specs%nspecies))) then
-        call error("id must be unique for each specie",sMyName,.true.,io)
+    select case(general%scfType)
+    case(k_scftbuj)
+      if (.not.general%spin) then
+         call error(sMyName,"This model suppose to be spin polarised try SCFType = TB+U ---",.true.,io)
       endif
-    else
-      call error("Specie block is missing!!!",sMyName,.true.,io)
-    endif
+      allocate(specs%id(1:specs%nspecies))
+      allocate(specs%mass(1:specs%nspecies))
+      allocate(specs%z(1:specs%nspecies))
+      allocate(specs%zval(1:specs%nspecies))
+      allocate(specs%ulocal(1:specs%nspecies,1:1))
+      allocate(specs%jlocal(1:specs%nspecies,1:1))
+      allocate(specs%uinter(1:specs%nspecies))
+      allocate(specs%norbs(1:specs%nspecies))
+      specs%norbs=0
+      specs%zval=0
+      if (GetBlock(io,"SpeciesData",nt)) then
+        do i = 1, specs%nspecies
+          read(nt,fmt=*,iostat=errno) sp,specs%z(i),specs%mass(i),specs%ulocal(i,1),specs%jlocal(i,1),specs%uinter(i)
+          specs%id(i)=i
+          if (sp/=i) then
+            write(saux,'(a,i0,a,i0,a,i0)')"the id of the specie differs from the one expected by convention found ",&
+              sp," expected ",i," will make it ",i
+            call error(trim(saux),sMyName,.true.,io)
+          endif
+          if (errno/=0) then
+            call error("block SpeciesData is not in the right format",sMyName,.true.,io)
+          endif
+          write(io%udeb,'(2i6,4f16.6)') specs%id(i),specs%z(i),specs%mass(i),specs%ulocal(i,1),specs%jlocal(i,1),specs%uinter(i)
+        enddo
+        if (isUnique(specs%id(1:specs%nspecies))) then
+          call error("id must be unique for each specie",sMyName,.true.,io)
+        endif
+      else
+        call error("Specie block is missing!!!",sMyName,.true.,io)
+      endif
+    case(k_scftbu)
+      if (general%spin) then
+         call error(sMyName,"This model suppose to be spinless try SCFType = TB+UJ ---",.true.,io)
+      endif
+      allocate(specs%id(1:specs%nspecies))
+      allocate(specs%mass(1:specs%nspecies))
+      allocate(specs%z(1:specs%nspecies))
+      allocate(specs%zval(1:specs%nspecies))
+      allocate(specs%ulocal(1:specs%nspecies,1:1))
+      allocate(specs%jlocal(1:specs%nspecies,1:1))
+      allocate(specs%uinter(1:specs%nspecies))
+      allocate(specs%norbs(1:specs%nspecies))
+      specs%norbs=0
+      specs%zval=0
+      specs%jlocal=0.0_k_pr
+      if (GetBlock(io,"SpeciesData",nt)) then
+        do i = 1, specs%nspecies
+          read(nt,fmt=*,iostat=errno) sp,specs%z(i),specs%mass(i),specs%ulocal(i,1),specs%uinter(i)
+          specs%id(i)=i
+          if (sp/=i) then
+            write(saux,'(a,i0,a,i0,a,i0)')"the id of the specie differs from the one expected by convention found ",&
+              sp," expected ",i," will make it ",i
+            call error(trim(saux),sMyName,.true.,io)
+          endif
+          if (errno/=0) then
+            call error("block SpeciesData is not in the right format",sMyName,.true.,io)
+          endif
+          write(io%udeb,'(2i6,3f16.6)') specs%id(i),specs%z(i),specs%mass(i),specs%ulocal(i,1),specs%uinter(i)
+        enddo
+        if (isUnique(specs%id(1:specs%nspecies))) then
+          call error("id must be unique for each specie",sMyName,.true.,io)
+        endif
+      else
+        call error("Specie block is missing!!!",sMyName,.true.,io)
+      endif
+    case(k_scftbuo,k_scftbujo)
+      if (.not.present(specBasis)) then
+        allocate(specs%id(1:specs%nspecies))
+        allocate(specs%mass(1:specs%nspecies))
+        allocate(specs%z(1:specs%nspecies))
+        allocate(specs%zval(1:specs%nspecies))
+        allocate(specs%uinter(1:specs%nspecies))
+        allocate(specs%norbs(1:specs%nspecies))
+        allocate(specs%ulocal(1:specs%nspecies,1:1))
+        allocate(specs%jlocal(1:specs%nspecies,1:1))
+        specs%jlocal=0.0_k_pr
+        specs%ulocal=0.0_k_pr
+        specs%norbs=0
+        specs%zval=0
+
+        if (GetBlock(io,"SpeciesData",nt)) then
+          do i = 1, specs%nspecies
+            read(nt,fmt=*,iostat=errno) sp,specs%z(i),specs%mass(i),specs%uinter(i)
+            specs%id(i)=i
+            if (sp/=i) then
+              write(saux,'(a,i0,a,i0,a,i0)')"the id of the specie differs from the one expected by convention found ",&
+                sp," expected ",i," will make it ",i
+              call error(trim(saux),sMyName,.true.,io)
+            endif
+            if (errno/=0) then
+              call error("block SpeciesData is not in the right format",sMyName,.true.,io)
+            endif
+            write(io%udeb,'(2i6,2f16.6)') specs%id(i),specs%z(i),specs%mass(i),specs%uinter(i)
+          enddo
+          if (isUnique(specs%id(1:specs%nspecies))) then
+            call error("id must be unique for each specie",sMyName,.true.,io)
+          endif
+        else
+          call error("Specie block is missing!!!",sMyName,.true.,io)
+        endif
+      else
+        maxL=Lmax(specBasis,specs)+1
+        deallocate(specs%ulocal)
+        deallocate(specs%jlocal)
+        if (general%scftype == k_scftbuo) then
+          allocate(specs%ulocal(1:specs%nspecies,0:maxL))
+          allocate(specs%jlocal(1:specs%nspecies,0:maxL))
+          specs%jlocal=0.0_k_pr
+          specs%ulocal=0.0_k_pr
+          if (general%spin) then
+            call error(sMyName,"This model suppose to be spinless try SCFType = TB+UJ ---",.true.,io)
+          endif
+          if (GetBlock(io,"HubbardU",nt)) then
+            do i = 1, specs%nspecies
+              read(nt,fmt=*,iostat=errno) sp
+              if (sp/=i) then
+                 write(saux,'(a,i0,a,i0)')"the id of the specie differs from the one expected by convention found ",&
+                   sp," expected ",i
+                 call error(trim(saux),sMyName,.true.,io)
+              endif
+              if (errno/=0) then
+                 call error("block HubbardU is not in the right format",sMyName,.true.,io)
+              endif
+              write(io%udeb,'(i0)')sp
+              specs%ulocal(i,0)=getLMax(i,specBasis,specs)+1
+              do j=1,ceiling(specs%ulocal(i,0))
+                read(nt,fmt=*,iostat=errno) specs%ulocal(i,j)
+                if (errno/=0) then
+                  call error("block SpeciesData is not in the right format",sMyName,.true.,io)
+                endif
+                write(io%udeb,'(f16.6)') specs%ulocal(i,j)
+              enddo
+            enddo
+          else
+            call error("HubbardU block is missing!!!",sMyName,.true.,io)
+          endif
+        endif
+        if (general%scftype == k_scftbujo) then
+          allocate(specs%ulocal(1:specs%nspecies,0:2*maxL))
+          allocate(specs%jlocal(1:specs%nspecies,0:2*maxL))
+          specs%jlocal=0.0_k_pr
+          specs%ulocal=0.0_k_pr
+          if (.not.general%spin) then
+            call error(sMyName,"This model suppose to be spin polarised try SCFType = TB+UJO ---",.true.,io)
+          endif
+          if (GetBlock(io,"HubbardUJ",nt)) then
+            do i = 1, specs%nspecies
+              read(nt,fmt=*,iostat=errno) sp
+              if (sp/=i) then
+                 write(saux,'(a,i0,a,i0)')"the id of the specie differs from the one expected by convention found ",&
+                   sp," expected ",i
+                 call error(trim(saux),sMyName,.true.,io)
+              endif
+              if (errno/=0) then
+                 call error("block HubbardUJ is not in the right format",sMyName,.true.,io)
+              endif
+              write(io%udeb,'(i0)')sp
+              specs%ulocal(i,0)=getLMax(i,specBasis,specs)+1
+              specs%jlocal(i,0)=getLMax(i,specBasis,specs)+1
+              shift=specs%ulocal(i,0)
+              do j=1,ceiling(specs%ulocal(i,0))
+                read(nt,fmt=*,iostat=errno)specs%ulocal(i,j),specs%ulocal(i,j+shift),specs%jlocal(i,j),specs%jlocal(i,j+shift)
+                if (errno/=0) then
+                  call error("block SpeciesData is not in the right format",sMyName,.true.,io)
+                endif
+                write(io%udeb,'(4f16.6)')specs%ulocal(i,j),specs%ulocal(i,j+shift),specs%jlocal(i,j),specs%jlocal(i,j+shift)
+              enddo
+            enddo
+          else
+            call error("HubbardUJ block is missing!!!",sMyName,.true.,io)
+          endif
+        endif
+      endif
+    end select
+
+
+
+
   end subroutine ReadSpecies
 
   !> \page species "Atomic Species Data"
@@ -1506,7 +1673,11 @@ end subroutine CloseIoGeneral
           call error(trim(saux),sMyName,.true.,io)
         endif
         do j=1,norbitals
-          read(nt,fmt=*,iostat=errno) n,l,m,qd,qu
+          if (gen%spin) then
+            read(nt,fmt=*,iostat=errno) n,l,m,qd,qu
+          else
+            read(nt,fmt=*,iostat=errno) n,l,m,qd
+          endif
           if (errno/=0) then
             write(saux,'(a,i0,a,i0)')"error reading orbital ",j, " specie ",sp
             call error(trim(saux),sMyName,.true.,io)
@@ -2005,8 +2176,9 @@ end subroutine ReadBasis
     type(generalType), intent(inout) :: general
     type(modelType),intent(inout) :: tbMod
     type(solutionType), intent(inout) :: sol
-    integer :: i,j
+    integer :: i,j,ierr
 
+    deallocate(atomic%speciesBasis)
     deallocate(atomic%species%id)
     deallocate(atomic%species%mass)
     deallocate(atomic%species%z)
@@ -2050,7 +2222,6 @@ end subroutine ReadBasis
     if (allocated(atomic%atoms%acceptor)) deallocate(atomic%atoms%acceptor)
     if (allocated(atomic%atoms%scf)) deallocate(atomic%atoms%scf)
     if (allocated(atomic%atoms%moving)) deallocate(atomic%atoms%moving)
-    deallocate(atomic%speciesBasis)
     deallocate(atomic%basis%orbitals)
     deallocate(atomic%atoms%orbs)
     deallocate(atomic%atoms%MagMom)

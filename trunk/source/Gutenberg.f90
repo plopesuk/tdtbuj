@@ -48,7 +48,7 @@ contains
     type(modelType),intent(in) :: tbmod
 
     integer :: i,j
-    
+
     integer :: k,k1,k2
     write(io%uout,'(a)')"==Tail functions========================================================================================"
     write(io%uout,'(a)')"==Repulsive terms tail parameters======================================================"
@@ -103,7 +103,7 @@ contains
     if(atomix%atoms%nscf/=0) then
       write(io%uout,'(a)')"SCFAtoms:"
       do i=1,atomix%atoms%nscf
-        write(io%uout,'(i0,a,a,a)',advance="no")atomix%atoms%scf(i),"(",symbol(GetZ(atomix,atomix%atoms%scf(i))),") "
+        write(io%uout,'(i0,a1,a,a2)',advance="no")atomix%atoms%scf(i),"(",symbol(GetZ(atomix,atomix%atoms%scf(i))),") "
       enddo
       write(io%uout,*)
     endif
@@ -193,22 +193,85 @@ contains
 !> \date 29/10/07, 19:59:04
 !> \param io type(ioType) i/o units
 !> \param specs type(speciesType) species data
-
-  subroutine PrintSpecies(io,specs)
+!> \param gen type(generalType) general data
+  subroutine PrintSpecies(gen,io,specs)
     character(len=*), parameter :: sMyName="PrintSpecies"
     type(ioType), intent(in) :: io
     type(speciesType), intent(inout) :: specs
-    integer :: i
-    write(io%uout,'(a)')"=SpeciesData============================================================================"
-    write(io%uout,'(a)')"  Id  Z el    Zval            Mass          Ulocal          Jlocal          Uinter Norbs"
-    write(io%uout,'(a)')"----------------------------------------------------------------------------------------"
-    do i=1,specs%nspecies
-      write(io%uout,'(i4,i3,1x,a,f8.4,4f16.8,i5)')specs%id(i),specs%z(i),symbol(specs%z(i)),specs%zval(i),specs%mass(i),&
-              specs%ulocal(i),specs%jlocal(i),specs%uinter(i),specs%norbs(i)
-      specs%mass(i)=specs%mass(i)*k_amuToInternal
-    enddo
-    write(io%uout,'(a)')"=EndSpeciesData========================================================================="
-
+    type(generalType), intent(in)  :: gen
+    integer :: i,l,shift
+    if (gen%SCF) then
+      selectcase(gen%scfType)
+      case(k_scftbuj)
+        write(io%uout,'(a)')"=SpeciesData============================================================================"
+        write(io%uout,'(a)')"  Id  Z el    Zval            Mass          Ulocal          Jlocal          Uinter Norbs"
+        write(io%uout,'(a)')"----------------------------------------------------------------------------------------"
+        do i=1,specs%nspecies
+          write(io%uout,'(i4,i3,1x,a,f8.4,4f16.8,i5)')specs%id(i),specs%z(i),symbol(specs%z(i)),specs%zval(i),specs%mass(i),&
+                  specs%ulocal(i,1),specs%jlocal(i,1),specs%uinter(i),specs%norbs(i)
+          specs%mass(i)=specs%mass(i)*k_amuToInternal
+        enddo
+        write(io%uout,'(a)')"=EndSpeciesData========================================================================="
+      case(k_scftbu)
+        write(io%uout,'(a)')"=SpeciesData============================================================================"
+        write(io%uout,'(a)')"  Id  Z el    Zval            Mass          Ulocal          Uinter Norbs"
+        write(io%uout,'(a)')"----------------------------------------------------------------------------------------"
+        do i=1,specs%nspecies
+          write(io%uout,'(i4,i3,1x,a,f8.4,3f16.8,i5)')specs%id(i),specs%z(i),symbol(specs%z(i)),specs%zval(i),specs%mass(i),&
+                  specs%ulocal(i,1),specs%uinter(i),specs%norbs(i)
+          specs%mass(i)=specs%mass(i)*k_amuToInternal
+        enddo
+        write(io%uout,'(a)')"=EndSpeciesData========================================================================="
+      case(k_scfTBuo)
+        write(io%uout,'(a)')"=SpeciesData============================================================================"
+        write(io%uout,'(a)')"  Id  Z el    Zval            Mass          Uinter Norbs"
+        write(io%uout,'(a)')"----------------------------------------------------------------------------------------"
+        do i=1,specs%nspecies
+          write(io%uout,'(i4,i3,1x,a,f8.4,2f16.8,i5)')specs%id(i),specs%z(i),symbol(specs%z(i)),specs%zval(i),specs%mass(i),&
+                  specs%uinter(i),specs%norbs(i)
+          specs%mass(i)=specs%mass(i)*k_amuToInternal
+        enddo
+        write(io%uout,'(a)')"=EndSpeciesData========================================================================="
+        write(io%uout,'(a)')"=HubbardUData==========================================================================="
+        write(io%uout,'(a)')"   Sp  El    l          Ulocal"
+        do i=1, specs%nspecies
+          do l=1,ceiling(specs%ulocal(i,0))
+            write(io%uout,'(i5,a4,i5,f16.8)')specs%id(i),trim(symbol(specs%z(i))),l-1,specs%ulocal(i,l)
+          enddo
+        enddo
+        write(io%uout,'(a)')"=EndHubbardUData========================================================================"
+      case(k_scfTBujo)
+        write(io%uout,'(a)')"=SpeciesData============================================================================"
+        write(io%uout,'(a)')"  Id  Z el    Zval            Mass          Uinter Norbs"
+        write(io%uout,'(a)')"----------------------------------------------------------------------------------------"
+        do i=1,specs%nspecies
+          write(io%uout,'(i4,i3,1x,a,f8.4,2f16.8,i5)')specs%id(i),specs%z(i),symbol(specs%z(i)),specs%zval(i),specs%mass(i),&
+                  specs%uinter(i),specs%norbs(i)
+          specs%mass(i)=specs%mass(i)*k_amuToInternal
+        enddo
+        write(io%uout,'(a)')"=EndSpeciesData========================================================================="
+        write(io%uout,'(a)')"=HubbardUJData=========================================================================="
+        write(io%uout,'(a)')"   Sp  El    l         UlocalD         UlocalU         JlocalD         JlocalU"
+        do i=1, specs%nspecies
+          shift=ceiling(specs%ulocal(i,0))
+          do l=1,ceiling(specs%ulocal(i,0))
+            write(io%uout,'(i5,a4,i5,4f16.8)')specs%id(i),trim(symbol(specs%z(i))),l-1,&
+               specs%ulocal(i,l),specs%ulocal(i,l+shift),specs%jlocal(i,l),specs%jlocal(i,l+shift)
+          enddo
+        enddo
+        write(io%uout,'(a)')"=EndHubbardUJData======================================================================="
+      endselect
+    else
+        write(io%uout,'(a)')"=SpeciesData============================================================================"
+        write(io%uout,'(a)')"  Id  Z el    Zval            Mass          Uinter Norbs"
+        write(io%uout,'(a)')"----------------------------------------------------------------------------------------"
+        do i=1,specs%nspecies
+          write(io%uout,'(i4,i3,1x,a,f8.4,2f16.8,i5)')specs%id(i),specs%z(i),symbol(specs%z(i)),specs%zval(i),specs%mass(i),&
+                  specs%uinter(i),specs%norbs(i)
+          specs%mass(i)=specs%mass(i)*k_amuToInternal
+        enddo
+        write(io%uout,'(a)')"=EndSpeciesData========================================================================="
+    endif
     if (io%verbosity>=k_highVerbos) then
       do i=1, specs%nspecies
         write(io%uout,'(a)')"========================================================"
@@ -265,10 +328,14 @@ contains
     spin=""
     el="el"
     do i=1,atomix%basis%norbitals
-      if (atomix%basis%orbitals(i)%spin) then
-        spin="U"
+      if (gen%spin) then
+        if (atomix%basis%orbitals(i)%spin) then
+          spin="U"
+        else
+          spin="D"
+        endif
       else
-        spin="D"
+        spin=" "
       endif
       el=symbol(GetZ(atomix,atomix%basis%orbitals(i)%atom))
       write(io%uout,'(2i6,i4,a4,3i3,1x,a4,1x,f0.8)')i,atomix%basis%orbitals(i)%atom,atomix%basis%orbitals(i)%sp,el,&
@@ -997,7 +1064,7 @@ contains
    if (gen%spin) then
     write(io%uout,'(a,i0)') "Electrons for atom: ", at
     write(io%uout,'(a)')"Orbital(l)| Spin Down  |   Spin Up  |    Total   "
-    do i=0,GetLMax(at,atomic)
+    do i=0,GetLMax(atomic%atoms%sp(at),atomic%speciesBasis,atomic%species)
       call ChargeOnL(at,i,atomic,gen,sol,qld,qlu)
       write(io%uout,'(i9,1x,f12.8,1x,f12.8,1x,f12.8)')i,qld,qlu,qld+qlu
     enddo
@@ -1005,7 +1072,7 @@ contains
    else
     write(io%uout,'(a,i0)') "Electrons for atom: ", at
     write(io%uout,'(a)')"Orbital(l)|        #   "
-    do i=0,GetLMax(at,atomic)
+    do i=0,GetLMax(atomic%atoms%sp(at),atomic%speciesBasis,atomic%species)
       call ChargeOnL(at,i,atomic,gen,sol,qld)
       write(io%uout,'(i9,1x,f12.8)')i,qld
     enddo
@@ -1037,7 +1104,7 @@ contains
       write(io%uout,*)  "Occupation Numbers"
       do i=1,sol%rho%dim
           write(io%uout,'(i0,1x,f16.8,1x,f16.8)') &
-            i,sol%eigenvals(i),2.0_k_pr*sol%buff%f(i)
+            i,sol%eigenvals(i),sol%buff%f(i)
       enddo
     endif
   end subroutine PrintOccupationNumbers

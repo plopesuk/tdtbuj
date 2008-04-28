@@ -1,5 +1,5 @@
 !> \brief subprograms of general use
-!> \author Alin M. Elena (Queen's University Belfast) 
+!> \author Alin M. Elena (Queen's University Belfast)
 !> \date 14-15th of January, 2006
 module m_Useful
   use m_Constants
@@ -43,6 +43,8 @@ module m_Useful
   public :: sn
   public :: MarzariF
   public :: MarzariS
+  public :: LMax
+
   interface Swap
     module procedure SwapScalar,SwapVector
   end interface
@@ -53,12 +55,12 @@ module m_Useful
 
 contains
 
-!> \brief logical function compares two strings 
+!> \brief logical function compares two strings
 !> \details not case sensitive returns true if the strings are the same false otherwise
-!> \author Alin M. Elena (Queen's University Belfast) 
+!> \author Alin M. Elena (Queen's University Belfast)
 !> \date 14-15th of January, 2006
-!> \param str1, str2 character(len=*) that get compared 
- 
+!> \param str1, str2 character(len=*) that get compared
+
   logical function cstr(str1,str2)
     character(len=*), parameter :: myname = 'cstr'
     character(len=*) :: str1, str2
@@ -75,12 +77,12 @@ contains
       if (s==0) cstr=.true.
     endif
   end function cstr
-  
+
 !> \brief integer function returns the ascii code of a letter
 !> \details always will be the ascii code of the capital letter
 !> as long as the characters are grouped in the set consecutive it should work
 !> (A-Z a-z)
-!> \author Alin M. Elena (Queen's University Belfast) 
+!> \author Alin M. Elena (Queen's University Belfast)
 !> \date 14-15th of January, 2006
 !> \param a character
   integer function up(a)
@@ -94,7 +96,7 @@ contains
 
 !> \brief Prints an error/warning message and aborts the programs if necessary
 !> \author Alin M. Elena (Queen's University Belfast)
-!> \date 14-15th January 2006  
+!> \date 14-15th January 2006
 !> \param message the message that will be displayed
 !> \param routine the name of the caller
 !> \param ioLoc I/O details
@@ -105,7 +107,7 @@ contains
     character(len=*), intent(in) :: routine
     logical, intent(in)   :: critical
     type(ioType), intent(in) :: ioLoc
-    
+
     if (critical) then
       write(ioLoc%uout,*) &
         "Critical error in subroutine: ", routine
@@ -113,9 +115,9 @@ contains
       write(ioLoc%uout,*) &
         "Error message from subroutine: ", routine
     end if
-    
+
     write(ioLoc%uout,*) routine,": ", message
-    
+
     if (critical) then
       write(ioLoc%uout,*)routine,": User stop."
       write(*,*)routine," User stop."
@@ -126,7 +128,7 @@ contains
 
 !> \brief gives an integer that can be used as a unit number in a open command
 !> \details this function should be used to avoid using the same unit in different open commands
-!> \author Alin M Elena 
+!> \author Alin M Elena
 !> \date 14-15th of January, 2006
 !> \warning using a save attribute makes the function thread unsafe, however
 !> I do not expect any problems from it (you do not open so many files after all)
@@ -142,7 +144,7 @@ contains
 !> \brief checks if the elements of an integer array are unique
 !> \author Alin M Elena
 !> \date 29/10/07, 19:32:47
-!> \param x integer array 
+!> \param x integer array
   logical function isUnique(x)
     character(len=*), parameter :: sMyName="isUnique"
     integer,intent(in) :: x(:)
@@ -168,7 +170,7 @@ contains
 !> \brief checks if the elements of an integer is in a list
 !> \author Alin M Elena
 !> \date 29/10/07, 23:50:47
-!> \param x integer array 
+!> \param x integer array
 !> \param y integer number to be searched
 !> \param pos integer optional returns the position where y is found or -1 if is not found
   logical function isInList(y,x,pos)
@@ -223,9 +225,9 @@ contains
 !> \author Alin M. Elena, Queen's University Belfast, UK
 !> \date 20th of January, 2005
 !> \param i,j integers to be concatenated
-!> \param strr string 
+!> \param strr string
 !> \remarks rewrote on 31st of October 2007
-            
+
   character(len=30) function ccvar(i,j,strr)
     character(len=*),parameter :: myname="ccvar"
     integer, intent(in) :: i,j
@@ -332,7 +334,7 @@ contains
 !> \brief computes all the factorials up to n
 !> \author Alin M Elena
 !> \date 01/11/07, 14:19:01
-!> \param n integer 
+!> \param n integer
 !> \param fact real(k_pr) will contain the factorials on position 0 -> 0! ... n->n!
 
   subroutine InitFact(n,fact)
@@ -449,7 +451,7 @@ contains
     LocalMoment=0.0_k_pr
     aux=0.0_k_pr
     m=atomic%basis%norbitals*(atomic%basis%norbitals-1)/2
-    do k=0,GetLmax(at,atomic)
+    do k=0,GetLmax(atomic%atoms%sp(at),atomic%speciesBasis,atomic%species)
     ! spin down
       from=atomic%atoms%orbs(at,1)+j
       to=from+2*k
@@ -466,11 +468,11 @@ contains
             "local moment on atom ",at," for l= ",k,": ",m_up-m_down,"(",m_up,"-",m_down,")"
       endif
       j=j+2*k+1
-    enddo   
+    enddo
     LocalMoment=aux
     if (show .and. io%verbosity > k_highVerbos) then
       write(io%uout,"(a,i5,a,f16.8,a,f16.8,a,f16.8,a)")&
-          "local moment on atom ",at,": ",LocalMoment,"(",mu,"-",md,")"  
+          "local moment on atom ",at,": ",LocalMoment,"(",mu,"-",md,")"
     endif
   end function LocalMoment
 
@@ -479,24 +481,59 @@ contains
 !> \date 03/11/07, 11:03:47
 !> \param at integer the atom
 !> \param atomic type(atomicx) all the info about atoms
-  integer function GetLmax(at,atomic)
-    !--subroutine name--------------------------------!   
+!> \param specBas type(orbitalType) all the info about species basis
+!> \param spec type(speciesType) all the info about species
+  integer function GetLmax(sp,specBasis,spec)
+    !--subroutine name--------------------------------!
     character(len=*), parameter :: myname = 'GetLmax'
     !--subroutine parameters -------------------------!
-    integer, intent(in) ::  at
-    type(atomicxType),intent(in) :: atomic
+    integer, intent(in) ::  sp
+    type(orbitalType),intent(in) :: specBasis(:,:)
+    type(speciesType), intent(in) :: spec
 ! for an atom at gives you the maximum l (quantum orbital number)
 ! in the basis
-    !--internal variables ----------------------------!  
+    !--internal variables ----------------------------!
     integer :: i,lmax
     lmax=0
-    do i=1,atomic%atoms%norbs(at)
+!    do i=1,atomic%atoms%norbs(at)
 ! we suppose that the basis is the same for spin up and spin down
-      if (lmax<atomic%basis%orbitals(atomic%atoms%orbs(at,i))%l) &
-        lmax=atomic%basis%orbitals(atomic%atoms%orbs(at,i))%l
+!      if (lmax<atomic%basis%orbitals(atomic%atoms%orbs(at,i))%l) &
+!        lmax=atomic%basis%orbitals(atomic%atoms%orbs(at,i))%l
+!    enddo
+
+    do  i=1,spec%norbs(sp)
+      if (lmax<specBasis(sp,i)%l) &
+        lmax=specBasis(sp,i)%l
     enddo
     GetLmax=lmax
   end function GetLmax
+
+!> \brief returns the maximum l for an atom
+!> \author Alin M Elena
+!> \date 25/11/08, 23:03:47
+!> \param at integer the atom
+!> \param specBas type(orbitalType) all the info about species basis
+!> \param spec type(speciesType) all the info about species
+  integer function Lmax(specBas,spec)
+    !--subroutine name--------------------------------!
+    character(len=*), parameter :: myname = 'Lmax'
+    !--subroutine parameters -------------------------!
+    type(orbitalType),intent(in) :: specBas(:,:)
+    type(speciesType), intent(in) :: spec
+! for an atom at gives you the maximum l (quantum orbital number)
+! in the basis
+    !--internal variables ----------------------------!
+    integer :: i,lm,tmp
+    lm=0
+    do i=1,spec%nspecies
+! we suppose that the basis is the same for spin up and spin down
+      tmp=GetLMax(i,specBas,spec)
+      if (lm<tmp) lm=tmp
+    enddo
+    Lmax=lm
+  end function Lmax
+
+
 
 !> \brief returns the distance between two atoms
 !> \details also returns the cosine directions l,m,n
@@ -571,13 +608,13 @@ contains
 !>\remarks
 !> \f[ f_{FD}=\cfrac{1}{e^{\cfrac{\epsilon - \mu}{k_BT}}+1} \f]
    function fermi(temp,energy,mu)
-    !--subroutine name--------------------------------!   
+    !--subroutine name--------------------------------!
       character(len=*), parameter :: myname = 'fermi'
       real(k_pr) :: temp
       real(k_pr) :: energy
       real(k_pr) :: mu
       real(k_pr) :: fermi
-    !--internal variables ----------------------------!  
+    !--internal variables ----------------------------!
       real(k_pr) :: expo
     !-------------------------------------------------!
          expo = (energy-mu)/(temp*k_kb)
@@ -618,7 +655,7 @@ contains
 
   real(k_pr) function derfc(x)
     character(len=*), parameter :: myname = 'derfc'
-    real(k_pr), intent(in) :: x 
+    real(k_pr), intent(in) :: x
     real(k_pr) :: z, t
     z = abs(x)
     t = 1.0_k_pr / (1.0_k_pr + 0.5_k_pr * z)
@@ -673,7 +710,7 @@ contains
 !> \param dh real represents the step
 !> \details for each point from lbound(approx,1)+1 to ubound(approx,1)-1
 !> computes the numeric derivative of approx and return the maximum error according to
-!> formula 
+!> formula
 !> \f[
 !> error=\max(|approx_i-exact_i|_{i=1,n})
 !> \f]
@@ -692,7 +729,7 @@ contains
 !returns what percent sum represents from the exact value
     do i=2,size(approx)-1
       work=(approx(i+1)-approx(i-1))/(2.0_k_pr*dh)
-      if (abs(exact(i)-work)>sum) then 
+      if (abs(exact(i)-work)>sum) then
         sum=abs(exact(i)-work)
         norm=sum/abs(exact(i))*100.0_k_pr
       endif
@@ -742,7 +779,7 @@ contains
     character(len=*), parameter :: myname="AssertEq3"
     integer, intent(in) :: n1,n2,n3
     type(ioType), intent(inout) :: io
- 
+
     if (n1 == n2 .and. n2 == n3) then
       AssertEq3=n1
     else
@@ -834,7 +871,7 @@ contains
       enddo
     endif
     if (.not.present(euclidDistances)) then
-      write(io%uout,*) "==Euclidean Distances Matrix======"      
+      write(io%uout,*) "==Euclidean Distances Matrix======"
       write(io%uout,'(7x)',advance="no")
       do i=1,atoms%natoms
          write(io%uout,'(i12,1x)',advance="no") i
@@ -854,7 +891,7 @@ contains
       write(io%uout,*)
       write(io%uout,*)"==================================="
       deallocate(tmp)
-    endif 
+    endif
   end subroutine ComputeEuclideanMatrix
 
   subroutine InitializeHermite(x, n, h)
@@ -868,7 +905,7 @@ contains
       h(1)=2.0_k_pr*x
       do i=2,n
          h(i)=2.0_k_pr*x*h(i-1)-2.0_k_pr*real(i-1,k_pr)*h(i-2)
-      enddo 
+      enddo
    end subroutine InitializeHermite
 
   real(k_pr) function sn(x,n,sol)

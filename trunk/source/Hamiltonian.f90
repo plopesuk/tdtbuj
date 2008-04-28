@@ -46,7 +46,7 @@ contains
 
   call ResetSparseMatrix(sol%h)
   if (.not. gen%spin) then
-!!$OMP PARALLEL DO DEFAULT(shared) PRIVATE(i,j,k,o,hij,rij,l,m,n)  SCHEDULE(static)      
+!!$OMP PARALLEL DO DEFAULT(shared) PRIVATE(i,j,k,o,hij,rij,l,m,n)  SCHEDULE(static)
     do i=1,atomic%atoms%natoms
       do j=1,atomic%atoms%natoms
         if (i/=j) then
@@ -73,14 +73,14 @@ contains
         endif
       enddo
     enddo
-!!$OMP END PARALLEL DO    
+!!$OMP END PARALLEL DO
   elseif( gen%collinear) then
 !$OMP PARALLEL DO DEFAULT(shared) PRIVATE(i,j,k,o,hij,rij,l,m,n,norbsi,norbsj)  SCHEDULE(static)
     do i=1,atomic%atoms%natoms
-      norbsi=atomic%species%norbs(atomic%atoms%sp(i))/2 
-      do j=1,atomic%atoms%natoms        
-        if (i/=j) then        
-        norbsj=atomic%species%norbs(atomic%atoms%sp(j))/2 
+      norbsi=atomic%species%norbs(atomic%atoms%sp(i))/2
+      do j=1,atomic%atoms%natoms
+        if (i/=j) then
+        norbsj=atomic%species%norbs(atomic%atoms%sp(j))/2
 ! Offsite terms
           call AtomDistance(atomic%atoms,j,i,rij,l,m,n)
           do k=1,norbsi
@@ -89,16 +89,16 @@ contains
                     atomic%basis%orbitals(atomic%atoms%orbs(j,o)),gen,tbMod,sol)
               if (abs(hij)>=gen%hElementThreshold) then
                 call SpmPut(sol%h,atomic%atoms%orbs(i,k),atomic%atoms%orbs(j,o),cmplx(hij,0.0_k_pr,k_pr))
-              endif  
+              endif
               hij = hmn(rij,l,m,n,atomic%basis%orbitals(atomic%atoms%orbs(i,k+norbsi)),&
-                    atomic%basis%orbitals(atomic%atoms%orbs(j,o+norbsj)),gen,tbMod,sol)  
+                    atomic%basis%orbitals(atomic%atoms%orbs(j,o+norbsj)),gen,tbMod,sol)
               if (abs(hij)>=gen%hElementThreshold) then
                 call SpmPut(sol%h,atomic%atoms%orbs(i,k+norbsi),atomic%atoms%orbs(j,o+norbsj),cmplx(hij,0.0_k_pr,k_pr))
               endif
             enddo
-          enddo         
+          enddo
         else
-!            Onsite terms           
+!            Onsite terms
           do k=1,norbsi
             do o=1,norbsi
               hij = Onsite(atomic%basis%orbitals(atomic%atoms%orbs(i,k)),&
@@ -112,7 +112,7 @@ contains
         endif
       enddo
     enddo
-!$OMP END PARALLEL DO     
+!$OMP END PARALLEL DO
   else
     call error("Non-Collinear spins are not implemented yet!",myname,.true.,io)
   endif
@@ -175,7 +175,7 @@ contains
       do i=1,ns
          do j=1,ns
              sol%eigenvecs%a(i,j)=sol%buff%tmpB%a(i,j)
-            sol%hup%a(i,j)=sol%h%a(i+ns,j+ns) 
+            sol%hup%a(i,j)=sol%h%a(i+ns,j+ns)
           enddo
       enddo
       sol%buff%tmpA=0.0_k_pr
@@ -186,7 +186,7 @@ contains
          do j=1,ns
              sol%eigenvecs%a(i+ns,j+ns)=sol%buff%tmpB%a(i,j)
           enddo
-      enddo 
+      enddo
 
       if (gen%lIsExcited) then
         call CreateDensityMatrixExcited(gen,atomic,sol,io)
@@ -361,27 +361,16 @@ contains
     two=2
     three=3
 
-    if (gen%spin) then
-      do k=1,atomic%atoms%nmoving
-        i=atomic%atoms%moving(k)
-         call ForceOperator(one,i,atomic,gen,tb,sol)
-        atomic%atoms%fx(i) = atomic%atoms%fx(i) + ProductTrace(sol%rho,sol%forceop,io)
-         call ForceOperator(two,i,atomic,gen,tb,sol)
-        atomic%atoms%fy(i) = atomic%atoms%fy(i) + ProductTrace(sol%rho,sol%forceop,io)
-         call ForceOperator(three,i,atomic,gen,tb,sol)
-        atomic%atoms%fz(i) = atomic%atoms%fz(i) + ProductTrace(sol%rho,sol%forceop,io)
-      end do
-    else
-      do k=1,atomic%atoms%nmoving
-        i=atomic%atoms%moving(k)
-        call ForceOperator(one,i,atomic,gen,tb,sol)
-        atomic%atoms%fx(i) = atomic%atoms%fx(i) + 2.0_k_pr * ProductTrace(sol%rho,sol%forceop,io)
-        call ForceOperator(two,i,atomic,gen,tb,sol)
-        atomic%atoms%fy(i) = atomic%atoms%fy(i) + 2.0_k_pr * ProductTrace(sol%rho,sol%forceop,io)
-        call ForceOperator(three,i,atomic,gen,tb,sol)
-        atomic%atoms%fz(i) = atomic%atoms%fz(i) + 2.0_k_pr * ProductTrace(sol%rho,sol%forceop,io)
-        end do
-    endif
+
+    do k=1,atomic%atoms%nmoving
+      i=atomic%atoms%moving(k)
+       call ForceOperator(one,i,atomic,gen,tb,sol)
+      atomic%atoms%fx(i) = atomic%atoms%fx(i) + ProductTrace(sol%rho,sol%forceop,io)
+       call ForceOperator(two,i,atomic,gen,tb,sol)
+      atomic%atoms%fy(i) = atomic%atoms%fy(i) + ProductTrace(sol%rho,sol%forceop,io)
+       call ForceOperator(three,i,atomic,gen,tb,sol)
+      atomic%atoms%fz(i) = atomic%atoms%fz(i) + ProductTrace(sol%rho,sol%forceop,io)
+    end do
 
    end subroutine ElectronicForces
 
@@ -399,11 +388,9 @@ contains
     type(generalType), intent(in) :: gen
     !-------------------------------------------------!
 
-      if (gen%spin) then
-         ElectronicEnergy = ProductTrace(sol%rho,sol%h,io)
-      else
-         ElectronicEnergy = 2.0_k_pr* ProductTrace(sol%rho,sol%h,io)
-      endif
+
+    ElectronicEnergy = ProductTrace(sol%rho,sol%h,io)
+
    end function ElectronicEnergy
 
 !> \brief computes repulsive energy
