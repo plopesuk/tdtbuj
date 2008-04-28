@@ -35,7 +35,7 @@ contains
     integer :: i
     real(k_pr) :: qtotal
     character(len=k_ml) :: saux
-    
+
     call ZeroMatrix(sol%rho,io)
     qtotal = 0.0_k_pr
     do i=1,atomic%atoms%natoms
@@ -45,9 +45,9 @@ contains
     if (abs(qtotal-int(qtotal))>gen%qTolerance) then
       write(saux,'(a,f0.8)')"Fractional charge detected found ",qtotal
       call error(trim(saux),myname,.true.,io)
-    endif    
-    call FindFermi(gen,sol,io,qtotal)   
-    call GenerateRho(gen,sol,io)    
+    endif
+    call FindFermi(gen,sol,io,qtotal)
+    call GenerateRho(gen,sol,io)
   end subroutine CreateDensityMatrixSpin
 
 !> \brief finds the chemical potential
@@ -124,7 +124,7 @@ contains
     type(generalType), intent(inout) :: gen
     type(ioType), intent(inout) :: io
     type(solutionType), intent(inout) :: sol
-    integer      :: i,k    
+    integer      :: i,k
     real(k_pr) :: fa,fb,entropy,tiny
 
     ! set the occupations according to mu
@@ -153,10 +153,10 @@ contains
       do k=1,sol%eigenvecs%dim
         sol%buff%a(:,k) = sqrt(sol%buff%f(k))*sol%buff%a(:,k)
       enddo
-   
+
     ! this does (U sqrt(rho'))(U sqrt(rho'))* , only the upper triangle is calculated
     ! ----- ---- unnocupied vectors are not multiplied not tr
-      call ZeroMatrix(sol%rho,io)   
+      call ZeroMatrix(sol%rho,io)
       call aastar(sol%buff%a,sol%rho%a,1.0_k_pr,0.0_k_pr,sol%rho%dim)
       entropy = 0.0_k_pr
     select case(gen%smearMethod)
@@ -236,7 +236,7 @@ contains
     type(ioType), intent(inout) :: io
     type(solutionType), intent(inout) :: sol
       integer      :: i,k
-      real(k_pr)              :: a,b      
+      real(k_pr)              :: a,b
       real(k_pr) :: qtotal,q
       real(k_pr) :: entropy,tiny,fa,fb
       integer :: upper_occ_state, upper_non_one
@@ -249,7 +249,7 @@ contains
     enddo
     qtotal = qtotal - gen%netcharge
     qtotal = 0.5_k_pr * qtotal
-    
+
     sol%buff%f=0.0_k_pr
     if (gen%smearMethod /= k_smCMU) then
        ! bisection to find the proper mu       !
@@ -296,14 +296,14 @@ contains
        do k=1,sol%rho%dim
           select case(gen%smearMethod)
             case(k_smFD)
-              sol%buff%f(k) = fermi(gen%electronicTemperature,sol%eigenvals(k),gen%electronicMu)
+              sol%buff%f(k) = 2.0_k_pr*fermi(gen%electronicTemperature,sol%eigenvals(k),gen%electronicMu)
             case(k_smMP)
-                sol%buff%f(k) =  occupMP(gen,sol,sol%eigenvals(k))
+                sol%buff%f(k) = 2.0_k_pr*occupMP(gen,sol,sol%eigenvals(k))
             case(k_smCS)
-              sol%buff%f(k) = MarzariF((gen%electronicMu-sol%eigenvals(k))/gen%mpW)
+              sol%buff%f(k) = 2.0_k_pr*MarzariF((gen%electronicMu-sol%eigenvals(k))/gen%mpW)
           end select
           if (sol%buff%f(k) > gen%dmOccupationTolerance) upper_occ_state = k
-          if (abs(sol%buff%f(k) - 1.0_k_pr) < gen%dmOccupationTolerance) upper_non_one = k
+          if (abs(sol%buff%f(k)-2.0_k_pr) < gen%dmOccupationTolerance) upper_non_one = k
        enddo
 !
      ! The density matrix is built from the diagonal representation in the
@@ -311,35 +311,35 @@ contains
      ! matrix of eigenvectors that diagonalize H
      ! rho = U rho' U*
      ! this loop multiplies sqrt(rho') times U
-       do k=upper_non_one+1,upper_occ_state
-          sol%eigenvecs%a(:,k) = sqrt(sol%buff%f(k))*sol%eigenvecs%a(:,k)
-       enddo
+      do k=1,upper_occ_state
+        sol%eigenvecs%a(:,k) = sqrt(sol%buff%f(k))*sol%eigenvecs%a(:,k)
+      enddo
 
      ! this does (U sqrt(rho'))(U sqrt(rho'))* , only the upper triangle is calculated
      ! unnocupied vectors are not multiplied
 
       call aastar(sol%eigenvecs%a(:,1:upper_occ_state),sol%rho%a,1.0_k_pr,0.0_k_pr,sol%rho%dim)
-       entropy = 0.0_k_pr
-        select case(gen%smearMethod)
-         case(k_smFD)
-           tiny = epsilon(1.0_k_pr)
-           do i=upper_non_one+1,upper_occ_state
-              fa = max(sol%buff%f(i),tiny)
-             fb = max(1-sol%buff%f(i),tiny)
-             entropy = entropy + fa*log(fa)+fb*log(fb)
-          enddo
-          entropy = gen%electronicTemperature*k_kb * 2.0_k_pr * entropy
-       case(k_smMP)
-          do i=1,sol%rho%dim
-            entropy=entropy+sn((sol%eigenvals(i)-gen%electronicMU)/gen%MPW,gen%mpN,sol)
-          enddo
-          entropy=-2.0_k_pr*entropy*gen%MPW
-        case(k_smCS)  
-          do i=1,sol%rho%dim
-            entropy=entropy+MarzariS((-sol%eigenvals(i)+gen%electronicMU)/gen%MPW)
-          enddo
-          entropy=-2.0_k_pr*entropy*gen%MPW
-       end select
+      entropy = 0.0_k_pr
+      select case(gen%smearMethod)
+      case(k_smFD)
+         tiny = epsilon(1.0_k_pr)
+         do i=upper_non_one+1,upper_occ_state
+            fa = max(sol%buff%f(i)/2.0_k_pr,tiny)
+           fb = max(1-sol%buff%f(i)/2.0_k_pr,tiny)
+           entropy = entropy + fa*log(fa)+fb*log(fb)
+        enddo
+        entropy = gen%electronicTemperature*k_kb * 2.0_k_pr * entropy
+      case(k_smMP)
+        do i=1,sol%rho%dim
+          entropy=entropy+sn((sol%eigenvals(i)-gen%electronicMU)/gen%MPW,gen%mpN,sol)
+        enddo
+        entropy=-2.0_k_pr*entropy*gen%MPW
+      case(k_smCS)
+        do i=1,sol%rho%dim
+          entropy=entropy+MarzariS((-sol%eigenvals(i)+gen%electronicMU)/gen%MPW)
+        enddo
+        entropy=-2.0_k_pr*entropy*gen%MPW
+      end select
 
     ! now put it in the global variable
       sol%electronicEntropy = entropy
@@ -358,7 +358,7 @@ contains
     type(atomicxType), intent(inout) :: atomic
     type(generalType),intent(inout), optional :: gen
     type(solutionType), intent(inout) :: sol
-    integer :: i,n,m,j,k    
+    integer :: i,n,m,j,k
 
   if (present(first)) then
     if (first) then
@@ -417,7 +417,7 @@ contains
     type(solutionType), intent(inout)    :: sol
     type(generalType), intent(inout) :: gen
     type(ioType), intent(inout) :: io
-    type(atomicxType), intent(inout) :: atomic    
+    type(atomicxType), intent(inout) :: atomic
     integer      :: i,homo,extra
     real(k_pr) :: qtotal
     !-------------------------------------------------!
@@ -464,7 +464,7 @@ contains
 !          enddo
 !          write(control_var%output_file,*) &
 !             '---------------------------------------------------------------'
-!       endif    
+!       endif
   end subroutine CreateDensityMatrixExcited
 
   subroutine FindHomo(gen,sol,io,pos,homoLevel)
@@ -475,7 +475,7 @@ contains
     type(generalType), intent(inout) :: gen
     type(ioType), intent(inout) :: io
     !--internal variables ----------------------------!
-    integer      :: k    
+    integer      :: k
     !-------------------------------------------------!
 
         ! set the occupations according to mu
@@ -541,12 +541,12 @@ contains
     type(generalType), intent(inout) :: gen
     type(ioType), intent(inout) :: io
     integer, intent(in) :: pos1(:),pos2(:),homo
-    integer      :: i,k,hole,excite,n    
+    integer      :: i,k,hole,excite,n
     real(k_pr) :: fa,fb,entropy,tiny
-    
-    n=sol%rho%dim    
+
+    n=sol%rho%dim
     ! set the occupations according to mu
-    
+
 
    select case(gen%smearMethod)
     case(k_smFD)
@@ -560,7 +560,7 @@ contains
        case(k_smCS)
         do k=1,sol%eigenvecs%dim
           sol%buff%f(k) =MarzariF((-sol%eigenvals(pos1(k))+gen%electronicMu)/gen%mpW)
-        enddo         
+        enddo
     end select
 
     hole=gen%holeState + gen%holeSpin * n/2

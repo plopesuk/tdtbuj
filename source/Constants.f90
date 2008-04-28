@@ -32,7 +32,10 @@ module m_Constants
   integer, parameter, public :: k_runSpecial = 99
 !> RunType
 
- integer, parameter, public :: k_scfTbuj = 1
+  integer, parameter, public :: k_scfTbuj = 1
+  integer, parameter, public :: k_scfTbujo = 2
+  integer, parameter, public :: k_scfTbu = 3
+  integer, parameter, public :: k_scfTbuo = 4
 !> SCFType
 
   integer, parameter, public :: k_electrostaticsPoint=1

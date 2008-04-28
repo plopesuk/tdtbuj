@@ -87,7 +87,7 @@ WARN_LOGFILE           =
 #---------------------------------------------------------------------------
 # configuration options related to the input files
 #---------------------------------------------------------------------------
-INPUT                  = source/
+INPUT                  = @CMAKE_SOURCE_DIR@/source
 INPUT_ENCODING         = UTF-8
 FILE_PATTERNS          = *.f90 *.f95 *.f77 *.ftn *.for *.F90 *.F95 *.F77 *.FTN *.FOR
 RECURSIVE              = NO 

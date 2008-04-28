@@ -64,18 +64,18 @@ contains
     endif
       sol%eigenvals(1:n)=0.0_k_pr
       call ZeroMatrix(sol%eigenvecs,ioLoc)
-    
+
     if (genLoc%scf) then
-      if (.not.sol%hin%created) then        
+      if (.not.sol%hin%created) then
         call CreateSparseMatrix(sol%hin,atomic%basis%norbitals,.true.)
         call CreateSparseMatrix(sol%h2,atomic%basis%norbitals,.true.)
         allocate(sol%potential(1:atomic%atoms%natoms))
         allocate(sol%field(1:atomic%atoms%natoms,1:3))
-       endif 
+       endif
         call ResetSparseMatrix(sol%hin)
         call ResetSparseMatrix(sol%h2)
         sol%potential(1:atomic%atoms%natoms)=0.0_k_pr
-        sol%field(1:atomic%atoms%natoms,1:3)=0.0_k_pr  
+        sol%field(1:atomic%atoms%natoms,1:3)=0.0_k_pr
     endif
 
     if (genLoc%spin) then
@@ -83,11 +83,11 @@ contains
       if (.not.sol%hdown%created) then
         call CreateMatrix(sol%hdown,atomic%basis%norbitals/2,.true.)
       endif
-        call ZeroMatrix(sol%hdown,ioLoc)      
+        call ZeroMatrix(sol%hdown,ioLoc)
       if (.not.sol%hup%created) then
         call CreateMatrix(sol%hup,atomic%basis%norbitals/2,.true.)
       endif
-        call ZeroMatrix(sol%hup,ioLoc)      
+        call ZeroMatrix(sol%hup,ioLoc)
     endif
     if (.not.sol%rho%created) then
       call CreateMatrix(sol%rho,atomic%basis%norbitals,.true.)
@@ -127,8 +127,8 @@ contains
     call setTails(ioLoc,genLoc,atomic,tbMod,sol)
     call rmarin(int((cr-int(cr))*3132),int(genLoc%ranseed*30081),sol%seed,ioLoc)
     if (.not.allocated(sol%buff%dins)) then
-      n=atomic%basis%norbitals 
-      m=sol%hup%dim     
+      n=atomic%basis%norbitals
+      m=sol%hup%dim
       allocate(sol%buff%dins(1:l+n,1:genLoc%scfMixn))
       allocate(sol%buff%douts(1:l+n,1:genLoc%scfMixn))
       allocate(sol%buff%res(1:l+n,1:genLoc%scfMixn))
@@ -142,15 +142,15 @@ contains
       allocate(sol%buff%a(1:sol%eigenvecs%dim,1:sol%eigenvecs%dim))
       allocate(sol%buff%pos1(1:sol%rho%dim),sol%buff%pos2(1:sol%rho%dim))
       allocate(sol%buff%nstart(1:atomic%basis%norbitals))
-    endif  
-    call ZeroMatrix(sol%buff%tmpB,ioLoc) 
+    endif
+    call ZeroMatrix(sol%buff%tmpB,ioLoc)
     sol%buff%dins(1:l+n,1:genLoc%scfMixn)=0.0_k_pr
     sol%buff%douts(1:l+n,1:genLoc%scfMixn)=0.0_k_pr
     sol%buff%res(1:l+n,1:genLoc%scfMixn)=0.0_k_pr
     sol%buff%densityin(1:l+n)=0.0_k_pr
     sol%buff%densityout(1:l+n)=0.0_k_pr
     sol%buff%densitynext(1:l+n)=0.0_k_pr
-    sol%buff%tmpA(1:m)=0.0_k_pr      
+    sol%buff%tmpA(1:m)=0.0_k_pr
     sol%buff%f(1:n)=0.0_k_pr
     sol%buff%g(1:n)=0.0_k_pr
     sol%buff%a(1:n,1:n)=cmplx(0.0_k_pr,0.0_k_pr,k_pr)
@@ -886,21 +886,30 @@ end subroutine setTails
     type(solutionType), intent(inout) :: sol
     integer :: i,k,j,m
 
-    m=atomic%basis%norbitals/2
-    do i=1,atomic%atoms%natoms
-      do k=1,atomic%species%norbs(atomic%atoms%sp(i))/2
-        j= atomic%atoms%orbs(i,k)
-        if (gen%SymRefRho) then
-          sol%n0(j) = (atomic%basis%orbitals(j)%occup+ &
-          atomic%basis%orbitals(j+m)%occup)/2.0_k_pr&
-            -gen%netCharge/atomic%basis%norbitals
-          sol%n0(j+m)=sol%n0(j)
-        else
-          sol%n0(j) = atomic%basis%orbitals(j)%occup-gen%netcharge/atomic%basis%norbitals
-          sol%n0(j+m)=atomic%basis%orbitals(j+m)%occup-gen%netcharge/atomic%basis%norbitals
-        endif
+    if (gen%spin) then
+      m=atomic%basis%norbitals/2
+      do i=1,atomic%atoms%natoms
+        do k=1,atomic%species%norbs(atomic%atoms%sp(i))/2
+          j= atomic%atoms%orbs(i,k)
+          if (gen%SymRefRho) then
+            sol%n0(j) = (atomic%basis%orbitals(j)%occup+ &
+            atomic%basis%orbitals(j+m)%occup)/2.0_k_pr&
+              -gen%netCharge/atomic%basis%norbitals
+            sol%n0(j+m)=sol%n0(j)
+          else
+            sol%n0(j) = atomic%basis%orbitals(j)%occup-gen%netcharge/atomic%basis%norbitals
+            sol%n0(j+m)=atomic%basis%orbitals(j+m)%occup-gen%netcharge/atomic%basis%norbitals
+          endif
+        end do
       end do
-    end do
+    else
+      do i=1,atomic%atoms%natoms
+        do k=1,atomic%species%norbs(atomic%atoms%sp(i))
+          j= atomic%atoms%orbs(i,k)
+          sol%n0(j) = atomic%basis%orbitals(j)%occup-gen%netCharge/atomic%basis%norbitals
+        end do
+      end do
+    endif
   end subroutine Buildn0
 
 !> \brief computes the magnetic pmoment for each atom
