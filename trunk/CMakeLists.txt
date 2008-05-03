@@ -2,12 +2,18 @@ PROJECT(tdtbuj Fortran)
 
 set(CMAKE_BUILD_TYPE "Debug")
 
-cmake_minimum_required(VERSION 2.4.8)
+set(VERSION_MINOR "0")
+set(VERSION_MAJOR "9")
+set(VERSION_PATCH "1")
+
+set(AUTHOR "Alin M Elena")
+set(AUTHOR_DETAILS "alin.elena@qub.ac.uk")
+set(DESCRITION "Time dependent tight binding +UJ for finite systems")
+
+cmake_minimum_required(VERSION 2.6.0)
 if(COMMAND cmake_policy)
   cmake_policy(VERSION 2.6)
 endif(COMMAND cmake_policy)
-
-
 
 ##########################
 ###source files
@@ -98,10 +104,13 @@ ${src_dir}/main.f90
 link_directories (${LIBRARY_OUTPUT_PATH})
 target_link_libraries(${target_name} parser linalg ${LIBS})
 #################
-configure_file(${CMAKE_SOURCE_DIR}/Doxyfile.cmake Doxyfile)
-add_custom_target(docs
-${DOXYGEN_EXECUTABLE} ${PROJECT_BINARY_DIR}/Doxyfile
-)
+
+if(DOXYGEN)
+  configure_file(${CMAKE_SOURCE_DIR}/Doxyfile.cmake Doxyfile)
+  add_custom_target(docs
+    ${DOXYGEN_EXECUTABLE} ${PROJECT_BINARY_DIR}/Doxyfile
+  )
+endif(DOXYGEN)
 
 ####################
 ####install target
@@ -112,11 +121,19 @@ MESSAGE("Install folder ${PREFIX}")
 set(CMAKE_INSTALL_PREFIX "${PREFIX}")
 endif(NOT ${PREFIX})
 
-install(TARGETS ${target_name} parser linalg
+install(TARGETS ${target_name} parser linalg 
             RUNTIME DESTINATION bin
             LIBRARY DESTINATION lib/${target_name}
 	    ARCHIVE DESTINATION lib/${target_name}
 	)
+
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/examples
+        DESTINATION share/
+        REGEX ".svn" EXCLUDE)
+if(DOXYGEN)
+  install(DIRECTORY ${CMAKE_BINARY_DIR}/doc/html/ DESTINATION doc)
+endif(DOXYGEN)
+
 #######################
 ## uninstall target
 #######################
@@ -149,3 +166,24 @@ file(APPEND ${unfile} "ENDFOREACH(file)\n")
 ADD_CUSTOM_TARGET(uninstall
   "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake")
 ###########################
+
+###########################
+##Packaging
+###########################
+
+SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY ${DESCRIPTION})
+SET(CPACK_PACKAGE_EXECUTABLES ${target_name})
+SET(CPACK_PACKAGE_VENDOR ${AUTHOR})
+SET(CPACK_PACKAGE_CONTACT ${AUTHOR_DETAILS})
+SET(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_SOURCE_DIR}/README")
+SET(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/COPYING")
+SET(CPACK_PACKAGE_VERSION_MAJOR ${VERSION_MAJOR})
+SET(CPACK_PACKAGE_VERSION_MINOR ${VERSION_MINOR})
+SET(CPACK_PACKAGE_VERSION_PATCH ${VERSION_PATCH})
+SET(CPACK_PACKAGE_INSTALL_DIRECTORY "${target_name}-${VERSION_MAJOR}.${VERSION_MINOR}")
+SET(CPACK_GENERATOR "TGZ;TBZ2;ZIP")
+SET(CPACK_CMAKE_GENERATOR ${CMAKE_GENERATOR})
+SET(CPACK_SOURCE_GENERATOR "TGZ;TBZ2;ZIP")
+SET(CPACK_SOURCE_IGNORE_FILES "/thesis/;/\\\\.svn/")
+
+INCLUDE(CPack)
