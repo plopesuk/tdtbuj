@@ -1240,7 +1240,7 @@ end subroutine CloseIoGeneral
     endif
     xyz=GetUnit()
     open(xyz,file="coords.xyz",status="unknown",action="write")
-    call PrintXYZ(xyz,atomix,.false.,"")
+    call PrintXYZ(xyz,atomix,.false.,getUnits(general))
     call ComputeEuclideanMatrix(atomix%atoms,io)
     close(xyz)
 
@@ -1439,6 +1439,7 @@ end subroutine CloseIoGeneral
             call error("block SpeciesData is not in the right format",sMyName,.true.,io)
           endif
           write(io%udeb,'(2i6,4f16.6)') specs%id(i),specs%z(i),specs%mass(i),specs%ulocal(i,1),specs%jlocal(i,1),specs%uinter(i)
+          specs%mass(i)=specs%mass(i)*k_amuToInternal
         enddo
         if (isUnique(specs%id(1:specs%nspecies))) then
           call error("id must be unique for each specie",sMyName,.true.,io)
@@ -1474,6 +1475,7 @@ end subroutine CloseIoGeneral
             call error("block SpeciesData is not in the right format",sMyName,.true.,io)
           endif
           write(io%udeb,'(2i6,3f16.6)') specs%id(i),specs%z(i),specs%mass(i),specs%ulocal(i,1),specs%uinter(i)
+          specs%mass(i)=specs%mass(i)*k_amuToInternal
         enddo
         if (isUnique(specs%id(1:specs%nspecies))) then
           call error("id must be unique for each specie",sMyName,.true.,io)
@@ -1509,6 +1511,7 @@ end subroutine CloseIoGeneral
               call error("block SpeciesData is not in the right format",sMyName,.true.,io)
             endif
             write(io%udeb,'(2i6,2f16.6)') specs%id(i),specs%z(i),specs%mass(i),specs%uinter(i)
+            specs%mass(i)=specs%mass(i)*k_amuToInternal
           enddo
           if (isUnique(specs%id(1:specs%nspecies))) then
             call error("id must be unique for each specie",sMyName,.true.,io)
@@ -1590,10 +1593,6 @@ end subroutine CloseIoGeneral
         endif
       endif
     end select
-
-
-
-
   end subroutine ReadSpecies
 
   !> \page species "Atomic Species Data"

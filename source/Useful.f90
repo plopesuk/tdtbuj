@@ -44,7 +44,7 @@ module m_Useful
   public :: MarzariF
   public :: MarzariS
   public :: LMax
-
+  public :: getUnits
   interface Swap
     module procedure SwapScalar,SwapVector
   end interface
@@ -959,6 +959,20 @@ contains
     MarzariS=expo/sqrt(k_pi)+0.0_k_pr*(1.0_k_pr-sqrt(2.0_k_pr)*x)
   end function MarzariS
 
+  character(len=50) function getUnits(gen)
+    character(len=*),parameter :: myName="getUnits"
+    type(generalType), intent(in) :: gen
 
-
+    getUnits="Unknown system of units, please update "//myName
+    select case(gen%units)
+      case(k_unitsEV)
+        getUnits="eV units (eV-Angstrom)"
+      case(k_unitsAU)
+        getUnits="atomic units (Hartree-Angstrom)"
+      case(k_unitsSI)
+        getUnits="SI units (J-m)"
+      case(k_unitsARU)
+        getUnits="atomic Rydberg units (Rydberg-Bohr)"
+    end select
+  end function getUnits
 end module m_Useful

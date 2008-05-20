@@ -26,7 +26,7 @@ contains
     real(k_pr)  :: x(:), c(:), vm(:), lb(:),ub(:),fstar(:),&
             xopt(:), xp(:), t, eps, rt, fopt
     integer :: nacp(:), n, ns, nt, neps, nacc, maxevl,&
-            nobds, ier, nfcnev 
+            nobds, ier, nfcnev
     logical :: max
     type(generalType), intent(inout) :: gen
     type(atomicxType), intent(inout) :: atomic
@@ -53,7 +53,7 @@ contains
     real(k_pr)  :: f, fp, p, pp, ratio
     integer  :: nup, ndown, nrej, nnew, lnobds, h, i, j, m
     logical  :: quit
-
+    character(len=10) :: saux
 !  set initial values.
       nacc = 0
       nobds = 0
@@ -69,14 +69,15 @@ contains
         end if
         do i = 1, n
             if ((x(i) < lb(i)) .or. (x(i) > ub(i))) then
-                call error("the starting value (x) is outside the bounds execution terminated "&
-                           "without any optimization. lb(i) < x(i) < ub(i), i = 1, n.",myname,.false.,io)
-                ier = 2
-                return
+              write(saux,'(i0)')i
+              call error("the starting value of parameter "//trim(saux)//" is outside the bounds execution terminated "//&
+              "without any optimization. lb(i) < x(i) < ub(i), i = 1, n.",myname,.false.,io)
+              ier = 2
+              return
             end if
         enddo
 
-      !  evaluate the function with input x and return value as f.        
+      !  evaluate the function with input x and return value as f.
         f=func(x,gen,atomic,tb,sol,io)
         if(.not. max) f = -f
         nfcnev = nfcnev + 1
@@ -216,10 +217,10 @@ contains
         do  i = neps, 2, -1
             fstar(i) = fstar(i-1)
         enddo
-        f = fopt        
+        f = fopt
         x(:) = xopt(:)
-        
-        if (t<epsilon(t)) then 
+
+        if (t<epsilon(t)) then
             ier=111
             write(io%uout,*)"temperature has reached machine precision !!!"
             exit
@@ -248,7 +249,7 @@ contains
       real(k_pr),intent(in) ::  xp(:), x(:), fp, f
       logical,intent(in) ::  max
       type(ioType), intent(inout) :: io
-      
+
       write(io%uout,*)
       call PrintVectorA(x,'current x',.true.,.false.,io)
       if (max) then
@@ -259,13 +260,13 @@ contains
         write(io%uout,'(a,g25.18)')" current f: ", -f
         call PrintVectorA(xp,'trial x',.true.,.false.,io)
         write(io%uout,'(a,g25.18)')" resulting f: ", -fp
-      end if     
+      end if
     end subroutine prt4
 
     subroutine prt8(vm,xopt,x,io)
         type(ioType), intent(inout) :: io
         real(k_pr) :: vm(:), xopt(:), x(:)
-        
+
 
         write(io%uout,*)" intermediate results after step length adjustment"
           call PrintVectorA(vm,'new step length (vm)',.true.,.false.,io)
@@ -305,5 +306,5 @@ contains
           call PrintVectorA(vm,'step length (vm)',.true.,.false.,io)
         write(io%uout,'('' '')')
   end subroutine prt9
-  
+
 end module m_SA

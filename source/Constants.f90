@@ -211,7 +211,7 @@ contains
       "Rhenium","Osmium","Iridium","Platinum","Gold","Mercury","Thallium",&
       "Lead","Bismuth","Polonium","Astatine","Radon","Francium","Radium",&
       "Actinium","Thorium","Protactinium","Uranium","Neptunium","Plutonium",&
-      "Ak_mericium","Curium","Berkelium","Californium","Einsteinium","Fermium",&
+      "Americium","Curium","Berkelium","Californium","Einsteinium","Fermium",&
       "Mendelevium","Nobelium","Lawrencium","Rutherfordium","Dubnium",&
       "Seaborgium","Bohrium","Hassium","Meitnerium","Darmstadtium"/
 

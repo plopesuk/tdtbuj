@@ -43,6 +43,7 @@ module m_DriverRoutines
     type(modelType), intent(inout) :: tbMod
     type(solutionType), intent(inout) :: sol
     real(k_pr) :: eenergy,renergy, minusts,scfE
+    integer :: aux
 
  eenergy=0.0_k_pr
  renergy=0.0_k_pr
@@ -52,12 +53,12 @@ module m_DriverRoutines
       call InitMagneticMoment(atomic)
       write(ioLoc%uout,"(a)")"Initial Magnetic Moment"
       call PrintMagneticMoment(atomic,sol,.false.,ioLoc)
-    endif        
-    call FullSCF(ioLoc,genLoc,atomic,tbMod,sol)    
+    endif
+    call FullSCF(ioLoc,genLoc,atomic,tbMod,sol)
     eenergy = ElectronicEnergy(genLoc,sol,ioLoc)
     renergy = RepulsiveEnergy(genLoc,atomic%atoms,tbMod)
     minusts = sol%electronicEntropy
-   
+
     write(ioLoc%uout,'(/a)')&
          '--Single Point Run----------------------------------------------'
     call PrintAtoms(ioLoc,genLoc,atomic)
@@ -65,17 +66,21 @@ module m_DriverRoutines
     call PrintDipoles(atomic,ioLoc)
     call PrintMagneticMoment(atomic,sol,.false.,ioLoc)
     write(ioLoc%uout,"(/a,f16.8,/a,f16.8)")&
-          'Electronic energy = ',eenergy, &
-       'Repulsive energy  = ',renergy
+          "Electronic energy = ",eenergy, &
+       "Repulsive energy  = ",renergy
     if (genLoc%scf) then
+!  make it to print more information
+      aux=ioLoc%verbosity
+      ioLoc%verbosity=k_HighVerbos
       scfE = ScfEnergy(genLoc,atomic,sol,ioLoc)
+      ioLoc%verbosity=aux
     else
       scfE = 0.0_k_pr
     endif
     write(ioLoc%uout,"(a,f16.8,/a,f16.8,/a,f16.8,/)") &
-       'Total SCF energy  = ',scfE, &
-          '-TS               = ',minusts, &
-          'Total energy      = ',eenergy+renergy+scfE+minusts
+       "Total SCF energy  = ",scfE, &
+          "-TS               = ",minusts, &
+          "Total energy      = ",eenergy+renergy+scfE+minusts
     call PrintForces(atomic%atoms,ioLoc)
     write(ioLoc%uout,'(/a/)')&
           '----------------------------------------------------------------'
@@ -92,7 +97,7 @@ module m_DriverRoutines
 !> \param tb type(modelType) contains information about the tight binding model parameters
 !> \param sol type(solutionType) contains information about the solution space
   subroutine BornOppenheimerDynamics(io,gen,atomic,tb,sol)
-    character(len=*), parameter :: myname = 'BornOppenheimerDynamics'
+    character(len=*), parameter :: myname = "BornOppenheimerDynamics"
     type(ioType), intent(inout) :: io
     type(generalType), intent(inout) :: gen
     type(atomicxType), intent(inout) :: atomic
@@ -816,7 +821,7 @@ module m_DriverRoutines
       iprint(1) = 1
     else
       iprint(1) = -1
-    endif    
+    endif
     iprint(2) = 0
     epsf = gen%epsF
     epsg = gen%epsG
@@ -825,9 +830,9 @@ module m_DriverRoutines
     gtol=gen%ftol
     info = 0
     maxfev=gen%maxFeval
-    ftol=gen%ftol    
+    ftol=gen%ftol
     allocate(x(1:n))
-    
+
     do i=1,atomic%atoms%nmoving
       atom=atomic%atoms%id(atomic%atoms%moving(i))
       x(3*(i-1)+1) = atomic%atoms%x(atom)
@@ -837,8 +842,8 @@ module m_DriverRoutines
     call lbfgs(n,m,x,epsg,epsf,epsx,xtol,gtol,ftol,maxfev,gen%nsteps,iprint,info,&
                  UpdatePoint,gen,atomic,tb,sol,io)
     res=UpdatePoint(gen,atomic,tb,sol,io,x,ftol,x)
-    deallocate(x) 
-   
+    deallocate(x)
+
        write(io%uout,'(/a)')&
           'Final forces:'
        call PrintForces(atomic%atoms,io)

@@ -108,7 +108,10 @@ contains
         endif
           if (abs(q-qtotal)<gen%qTolerance) exit
       enddo
-      if (i==(gen%maxit+1)) call error("Could not find the fermi level",myname,.true.,io)
+      if (i==(gen%maxit+1)) then
+        call error("Could not find the fermi level",myname,.false.,io)
+        gen%lIsSCFConverged = .false.
+      endif
     endif
    end subroutine FindFermi
 
@@ -287,7 +290,10 @@ contains
           ! if we are happy with the charge then exit
             if (abs(q-qtotal)<gen%qTolerance) exit
          enddo
-         if (i==(gen%maxIt+1)) call error("Could not find the fermi level",myname,.true.,io)
+         if (i==(gen%maxIt+1)) then
+           call error("Could not find the fermi level",myname,.false.,io)
+           gen%lIsSCFConverged = .false.
+         endif
       endif
 
      ! set the occupations according to mu
