@@ -1,10 +1,19 @@
 PROJECT(tdtbuj Fortran)
 
-set(CMAKE_BUILD_TYPE "Debug")
+set(CMAKE_BUILD_TYPE "None")
 
-set(VERSION_MINOR "0")
-set(VERSION_MAJOR "9")
+set(VERSION_MAJOR "0")
+set(VERSION_MINOR "9")
 set(VERSION_PATCH "1")
+
+
+find_program(SVN "svn")
+if(SVN)
+  execute_process(COMMAND ${SVN} info ${CMAKE_SOURCE_DIR} OUTPUT_VARIABLE SVN_OUT)
+  string(REGEX REPLACE "\n" " " svn_int "${SVN_OUT}")
+  string(REGEX REPLACE ".*Revision: ([^ ]+).*" "\\1" VERSION_PATCH "${svn_int}" )
+  set(VERSION_PATCH "svn_${VERSION_PATCH}")
+endif(SVN)
 
 set(AUTHOR "Alin M Elena")
 set(AUTHOR_DETAILS "alin.elena@qub.ac.uk")
@@ -108,8 +117,7 @@ target_link_libraries(${target_name} parser linalg ${LIBS})
 if(DOXYGEN)
   configure_file(${CMAKE_SOURCE_DIR}/Doxyfile.cmake Doxyfile)
   add_custom_target(docs
-    ${DOXYGEN_EXECUTABLE} ${PROJECT_BINARY_DIR}/Doxyfile
-  )
+    ${DOXYGEN_EXECUTABLE} ${PROJECT_BINARY_DIR}/Doxyfile)
 endif(DOXYGEN)
 
 ####################
@@ -117,8 +125,8 @@ endif(DOXYGEN)
 ####################
 
 if(NOT ${PREFIX})
-MESSAGE("Install folder ${PREFIX}")
-set(CMAKE_INSTALL_PREFIX "${PREFIX}")
+  MESSAGE("Install folder ${PREFIX}")
+  set(CMAKE_INSTALL_PREFIX "${PREFIX}")
 endif(NOT ${PREFIX})
 
 install(TARGETS ${target_name} parser linalg 
@@ -128,12 +136,12 @@ install(TARGETS ${target_name} parser linalg
 	)
 
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/examples
-        DESTINATION share/
+        DESTINATION share
         REGEX ".svn" EXCLUDE)
 if(DOXYGEN)
+  install(CODE "execute_process(COMMAND ${CMAKE_BUILD_TOOL} docs)")
   install(DIRECTORY ${CMAKE_BINARY_DIR}/doc/html/ DESTINATION doc)
 endif(DOXYGEN)
-
 #######################
 ## uninstall target
 #######################

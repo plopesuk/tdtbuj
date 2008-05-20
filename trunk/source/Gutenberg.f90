@@ -207,9 +207,8 @@ contains
         write(io%uout,'(a)')"  Id  Z el    Zval            Mass          Ulocal          Jlocal          Uinter Norbs"
         write(io%uout,'(a)')"----------------------------------------------------------------------------------------"
         do i=1,specs%nspecies
-          write(io%uout,'(i4,i3,1x,a,f8.4,4f16.8,i5)')specs%id(i),specs%z(i),symbol(specs%z(i)),specs%zval(i),specs%mass(i),&
+          write(io%uout,'(i4,i3,1x,a,f8.4,4f16.8,i5)')specs%id(i),specs%z(i),symbol(specs%z(i)),specs%zval(i),specs%mass(i)/k_amuToInternal,&
                   specs%ulocal(i,1),specs%jlocal(i,1),specs%uinter(i),specs%norbs(i)
-          specs%mass(i)=specs%mass(i)*k_amuToInternal
         enddo
         write(io%uout,'(a)')"=EndSpeciesData========================================================================="
       case(k_scftbu)
@@ -217,9 +216,8 @@ contains
         write(io%uout,'(a)')"  Id  Z el    Zval            Mass          Ulocal          Uinter Norbs"
         write(io%uout,'(a)')"----------------------------------------------------------------------------------------"
         do i=1,specs%nspecies
-          write(io%uout,'(i4,i3,1x,a,f8.4,3f16.8,i5)')specs%id(i),specs%z(i),symbol(specs%z(i)),specs%zval(i),specs%mass(i),&
+          write(io%uout,'(i4,i3,1x,a,f8.4,3f16.8,i5)')specs%id(i),specs%z(i),symbol(specs%z(i)),specs%zval(i),specs%mass(i)/k_amuToInternal,&
                   specs%ulocal(i,1),specs%uinter(i),specs%norbs(i)
-          specs%mass(i)=specs%mass(i)*k_amuToInternal
         enddo
         write(io%uout,'(a)')"=EndSpeciesData========================================================================="
       case(k_scfTBuo)
@@ -227,9 +225,8 @@ contains
         write(io%uout,'(a)')"  Id  Z el    Zval            Mass          Uinter Norbs"
         write(io%uout,'(a)')"----------------------------------------------------------------------------------------"
         do i=1,specs%nspecies
-          write(io%uout,'(i4,i3,1x,a,f8.4,2f16.8,i5)')specs%id(i),specs%z(i),symbol(specs%z(i)),specs%zval(i),specs%mass(i),&
+          write(io%uout,'(i4,i3,1x,a,f8.4,2f16.8,i5)')specs%id(i),specs%z(i),symbol(specs%z(i)),specs%zval(i),specs%mass(i)/k_amuToInternal,&
                   specs%uinter(i),specs%norbs(i)
-          specs%mass(i)=specs%mass(i)*k_amuToInternal
         enddo
         write(io%uout,'(a)')"=EndSpeciesData========================================================================="
         write(io%uout,'(a)')"=HubbardUData==========================================================================="
@@ -245,9 +242,8 @@ contains
         write(io%uout,'(a)')"  Id  Z el    Zval            Mass          Uinter Norbs"
         write(io%uout,'(a)')"----------------------------------------------------------------------------------------"
         do i=1,specs%nspecies
-          write(io%uout,'(i4,i3,1x,a,f8.4,2f16.8,i5)')specs%id(i),specs%z(i),symbol(specs%z(i)),specs%zval(i),specs%mass(i),&
+          write(io%uout,'(i4,i3,1x,a,f8.4,2f16.8,i5)')specs%id(i),specs%z(i),symbol(specs%z(i)),specs%zval(i),specs%mass(i)/k_amuToInternal,&
                   specs%uinter(i),specs%norbs(i)
-          specs%mass(i)=specs%mass(i)*k_amuToInternal
         enddo
         write(io%uout,'(a)')"=EndSpeciesData========================================================================="
         write(io%uout,'(a)')"=HubbardUJData=========================================================================="
@@ -266,9 +262,8 @@ contains
         write(io%uout,'(a)')"  Id  Z el    Zval            Mass          Uinter Norbs"
         write(io%uout,'(a)')"----------------------------------------------------------------------------------------"
         do i=1,specs%nspecies
-          write(io%uout,'(i4,i3,1x,a,f8.4,2f16.8,i5)')specs%id(i),specs%z(i),symbol(specs%z(i)),specs%zval(i),specs%mass(i),&
+          write(io%uout,'(i4,i3,1x,a,f8.4,2f16.8,i5)')specs%id(i),specs%z(i),symbol(specs%z(i)),specs%zval(i),specs%mass(i)/k_amuToInternal,&
                   specs%uinter(i),specs%norbs(i)
-          specs%mass(i)=specs%mass(i)*k_amuToInternal
         enddo
         write(io%uout,'(a)')"=EndSpeciesData========================================================================="
     endif

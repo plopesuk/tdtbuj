@@ -11,7 +11,7 @@ setenv FC ifort; setenv FFLAGS="-O4  -axT" for a csh like shell)
 this will generate the Makefile if you want to install it in a certain 
 location the command will be (cmake . -DPREFIX="/your_path")
 ----- make
-this will build the binaries bin/tdtb+uj.x
+this will build the binaries bin/tdtbuj
 ----- make install 
 this will install the binaries at the desired location
 ----- make uninstall 
@@ -21,6 +21,10 @@ make install)
 this will generate a documentation using doxygen 
 (www.stack.nl/~dimitri/doxygen/) you will need also 
 latex and makeindex.
+----- make package
+generates the binary package (.tar.gz tar.bz2 and .zip)
+----- make package_source
+generates the package source
 
 paranoic debug flags intel compiler
 PS C:\Users\Alin M Elena\tdtbuj> $env:FFLAGS="/traceback /check:pointer /check:bounds /check:uninit /check:format /check

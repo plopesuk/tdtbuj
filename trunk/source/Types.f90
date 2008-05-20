@@ -198,7 +198,7 @@ module m_Types
 
 !> \brief all atomic data type
   type, public :: atomicxType
-    type(atomicType) :: atoms !< atmoic properties
+    type(atomicType) :: atoms !< atomic properties
     type(speciesType) :: species !< specie properties
     type(basisType) :: basis !< system basis
     type(orbitalType), allocatable :: speciesBasis(:,:) !< species basis set

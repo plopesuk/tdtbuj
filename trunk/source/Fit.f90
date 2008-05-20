@@ -49,35 +49,76 @@ module m_Fit
   character(len=100), parameter :: cAtomicData="new_AtomicData.fdf"
 
 contains
-
-
   subroutine SetInitialParams(x,atomic,tb)
     character(len=*), parameter :: sMyName="SetInitialParams"
     real(k_pr), intent(inout) :: x(:)
     type(atomicxType), intent(in) :: atomic
     type(modelType), intent(in) :: tb
 
-!      x(1) =  tb%hopping(1,2)%a(1,0,0)
-      x(1) =  tb%hopping(1,1)%eps(0)
-      x(2) =  tb%hopping(1,2)%a(0,0,0)
-     x(3) =  tb%hopping(1,2)%a(1,0,0)
-     x(4) =  atomic%species%jlocal(atomic%atoms%sp(2),1)
-     x(5) =  atomic%species%ulocal(atomic%atoms%sp(2),1)
-     x(6) =  tb%hopping(1,2)%n
-     x(7) =  tb%hopping(1,2)%nc
-     x(8) =  atomic%species%jlocal(atomic%atoms%sp(1),1)
-     x(9) =  atomic%species%ulocal(atomic%atoms%sp(1),1)
-     x(10) =  0.1_k_pr
-!     x(11) = 0.1_k_pr
-!     x(12) = tb%hopping(1,2)%rc
-!     x(13) = tb%hopping(1,1)%a(0,0,0)
-!     x(14) = tb%hopping(1,1)%a(0,1,0)
-!     x(15) = tb%hopping(1,1)%a(1,1,0)
-!     x(16) = tb%hopping(1,1)%a(1,1,1)
-!     x(17) = tb%hopping(1,1)%rc
-!     x(18) = tb%hopping(1,1)%n
-!     x(19) = tb%hopping(1,1)%nc
-
+    x(1) = tb%hopping(1,1)%eps(0)
+    x(2) = 0.1_k_pr
+    x(3) = tb%hopping(2,2)%eps(0)
+    x(4) = tb%hopping(3,3)%eps(0)
+    x(5) = 0.1_k_pr
+    x(6) = tb%hopping(4,4)%eps(0)
+    x(7) = 0.1_k_pr
+    x(8) =  atomic%species%ulocal(atomic%atoms%sp(1),1)
+    x(9) =  atomic%species%jlocal(atomic%atoms%sp(1),1)
+    x(10) =  atomic%species%ulocal(atomic%atoms%sp(2),1)
+    x(11) =  atomic%species%jlocal(atomic%atoms%sp(2),1)
+    x(12) =  atomic%species%ulocal(atomic%atoms%sp(3),1)
+    x(13) =  atomic%species%jlocal(atomic%atoms%sp(3),1)
+    x(14) =  atomic%species%ulocal(atomic%atoms%sp(4),1)
+    x(15) =  atomic%species%jlocal(atomic%atoms%sp(4),1)
+    x(16) = tb%hopping(1,1)%a(0,0,0)
+    x(17) = tb%hopping(1,1)%a(0,1,0)
+    x(18) = tb%hopping(1,1)%a(1,1,0)
+    x(19) = tb%hopping(1,1)%a(1,1,1)
+    x(20) = tb%hopping(1,1)%r0
+    x(21) = tb%hopping(1,1)%rc
+    x(22) = tb%hopping(1,1)%n
+    x(23) = tb%hopping(1,1)%nc
+    x(24) = tb%hopping(4,4)%a(0,0,0)
+    x(25) = tb%hopping(4,4)%a(0,1,0)
+    x(26) = tb%hopping(4,4)%a(1,1,0)
+    x(27) = tb%hopping(4,4)%a(1,1,1)
+    x(28) = tb%hopping(4,4)%r0
+    x(29) = tb%hopping(4,4)%rc
+    x(30) = tb%hopping(4,4)%n
+    x(31) = tb%hopping(4,4)%nc
+    x(32) = tb%hopping(2,2)%a(0,0,0)
+    x(33) = tb%hopping(2,2)%r0
+    x(34) = tb%hopping(2,2)%rc
+    x(35) = tb%hopping(2,2)%n
+    x(36) = tb%hopping(2,2)%nc
+    x(37) =  tb%hopping(1,2)%a(0,0,0)
+    x(38) =  tb%hopping(1,2)%a(1,0,0)
+    x(39) = tb%hopping(1,2)%r0
+    x(40) = tb%hopping(1,2)%rc
+    x(41) = tb%hopping(1,2)%n
+    x(42) = tb%hopping(1,2)%nc
+    x(43) =  tb%hopping(3,2)%a(0,0,0)
+    x(44) =  tb%hopping(3,2)%a(1,0,0)
+    x(45) = tb%hopping(3,2)%r0
+    x(46) = tb%hopping(3,2)%rc
+    x(47) = tb%hopping(3,2)%n
+    x(48) = tb%hopping(3,2)%nc
+    x(49) = tb%hopping(1,3)%a(0,0,0)
+    x(50) = tb%hopping(1,3)%a(0,1,0)
+    x(51) = tb%hopping(1,3)%a(1,1,0)
+    x(52) = tb%hopping(1,3)%a(1,1,1)
+    x(53) = tb%hopping(1,3)%r0
+    x(54) = tb%hopping(1,3)%rc
+    x(55) = tb%hopping(1,3)%n
+    x(56) = tb%hopping(1,3)%nc
+    x(57) = tb%hopping(3,4)%a(0,0,0)
+    x(58) = tb%hopping(3,4)%a(0,1,0)
+    x(59) = tb%hopping(3,4)%a(1,1,0)
+    x(60) = tb%hopping(3,4)%a(1,1,1)
+    x(61) = tb%hopping(3,4)%r0
+    x(62) = tb%hopping(3,4)%rc
+    x(63) = tb%hopping(3,4)%n
+    x(64) = tb%hopping(3,4)%nc
   end subroutine SetInitialParams
 
   subroutine UpdateParams(yfit,gen,atomic,tb,sol,io)
@@ -89,51 +130,121 @@ contains
     type(modelType), intent(inout) :: tb
     real(k_pr), intent(in) :: yfit(:)
 
-!     tb%hopping(2,2)%eps(0)=yfit(1)+yfit(10)
-!     tb%hopping(2,2)%eps(1)=tb%hopping(2,2)%eps(0)
-!     !eso<esn
-      tb%hopping(1,1)%eps(0)=yfit(1)
-      tb%hopping(1,1)%eps(1)=yfit(1)+yfit(10)
-!
-     tb%hopping(1,1)%eps(4)=tb%hopping(1,1)%eps(0)
-     tb%hopping(1,1)%eps(5)=tb%hopping(1,1)%eps(1)
-!
-     tb%hopping(1,2)%a(0,0,0)=yfit(2)
-     tb%hopping(2,1)%a(0,0,0)=yfit(2)
-!
-     tb%hopping(1,2)%a(1,0,0)=yfit(3)
-     tb%hopping(2,1)%a(0,1,0)=-yfit(3)
+    tb%hopping(1,1)%eps(0)=yfit(1)
+    tb%hopping(1,1)%eps(1:3)=yfit(1)+yfit(2)
+    tb%hopping(1,1)%eps(4)=yfit(1)
+    tb%hopping(1,1)%eps(5:7)=yfit(1)+yfit(2)
 
+    tb%hopping(2,2)%eps(0:1)=yfit(3)
+
+    tb%hopping(3,3)%eps(0)=yfit(4)
+    tb%hopping(3,3)%eps(1:3)=yfit(4)+yfit(5)
+    tb%hopping(3,3)%eps(4)=yfit(4)
+    tb%hopping(3,3)%eps(5:7)=yfit(4)+yfit(5)
+
+    tb%hopping(4,4)%eps(0)=yfit(6)
+    tb%hopping(4,4)%eps(1:3)=yfit(6)+yfit(7)
+    tb%hopping(4,4)%eps(4)=yfit(6)
+    tb%hopping(4,4)%eps(5:7)=yfit(6)+yfit(7)
+    atomic%species%ulocal(atomic%atoms%sp(1),1)=yfit(8)
+    atomic%species%jlocal(atomic%atoms%sp(1),1)=yfit(9)
+    atomic%species%ulocal(atomic%atoms%sp(2),1)=yfit(10)
+    atomic%species%jlocal(atomic%atoms%sp(2),1)=yfit(11)
+    atomic%species%ulocal(atomic%atoms%sp(3),1)=yfit(12)
+    atomic%species%jlocal(atomic%atoms%sp(3),1)=yfit(13)
+    atomic%species%ulocal(atomic%atoms%sp(4),1)=yfit(14)
+    atomic%species%jlocal(atomic%atoms%sp(4),1)=yfit(15)
+    tb%hopping(1,1)%a(0,0,0)=yfit(16)
+    tb%hopping(1,1)%a(0,1,0)=yfit(17)
+    tb%hopping(1,1)%a(1,0,0)=-tb%hopping(1,1)%a(0,1,0)
+    tb%hopping(1,1)%a(1,1,0)=yfit(18)
+    tb%hopping(1,1)%a(1,1,1)=yfit(19)
+    tb%hopping(1,1)%r0=yfit(20)
+    tb%hopping(1,1)%rc=yfit(21)
+    tb%hopping(1,1)%n=yfit(22)
+    tb%hopping(1,1)%nc=yfit(23)
+    tb%hopping(4,4)%a(0,0,0)=yfit(24)
+    tb%hopping(4,4)%a(0,1,0)=yfit(25)
+    tb%hopping(4,4)%a(1,0,0)=-tb%hopping(4,4)%a(0,1,0)
+    tb%hopping(4,4)%a(1,1,0)=yfit(26)
+    tb%hopping(4,4)%a(1,1,1)=yfit(27)
+    tb%hopping(4,4)%r0=yfit(28)
+    tb%hopping(4,4)%rc=yfit(29)
+    tb%hopping(4,4)%n=yfit(30)
+    tb%hopping(4,4)%nc=yfit(31)
+    tb%hopping(2,2)%a(0,0,0)=yfit(32)
+    tb%hopping(2,2)%r0=yfit(33)
+    tb%hopping(2,2)%rc=yfit(34)
+    tb%hopping(2,2)%n=yfit(35)
+    tb%hopping(2,2)%nc=yfit(36)
+    tb%hopping(1,2)%a(0,0,0)=yfit(37)
+    tb%hopping(2,1)%a(0,0,0)=yfit(37)
+    tb%hopping(1,2)%a(1,0,0)=yfit(38)
+    tb%hopping(2,1)%a(0,1,0)=-yfit(38)
+    tb%hopping(1,2)%r0=yfit(39)
+    tb%hopping(1,2)%rc=yfit(40)
+    tb%hopping(1,2)%n=yfit(41)
+    tb%hopping(1,2)%nc=yfit(42)
+    tb%hopping(2,1)%r0=yfit(39)
+    tb%hopping(2,1)%rc=yfit(40)
+    tb%hopping(2,1)%n=yfit(41)
+    tb%hopping(2,1)%nc=yfit(42)
 !
+    tb%hopping(2,3)%a(0,0,0)=yfit(43)
+    tb%hopping(3,2)%a(0,0,0)=yfit(43)
+    tb%hopping(3,2)%a(1,0,0)=yfit(44)
+    tb%hopping(2,3)%a(0,1,0)=-yfit(44)
+    tb%hopping(2,3)%r0=yfit(45)
+    tb%hopping(2,3)%rc=yfit(46)
+    tb%hopping(2,3)%n=yfit(47)
+    tb%hopping(2,3)%nc=yfit(48)
+    tb%hopping(3,2)%r0=yfit(45)
+    tb%hopping(3,2)%rc=yfit(46)
+    tb%hopping(3,2)%n=yfit(47)
+    tb%hopping(3,2)%nc=yfit(48)
 !
-     atomic%species%jlocal(atomic%atoms%sp(2),1)=yfit(4)
-     atomic%species%ulocal(atomic%atoms%sp(2),1)=yfit(5)
-     tb%hopping(1,2)%n=yfit(6)
-     tb%hopping(1,2)%nc=yfit(7)
-     tb%hopping(2,1)%n=tb%hopping(1,2)%n
-     tb%hopping(2,1)%nc=tb%hopping(1,2)%nc
-!     !
-     atomic%species%jlocal(atomic%atoms%sp(1),1)=yfit(8)
-     atomic%species%ulocal(atomic%atoms%sp(1),1)=yfit(9)
+    tb%hopping(1,3)%a(0,0,0)=yfit(49)
+    tb%hopping(1,3)%a(0,1,0)=yfit(50)
+    tb%hopping(1,3)%a(1,0,0)=-tb%hopping(1,3)%a(0,1,0)
+    tb%hopping(1,3)%a(1,1,0)=yfit(51)
+    tb%hopping(1,3)%a(1,1,1)=yfit(52)
+    tb%hopping(1,3)%r0=yfit(53)
+    tb%hopping(1,3)%rc=yfit(54)
+    tb%hopping(1,3)%n=yfit(55)
+    tb%hopping(1,3)%nc=yfit(56)
+    tb%hopping(3,1)%a(0,0,0)=yfit(49)
+    tb%hopping(3,1)%a(0,1,0)=yfit(50)
+    tb%hopping(3,1)%a(1,0,0)=-tb%hopping(3,1)%a(0,1,0)
+    tb%hopping(3,1)%a(1,1,0)=yfit(51)
+    tb%hopping(3,1)%a(1,1,1)=yfit(52)
+    tb%hopping(3,1)%r0=yfit(53)
+    tb%hopping(3,1)%rc=yfit(54)
+    tb%hopping(3,1)%n=yfit(55)
+    tb%hopping(3,1)%nc=yfit(56)
 !
-!     tb%hopping(1,2)%rc = yfit(12)
-!     tb%hopping(2,1)%rc = yfit(12)
-!
-!
-!     tb%hopping(1,1)%a(0,0,0)=yfit(13)
-!     tb%hopping(1,1)%a(0,1,0)=yfit(14)
-!     tb%hopping(1,1)%a(1,0,0)=-tb%hopping(1,1)%a(0,1,0)
-!     tb%hopping(1,1)%a(1,1,0)=yfit(15)
-!     tb%hopping(1,1)%a(1,1,1)=yfit(16)
-!
-!
-!
-!     tb%hopping(1,1)%rc = yfit(17)
-!     tb%hopping(1,1)%n = yfit(18)
-!     tb%hopping(1,1)%nc = yfit(19)
-!    tb%hopping(1,2)%a(1,0,0)=yfit(1)
-!    tb%hopping(2,1)%a(0,1,0)=-yfit(1)
+    tb%hopping(3,4)%a(0,0,0)=yfit(57)
+    tb%hopping(3,4)%a(0,1,0)=yfit(58)
+    tb%hopping(3,4)%a(1,0,0)=-tb%hopping(3,4)%a(0,1,0)
+    tb%hopping(3,4)%a(1,1,0)=yfit(59)
+    tb%hopping(3,4)%a(1,1,1)=yfit(60)
+    tb%hopping(3,4)%r0=yfit(61)
+    tb%hopping(3,4)%rc=yfit(62)
+    tb%hopping(3,4)%n=yfit(63)
+    tb%hopping(3,4)%nc=yfit(64)
+    tb%hopping(4,3)%a(0,0,0)=yfit(57)
+    tb%hopping(4,3)%a(0,1,0)=yfit(58)
+    tb%hopping(4,3)%a(1,0,0)=-tb%hopping(4,3)%a(0,1,0)
+    tb%hopping(4,3)%a(1,1,0)=yfit(59)
+    tb%hopping(4,3)%a(1,1,1)=yfit(60)
+    tb%hopping(4,3)%r0=yfit(61)
+    tb%hopping(4,3)%rc=yfit(62)
+    tb%hopping(4,3)%n=yfit(63)
+    tb%hopping(4,3)%nc=yfit(64)
+
+
     call setTails(io,gen,atomic,tb,sol)
+    call PrintTbGSP(io,gen,atomic,tb)
+    call PrintSpecies(gen,io,atomic%species)
   end subroutine UpdateParams
 
 !> \brief computes the cost function for a set o parameters
@@ -157,27 +268,15 @@ contains
     integer :: i,ilevels
     real(k_pr)  :: aux
 
+    aux=0.0_k_pr
     call UpdateParams(yfit,gen,atomic,tb,sol,io)
     call SinglePoint(io,gen,atomic,tb,sol)
     if (.not.gen%lIsSCFConverged) then
       UpdateCost=k_infinity
     else
-      ilevels=sol%h%dim
-      aux=0.0_k_pr
-      fitData%fit(1:ilevels)=sol%eigenvals(1:ilevels)
 
-      do i=1,ilevels/2-1
-        aux=aux+(fitData%exper(i)-fitData%exper(i+1)-(sol%eigenvals(i)-sol%eigenvals(i+1)))**2
-      enddo
-
-      do i=1+ilevels/2, ilevels-1
-        aux=aux+(fitData%exper(i)-fitData%exper(i+1)-(sol%eigenvals(i)-sol%eigenvals(i+1)))**2
-      enddo
-      aux=aux+(fitData%exper(1+ilevels/2)-fitData%exper(1)-(sol%eigenvals(1+ilevels/2)-sol%eigenvals(1)))**2
-  ! add charges in the cost function
-      fitData%fit(ilevels+1:ilevels+atomic%atoms%natoms)=atomic%atoms%chrg(1:atomic%atoms%natoms)
-      do i =1,atomic%atoms%natoms
-          aux=aux+(fitData%exper(i+ilevels)-atomic%atoms%chrg(i))**2
+      do i=1,atomic%atoms%natoms
+        aux=aux+(fitData%exper(i)-atomic%atoms%chrg(i))**2
       enddo
       UpdateCost=aux
     endif
@@ -234,7 +333,10 @@ end function UpdateCost
     if (err/=0) then
       call error("I can not open file "//trim(cExper),myname,.true.,io)
     endif
-    read(1,*)r1,e1
+    read(1,*,iostat=err)r1,e1
+    if (err/=0) then
+      call error("I can not read from the file "//trim(cExper),myname,.true.,io)
+    endif
     err=0
     n=0
     do while (err /= -1)
@@ -265,13 +367,14 @@ end function UpdateCost
 
     allocate(bounds(1:gen%fit%iNoParams,1:2))
     open(1,file=trim(cBounds),status="old",action="read",iostat=errno)
+
     if (errno/=0) then
-      call error("bounds file not found!!!",myname,.true.,io)
+      call error("I can not find bounds file "//trim(cBounds),myname,.true.,io)
     endif
     do i=1,gen%fit%iNoParams
       read(1,*,iostat=errno)bounds(i,1),bounds(i,2)
       if (errno/=0) then
-        write(saux,'(a,i0)')"bounds.dat error in line ",i
+        write(saux,'(a,a,i0)'),trim(cBounds)," error in line ",i
         call error(trim(saux),myname,.true.,io)
       endif
     enddo
@@ -495,8 +598,8 @@ end function UpdateCost
       if ((p(1,i) < bounds(i,1)) .or. (p(1,i) > bounds(i,2))) then
         write(io%uout,'(a,i0,f16.8,1x,f16.8,1x,f16.8)')"check parameter "&
                   ,i,bounds(i,1),p(1,i),bounds(i,2)
-        call error("the starting value (x) is outside the bounds execution terminated without any"&
-                        "optimization. lb(i) < x(i) <ub(i), i = 1, n.",myname,.true.,io)
+        call error("the starting value (x) is outside the bounds execution terminated without any"//&
+                        " optimization. lb(i) < x(i) <ub(i), i = 1, n.",myname,.true.,io)
       end if
     enddo
 
