@@ -1,0 +1,335 @@
+\chapter[TDTB+UJ]%
+{Time Dependent Tight Binding+UJ}
+\label{ch:one}
+%
+ \chapterquote{Le savant n'\'etudie pas la nature parce que cela est utile; \\
+\indent il l'\'etudie parce qu'il y prend plaisir, \\ 
+\indent et il y prend plaisir parce qu'elle est belle.}%
+{by Henri Poincar\'e}
+%
+\section{Introduction}
+\par{Tight binding is an approach to the quantum mechanical many particle problem particularly valuable in cases
+where exact analytic solutions are not available (i.e. almost always) and other numerical approaches
+like CI, DFT or GW are too time-consuming.}
+\par{Tight binding methods lie between the very accurate and very expensive,
+\emph{ab initio} methods, and the fast but limited, empirical methods. The
+speed of the tight binding methods compared with the \emph{ab initio} is two
+or three order of magnitude faster. Gaining speed we loose from the
+transferability of the model, but in tight binding we retain the quantum
+nature of the bonding. The tight binding methods are the ideal candidates, at
+this time, for large size atomistic simulation. For an overview see e.g. \citep{Finnis03,Goringe97b}.}
+\par{The relation between tight binding and density functional theory was
+  investigated by \citep{Sutton88,Foulkes89,Frauenheim00}. In short, they
+  proved that the tight binding models can be derived from DFT.}
+\par{Different approximations made to full DFT total energy functional give us
+different tight binding models. A common feature of all tight binding models
+is the minimum basis set, that is taking into account  one $s$ orbital,
+$3p$-orbitals, $5d$-orbitals
+$\{\ket{s},\ket{p_x},\ket{p_y},\ket{p_x},\ket{d_{xy}},\ket{d_{yz}},\ket{d_{zx}},$
+$\ket{d_{x^2-y^2}},\ket{d_{3z^2-r^2}}\}$
+per atom. Principal quantum numbers do not have any meaning. The main
+approximations that would define a tight binding model are: ignoring three
+centre integrals, parametrise two centre integrals, ignore inter-site Coulomb,
+assume orthogonality of orbitals, ignore charge transfer, a.s.o.}
+\par{Usually a general tight binding model starts with the assumption that the
+total energy can be written as}
+\be
+E=\sum_{i=1}^{N}\epsilon_i+\frac{1}{2}\sum_{i,j,i\neq j}U(R_{ij})
+\ee
+where $\epsilon_i$'s are the eigenvalues of a Schr{\"o}dinger-like equation
+\be
+\label{eigenschro}
+H\ket{\psi_i}=\epsilon_i\ket{\psi_i}
+\ee
+$U(R_{ij})$ with $R_{ij}=|\vec{R_j}-\vec{R_i}|$ is a short-range pairwise
+potential between the atoms $i$ and $j$.
+\par{Eq. \gref{eigenschro} is solved in a minimal basis set of atomic like
+localised functions $\{\phi_i\}$ which leads to the well known secular equation}
+\be
+|\underline{H}-\epsilon \underline{S}|=0
+\ee
+with matrices $\underline{H}$ and {\underline{S}} defined by
+\be
+H_{ij}=\bra{\phi_i}H\ket{\phi_j}\quad\quad S_{ij}=\bk{\phi_i}{\phi_j}
+\ee
+\par{Commonly we call $H_{ij}$ hopping integrals and $S_{ij}$ overlap
+integrals. Another common feature is to consider $H_{ij}$, extending only to
+first or second neighbours, as parameters taken from experiment or other
+calculations. $\underline{S}=\underline{I}$ gives us what we call orthogonal
+models.}
+\par{Another important step is the use of two centre parametrisation of
+Slater-Koster which gives us a fixed number of fundamental hopping integrals
+(at least 4 for $sp$-systems - originally denoted as $ss\sigma$, $sp\sigma$,
+$pp\sigma$, $pp\pi$). These parameters are interatomic
+distances dependent. There is no absolute parametrisation for the interatomic distance
+dependence, an exponential or an inverse power law being often used.}
+\par{Our aim is to create a time dependent tight binding model which would help us to study
+photoelectron transfer (PET) in sensor molecules \citep{deSilva01b}.}
+\section[GSP scheme]{Goodwin-Skinner-Pettifor based scheme}
+\par{Goodwin-Skinner-Pettifor (GSP) scheme was suggested in \citep{Goodwin89} and improved by Xu \emph{et al.}\citep{Xu92}. A recent improvement is added by Pettifor
+\citep{Mrovec04}. The model that we use is based on Xu's implementation of
+GSP scheme with two major differences which will be pointed when they would
+appear. The total energy is given by}
+\be
+E=2\text{Tr}[\rho H]+\sum_{i}F\biggl(\sum_{j,i\neq j}\phi(R_{ij})\biggr)-2T_ek_B(\text{Tr}\rho\ln{\rho}+\text{Tr}(1-\rho)\ln{(1-\rho)})
+\ee
+where $i$, $j$ represents the atoms, $F(x)$ the embedded function for the
+repulsive energy, $\phi(R_{ij})$ is the pair repulsive term between atom $i$
+and $j$. Last term gives the ``temperature'' dependence of the model. In fact
+is a trick used in order to improve the SCF models and to improve molecular dynamics. It represents the product $T_eS$ where
+$T_e$ is ``the electronic temperature'' and $S$ is the entropy of a fermionic
+gas. This is one of the improvements to the model.
+\be
+F(x)=\sum_{i=1}^{4}A_ix^i
+\ee
+with $A_i$'s parameters taken from \citep{Xu92}.
+\be
+\label{GSPscale}
+\begin{split}
+h_{\alpha}(r)=&V_{\alpha}\biggl(\frac{r_0}{r}\biggr)^n\exp{\biggl\{n\biggl[-\biggl(\frac{r}{r_c}\biggr)^{n_c}+\biggl(\frac{r_0}{r_c}\biggr)^{n_c}\biggr]\biggr\}}\\
+\phi(r)=&\phi_0\biggl(\frac{d_0}{r}\biggr)^m\exp{\biggl\{m\biggl[-\biggl(\frac{r}{d_c}\biggr)^{m_c}+\biggl(\frac{d_0}{d_c}\biggr)^{m_c}\biggr]\biggr\}}
+\end{split}
+\ee
+with $\alpha=ss\sigma,sp\sigma, ...$. $V_{\alpha}$ represents fundamental
+hopping integral and $h_{\alpha}$ times angular factor given by Slater-Koster
+parametrisation gives the inter site elements of the Hamiltonian. $r_0$
+represents the first neighbour distance (bond length at equilibrium in our
+case) all the rest quantities from \gref{GSPscale} are parameters to be
+fit. $r_c$ is taken to lie somewhere in between first and second neighbours.
+\par{Another set of parameters is represented by on-site energies
+$\epsilon_{\alpha}$ ($\alpha=s,p,d, ...$)}
+\be
+\epsilon_{\alpha}^{i}=\bra{\alpha^i}H\ket{\alpha^i}
+\ee
+\par{To ensure energy conservation to $h_{\alpha}$ and $\phi$ tails are added. They
+join the function at $r_1$ and are zero at $r_{cut}$. A simple polynomial form
+is implemented such as to have continuous function and derivatives (first and
+second) at $r_1$ and a zero function and derivatives (first and second) at
+$r_{cut}$. This is the second difference from Xu's model. The tail function is}
+\be
+t(r)=(r-r_{cut})^3(10c+5br+3ar^2+5br_{cut}+4arr_{cut}+3ar_{cut}^2)/60
+\ee
+where $a,b,c$ are determined by the restrictions from definition of the
+tail. Theirs values are
+\be
+\begin{split}
+a=&\frac{10}{(r_1-r_{cut})^5}(12A-6Br_1+Cr_1^2+6Br_{cut}-2Cr_1r_{cut}+Cr_{cut}^2)\\
+b=&-\frac{4}{(r_1-r_{cut})^5}(45Ar_1-21Br_1^2+3Cr_1^3+15Ar_{cut}+12Br_1r_{cut}-4Cr_1^2r_{cut}+9Br_{cut}^2\\&-Cr_1r_{cut}^2+2Cr_{cut}^3)\\
+c=&-\frac{1}{(r_1-r_{cut})^5}(-60Ar_1^2+24Br_1^3-3Cr_1^4-60Ar_1r_{cut}+12Br_1^2r_{cut}-36Br_1r_{cut}^2\\&+8Cr_1^2r_{cut}^2-4Cr_1r_{cut}^3-Cr_{cut}^4)
+\end{split}
+\ee
+with $A=f(r_1)$, $B=f^{\prime}(r_1)$, $C=f^{\prime\prime}(r_1)$
+\par{This model was implemented in TDTB+UJ and used in all the
+calculation presented in this thesis. Figures \gref{ssg} and \gref{spg}
+show the radial part of hopping integrals $ss\sigma$ and $sp\sigma$ with a
+tail added at $ r_1=1.5 \angstrom $ and a cut-off $ r_{cut}=1.9 \angstrom $, the rest of
+parameters are taken from Table \gref{tablenh3} first SSA column and represent
+fitted parameters for $N-H$ bond in our GSP-like model.}
+\begin{figure}[!htb]
+\begin{minipage}[!htb]{7.9cm}
+\begin{center}
+\includegraphics[width=7cm]{figures/ssg}
+\end{center}
+\caption{$ss\sigma$ radial dependence}
+\label{ssg}
+\end{minipage}
+%\end{figure}
+%
+%\begin{figure}[!htb]
+\begin{minipage}[!htb]{7.9cm}
+\begin{center}
+\includegraphics[width=7cm]{figures/spg}
+\end{center}
+\caption{$sp\sigma$ radial dependence}
+\label{spg}
+\end{minipage}
+\end{figure}
+
+\section{Introduction}
+\par{The hamiltonian in second quantisation including electron-electron interaction term}
+\begin{equation}
+H=\sum_{i,\sigma}\epsilon_ia_{i\sigma}^{\dag}a_{i\sigma}+\sum_{i\neq j,\sigma}t_{ij}a_{i\sigma}^{\dag}a_{j\sigma}+\frac{1}{2}\sum_{ijkl\sigma \sigma{\prime}}
+V_{ijkl}a_{i\sigma}^{\dag}a_{j\sigma\prime}^{\dag}a_{k\sigma\prime}a_{l\sigma}
+\end{equation}
+\par{$\sigma$ index stays for spin}
+\par{first two terms are "normal" tight-binding terms}
+\par{last term is the electron-electron interaction term.}
+\par{Expanding the field operators in single particle eigenfunction we get}
+\begin{equation}
+\begin{split}
+V_{ijkl}&=\int\phi_{i}^{*}(\bm{r})\phi_{l}(\bm{r})W(rr\prime)\phi_{j}^{*}(\bm{r^\prime})\phi_{k}(\bm{r^\prime})\td\bm{r}\td\bm{r^\prime}\\
+&=\bra{ij}W\ket{lk}
+\end{split}
+\end{equation}
+where $W(rr^\prime)=\frac{1}{4\pi\epsilon_0}\frac{e^2}{|\bm{r}-\bm{r^\prime}|}$.
+\par{Electron-electron interaction from the point of view of field theory is: two particles in states $(l\sigma,k\sigma^\prime)$ interact and as a result two particles 
+in the states $(i\sigma,j\sigma^\prime)$ emerge. Because of the nature of the hamiltonian, non-relativistic, the spin is conserved (no spin flip is described).}
+\par{In tight-binding usually we ignore all the interactions described by such schemes.}
+\par{Two type of such integrals are important for us direct and exchange Coulomb integrals.}
+direct Coulomb integrals
+\begin{equation}
+\label{udef}
+V_{ijji}=\int\phi_{i}^{*}(\bm{r})\phi_{i}(\bm{r})W(rr\prime)\phi_{j}^{*}(\bm{r^\prime})\phi_{j}(\bm{r^\prime})\td\bm{r}\td\bm{r^\prime}=U_{ij}
+\end{equation}
+$U_{ii}$ is the interaction energy associated with putting an elctron of spin up, let's say, into an orbital where there is already an electron with spin down.\\
+exchange Coulomb integrals
+\begin{equation}
+V_{ijij}=\int\phi_{i}^{*}(\bm{r})\phi_{j}(\bm{r})W(rr\prime)\phi_{j}^{*}(\bm{r^\prime})\phi_{i}(\bm{r^\prime})\td\bm{r}\td\bm{r^\prime}=J_{ij}
+\end{equation}
+exchange energy only affects like spin electrons.
+\par{Using the definition of $U$ from \gref{udef} we get a value of order $20eV$ which 
+disagrees with experimental results. This come from the fact that the basis set is incomplete.
+The incompletness of the basis set exclude any virtual transitions to these states.}
+\par{+U formalism describes correctly the discontinuity in the potential as the occputaion number is changed (???Janak's theorem???).}
+\section{The model}
+\par{Assumptions:}
+\begin{itemize}
+\item{Not all electrons are correlated. These are separated out from the others identified by the orbitals they occupy or region of space or both.}
+\item{When replacing an expectation value it is assumed that correlation exists only between electrons whose orbitals are on the same atom. }
+\item{Only electrons with the same $n$within an atom are correlated}
+\item {We use the \textit{mean field approximation} -- the two electron operator is expressed in term of a one electron operator acting alone but in the average field of the other}
+\end{itemize}
+\par{So, the expectation value of electron-electron interaction operator becomes}
+\begin{equation}
+\begin{split}
+\frac{1}{2}&\sum_{ijkl\sigma\sigma^\prime}V_{ijkl}\langle a_{i\sigma}^{\dag}a_{j\sigma^\prime}^{\dag}a_{k\sigma^\prime}a_{l\sigma}\rangle
+\cong \frac{1}{2}\sum_{ijkl\sigma\sigma^\prime}V_{ijkl}(\langle a_{i\sigma}^{\dag}a_{l\sigma} \rangle \langle a_{j\sigma^\prime}^{\dag}a_{k\sigma^\prime} \rangle -
+\langle a_{i\sigma}^{\dag}a_{k\sigma^\prime}\rangle \langle a_{j\sigma^\prime}^{\dag}a_{l\sigma} \rangle )\\
+&=\frac{1}{2}\sum_{ijkl\sigma\sigma^\prime}V_{ijkl}(n_{il}^{\sigma\sigma}n_{jk}^{\sigma^\prime\sigma^\prime}-
+n_{ik}^{\sigma\sigma^\prime}n_{jl}^{\sigma^\prime\sigma})
+\end{split}
+\end{equation}
+$n_{ij}^{\sigma\sigma^\prime}$ = generalised occupation numbers. (density matrix with non zero off-diagonal elements)\\
+\par{Each index $ijkl$ stands for a $ \lbrace \bm{R}nlm \rbrace $ set, but having in mind our assumptions we realise
+that $l,m$ are the only one which differs. We replace ${ijkl} \rightarrow {L_1L_2L_3L_4}$ with $L_i \rightarrow \lbrace l_im_i \rbrace$ and we get}
+rewrite from here
+\begin{equation*}
+\begin{split}
+E^U&=\frac{1}{2}\sum_{\{m_i\}\sigma\sigma^\prime}V_{m_1m_2m_3m_4}
+(n_{m_1m_4}^{\sigma\sigma}n_{m_2m_3}^{\sigma^\prime\sigma^\prime}-
+n_{m_1m_3}^{\sigma\sigma^\prime}n_{m_2m_4}^{\sigma^\prime\sigma})\\
+&=\frac{1}{2}\sum_{\{m_i\}\sigma\sigma^\prime}V_{m_1m_2m_3m_4}
+n_{m_1m_4}^{\sigma}n_{m_2m_3}^{\sigma^\prime}-\frac{1}{2}\sum_{\{m_i\}\sigma}V_{m_1m_2m_3m_4}
+n_{m_1m_3}^{\sigma}n_{m_2m_4}^{\sigma}\\
+&=\frac{1}{2}\sum_{\{m_i\}\sigma}V_{m_1m_2m_3m_4}n_{m_1m_4}^{\sigma}n_{m_2m_3}^{-\sigma}\\&-
+\frac{1}{2}\sum_{\{m_i\}\sigma}V_{m_1m_2m_3m_4}
+(n_{m_1m_3}^{\sigma}n_{m_2m_4}^{\sigma}-n_{m_1m_4}^{\sigma}n_{m_2m_3}^{\sigma})
+\end{split}
+\end{equation*}
+\begin{equation}
+\label{Eu}
+\begin{split}
+E^U=&\frac{1}{2}\sum_{\{m_i\}\sigma}V_{m_1m_2m_3m_4}n_{m_1m_4}^{\sigma}n_{m_2m_3}^{-\sigma}\\+&
+\frac{1}{2}\sum_{\{m_i\}\sigma}(V_{m_1m_2m_3m_4}-V_{m_1m_2m_4m_3})
+n_{m_1m_4}^{\sigma}n_{m_2m_3}^{\sigma}
+\end{split}
+\end{equation}
+%
+\par{The interaction potential associated with $E^U$ is given by}
+\begin{equation*}
+\p{E^U}{n_{mm^\prime}^{\sigma^\prime}}
+\end{equation*}
+%
+\par{For simplicity we will compute it in two steps}
+%
+\begin{equation}
+\begin{split}
+V^{(1)}&=\frac{1}{2}\p{}{n_{mm^\prime}^{\sigma^\prime}}\sum_{\{m_i\}\sigma}V_{m_1m_2m_3m_4}n_{m_1m_4}^{\sigma}n_{m_2m_3}^{-\sigma}\\
+&=\frac{1}{2}\sum_{\{m_i\}\sigma}V_{m_1m_2m_3m_4}(n_{m_2m_3}^{-\sigma}\delta_{m_1m}\delta_{m_4m^\prime}\delta_{\sigma\sigma^\prime}
++n_{m_1m_4}^{\sigma}\delta_{m_2m}\delta_{m_3m^\prime}\delta_{-\sigma\sigma^\prime})\\
+&=\frac{1}{2}\sum_{m_2m_3}V_{mm_2m_3m^{\prime}}n_{m_2m_3}^{-\sigma^{\prime}}
++\frac{1}{2}\sum_{m_1m_4}V_{m_1mm^{\prime}m_4}n_{m_1m_4}^{-\sigma^{\prime}}\\
+&=\sum_{m_1m_2}V_{mm_1m_2m^{\prime}}n_{m_1m_2}^{-\sigma^{\prime}}
+\end{split}
+\end{equation}
+where for the last line we used $V_{m_1m_2m_3m_4}=V_{m_2m_1m_4m_3}$ and renamed the summation index.\\
+\begin{equation}
+\begin{split}
+V^{(2)}&=\frac{1}{2}\p{}{n_{mm^\prime}^{\sigma^\prime}}\sum_{\{m_i\}\sigma}(V_{m_1m_2m_3m_4}-V_{m_1m_2m_4m_3})
+n_{m_1m_4}^{\sigma}n_{m_2m_3}^{\sigma}\\
+&=\sum_{m_1m_2}(V_{mm_1m_2m^{\prime}}-V_{mm_1m^{\prime}m_2})n_{m_1m_2}^{\sigma^\prime}
+\end{split}
+\end{equation}
+So finally we get
+\begin{equation}
+V_{m_1m_2}^{\sigma}=\p{E^U}{n_{m_1m_2}^{\sigma}}=\sum_{m_3m_4}(V_{m_1m_3m_4m_2}
+n_{m_3m_4}^{-\sigma}+(V_{m_1m_3m_4m_2}-V_{m_1m_3m_2m_4})n_{m_3m_4}^{\sigma})
+\end{equation}
+%
+\par{Assuming real atomic-like orbitals $V$ becomes}
+\begin{equation}
+V_{n_1L_1n_2L_2n_3L_3n_4L_4}=\sum_{k=0}^{\infty}R^k(n_1l_1n_2l_2n_3l_3n_4l_4)A^k(L_1L_2L_3L_4)
+\end{equation}
+with
+\begin{equation*}
+A^k(L_1L_2L_3L_4)=\frac{4\pi}{2k+1}\sum_{p=-k}^{k}\mc{G}_{l_1m_1l_4m_4}^{kp}\mc{G}_{l_2m_2l_3m_3}^{kp}
+\end{equation*}
+but in our hypothesis we have
+\begin{equation*}
+l_1=l_2=l_3=l_4=l\qquad n_1=n_2=n_3=n_4=n
+\end{equation*}
+so 
+\begin{equation*}
+R^{k}(nlnlnlnl)=F^k(l,l)\text{ - Slater's Integrals}
+\end{equation*}
+\begin{equation}
+V_{m_1m_2m_3m_4}=\sum_{k=0}^{2l}\frac{4\pi}{2k+1}F^k(l,l)\sum_{p=-k}^{k}\mc{G}_{lm_1lm_4}^{kp}\mc{G}_{lm_2lm_3}^{kp}
+\end{equation}
+\par{for the last relation we used the selection rules for Gaunt coefficients to get the sum limits for $k$.
+$k$ must be also even.}
+%
+\section{+U for second order theory}
+\par{We start by simply rewritting the density in the form $n=n^0+\delta n$, wehere $n^0$ is the reference density.
+Now \gref{Eu} becomes}
+\begin{equation}
+\begin{split}
+E^U&=\frac{1}{2}\sum_{\{m_i\}\sigma}V_{m_1m_2m_3m_4}(n_{m_1m_4}^{\sigma, 0}+\delta n_{m_1m_4}^{\sigma})(n_{m_2m_3}^{-\sigma,0}+\delta n_{m_2m_3}^{-\sigma})\\&+
+\frac{1}{2}\sum_{\{m_i\}\sigma}(V_{m_1m_2m_3m_4}-V_{m_1m_2m_4m_3})
+(n_{m_1m_4}^{\sigma,0}+\delta n_{m_1m_4}^{\sigma})(n_{m_2m_3}^{\sigma,0}+\delta n_{m_2m_3}^{\sigma})
+\end{split}
+\end{equation}
+or
+\begin{equation}
+\label{eu2}
+\begin{split}
+E^U&=\frac{1}{2}\sum_{\{m_i\}\sigma}V_{m_1m_2m_3m_4}( n_{m_1m_4}^{\sigma, 0}n_{m_2m_3}^{-\sigma,0}+n_{m_1m_4}^{\sigma, 0}\delta n_{m_2m_3}^{-\sigma}
++ n_{m_2m_3}^{-\sigma,0}\delta n_{m_1m_4}^{\sigma}\\+& \delta n_{m_2m_3}^{-\sigma}\delta n_{m_1m_4}^{\sigma})+
+\frac{1}{2}\sum_{\{m_i\}\sigma}(V_{m_1m_2m_3m_4}-V_{m_1m_2m_4m_3})
+(n_{m_1m_4}^{\sigma, 0}n_{m_2m_3}^{\sigma,0}+n_{m_1m_4}^{\sigma, 0}\delta n_{m_2m_3}^{\sigma}
+\\+& n_{m_2m_3}^{\sigma,0}\delta n_{m_1m_4}^{\sigma}+ \delta n_{m_2m_3}^{\sigma}\delta n_{m_1m_4}^{\sigma})
+\end{split}
+\end{equation}
+\par{Now the potential associated with $E^U$ becomes}
+
+\begin{equation}
+\label{hamU}
+\begin{split}
+\mc{V}_{m_1m_2}^{\sigma}=\p{E^U}{\delta n_{m_1m_2}^{\sigma}}=&\sum_{m_3m_4}(V_{m_1m_3m_4m_2}
+n_{m_3m_4}^{-\sigma,0}+(V_{m_1m_3m_4m_2}-V_{m_1m_3m_2m_4})n_{m_3m_4}^{\sigma,0})\\
++&\sum_{m_3m_4}(V_{m_1m_3m_4m_2}
+\delta n_{m_3m_4}^{-\sigma}+(V_{m_1m_3m_4m_2}-V_{m_1m_3m_2m_4})\delta n_{m_3m_4}^{\sigma})
+\end{split}
+\end{equation}
+%
+\par{Now from the point of view of the second order theory the first term in \gref{hamU} should be added to $H^{in}$.
+Second term represents the matrix element of the hamiltonian 
+associated with $E_2$. The terms which contain only products of $n^0$ in \gref{eu2} can be regarded as a reference energy. No forces arise from \gref{eu2}. So, we have}
+%
+\begin{equation}
+\begin{split}
+E_{2}^{U}&=\frac{1}{2}\sum_{\{m_i\}\sigma}\left [V_{m_1m_2m_3m_4}\delta n_{m_2m_3}^{-\sigma}\delta n_{m_1m_4}^{\sigma}\right. \\&\left.+
+(V_{m_1m_2m_3m_4}-V_{m_1m_2m_4m_3})
+\delta n_{m_2m_3}^{\sigma}\delta n_{m_1m_4}^{\sigma}\right]\\
+H^{U,\sigma}_{2m_1m_2}&=\sum_{m_3m_4}(V_{m_1m_3m_4m_2}
+\delta n_{m_3m_4}^{-\sigma}+(V_{m_1m_3m_4m_2}-V_{m_1m_3m_2m_4})\delta n_{m_3m_4}^{\sigma})\\
+H^{in(U), \sigma}_{m_1m_2}&=\sum_{m_3m_4}(V_{m_1m_3m_4m_2}
+n_{m_3m_4}^{-\sigma,0}+(V_{m_1m_3m_4m_2}-V_{m_1m_3m_2m_4})n_{m_3m_4}^{\sigma,0})\\
+E^{U}_{ref}&=\frac{1}{2}\sum_{\{m_i\}\sigma}\left[V_{m_1m_2m_3m_4}n_{m_1m_4}^{\sigma, 0}n_{m_2m_3}^{-\sigma,0}\right. \\ &\left.+(V_{m_1m_2m_3m_4}-V_{m_1m_2m_4m_3})
+n_{m_1m_4}^{\sigma, 0}n_{m_2m_3}^{\sigma,0}\right]
+\end{split}
+\end{equation}
+%
+\section{Outline}
++U formalism
+\par{1. adds electron-electron interaction}
+\par{2. restricted to the onsite terms and oritals with the same $l$}

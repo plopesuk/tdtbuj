@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VisualStudioProject ProjectCreator="Intel Fortran" Keyword="Console Application" Version="9.10" ProjectIdGuid="{336FC947-C469-4750-AD52-7D8B65E8C07D}">
+	<Platforms>
+		<Platform Name="Win32"/></Platforms>
+	<Configurations>
+		<Configuration Name="Debug|Win32">
+				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/Qfpp2 /Qopenmp /debug:full" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" BufferedIO="true" PreprocessorDefinitions="OPENMP" StandardWarnings="standardWarningsF03" OpenMPDiagLevel="openMPDiagLevel2" WarnDeclarations="true" WarnUnusedVariables="true" ModulePath="." Traceback="true" RuntimeChecks="rtChecksAll" NullPointerCheck="true" BoundsCheck="true" UninitializedVariablesCheck="true" DescriptorDataTypeCheck="true" DescriptorDataSizeCheck="true" ArgTempCreatedCheck="true" RuntimeLibrary="rtMultiThreadedDebug"/>
+				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" IgnoreDefaultLibraryNames="libguide.lib;libguide_stats.lib" GenerateDebugInformation="true" SubSystem="subSystemConsole" AdditionalDependencies="mkl_lapack95.lib mkl_solver.lib mkl_blas95.lib mkl_intel_c.lib mkl_intel_thread.lib mkl_core.lib libguide40_stats.lib"/>
+				<Tool Name="VFResourceCompilerTool"/>
+				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
+				<Tool Name="VFCustomBuildTool"/>
+				<Tool Name="VFPreLinkEventTool"/>
+				<Tool Name="VFPreBuildEventTool"/>
+				<Tool Name="VFPostBuildEventTool"/></Configuration>
+		<Configuration Name="Release|Win32">
+				<Tool Name="VFFortranCompilerTool" AdditionalOptions="/Qfpp2 /Qopemp-profile" SuppressStartupBanner="true" Optimization="optimizeCustom" GlobalOptimizations="true" UseProcessorExtensions="codeForCore2Duo" RequireProcessorExtensions="codeExclusivelyCore2Duo" BufferedIO="true" OpenMP="OpenMPParallelCode" ModulePath="."/>
+				<Tool Name="VFLinkerTool" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" SubSystem="subSystemConsole"/>
+				<Tool Name="VFResourceCompilerTool"/>
+				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
+				<Tool Name="VFCustomBuildTool"/>
+				<Tool Name="VFPreLinkEventTool"/>
+				<Tool Name="VFPreBuildEventTool"/>
+				<Tool Name="VFPostBuildEventTool"/></Configuration></Configurations>
+	<Files>
+		<Filter Name="Header Files" Filter="fi;fd"/>
+		<Filter Name="Resource Files" Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"/>
+		<Filter Name="Source Files" Filter="f90;for;f;fpp;ftn;def;odl;idl">
+		<File RelativePath="source\Constants.f90"/>
+		<File RelativePath="source\DensityMatrix.f90"/>
+		<File RelativePath="source\DriverRoutines.f90"/>
+		<File RelativePath="source\Dynamics.f90"/>
+		<File RelativePath="source\Electrostatics.f90"/>
+		<File RelativePath="source\Fit.f90"/>
+		<File RelativePath="source\Gutenberg.f90"/>
+		<File RelativePath="source\Hamiltonian.f90"/>
+		<File RelativePath="source\LBFGS.f90"/>
+		<File RelativePath="source\main.f90"/>
+		<File RelativePath="source\Mixing.f90"/>
+		<File RelativePath="source\ReadData.f90"/>
+		<File RelativePath="source\SA.f90"/>
+		<File RelativePath="source\SCF.f90"/>
+		<File RelativePath="source\Simplex.f90"/>
+		<File RelativePath="source\SimplexSA.f90"/>
+		<File RelativePath="source\SlaterKoster.f90"/>
+		<File RelativePath="source\TailFunctions.f90"/>
+		<File RelativePath="source\TightBinding.f90"/>
+		<File RelativePath="source\Types.f90"/>
+		<File RelativePath="source\Useful.f90"/></Filter>
+		<File RelativePath=".\VTune\tdtbuj.vpj"/></Files>
+	<Globals/></VisualStudioProject>
