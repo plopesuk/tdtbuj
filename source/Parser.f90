@@ -38,7 +38,7 @@ contains
 !>  \brief opens the input and error files
 !>  \details allocates the lists for blocks and tokens
 !>  starts the parsing
-!> \author Alin M. Elena (Belfast)              
+!> \author Alin M. Elena (Belfast)
 !> \date 14th-15th of January 2006
 !> \param ioLoc is type(ioType) (see m_Types::ioType)
 !> \remark 20th of January 2007 added the parameter \em ioLoc
@@ -76,7 +76,7 @@ contains
 !> \author Alin M. Elena (Belfast)
 !> \date 14th-15th of January 2006
 !> \param nounit integer, represents the unit number of a file which was previous opened and now
-!> is parsed 
+!> is parsed
 !> \param  ioLoc type(ioType) (see ioType)
 !> \param  ireport type(infoParseType),  keeps the info about the parsed files (see m_Types::infoParseType type)
 !> \remark 20th of January, 2007, by Alin M Elena (Queen's University Belfast), added parameter \em ioLoc
@@ -109,7 +109,7 @@ contains
         read(lineaux(8:255),*,iostat=errno)filename
 
         if (errno/=0) call ParseErr("invalid name after include",myname,nam,lineno,ioLoc)
-        inquire(file=trim(filename),exist=ex,opened=op)        
+        inquire(file=trim(filename),exist=ex,opened=op)
         if (.not.ex) call ParseErr("can not open file after include: "//trim(filename),myname,nam,lineno,ioLoc)
         if (op) call ParseErr("file has been already opened (two indentical lines in input)",&
           myname,nam,lineno,ioLoc)
@@ -133,7 +133,7 @@ contains
           bool= GetLine(nounit,line)
           lineno=lineno+1
           lineaux=adjustl(line)
-! take some action if we have a endblock       
+! take some action if we have a endblock
           if (cstr(lineaux(1:8),"endblock")) then
             ! check the name
             read(lineaux(9:k_ml),*,iostat=errno)endblockname
@@ -144,7 +144,7 @@ contains
               " found endblock "//trim(endblockname),myname,nam,lineno,ioLoc)
             exit
           endif
-! parse the content of the block line by line and get rid of commented and empty lines           
+! parse the content of the block line by line and get rid of commented and empty lines
           if (lineaux(1:1)=="!" .or. lineaux(1:1)=="#".or.lineaux(1:2)=="//") then
             ireport%comments=ireport%comments+1
           elseif (len(trim(line))==0) then
@@ -185,7 +185,7 @@ contains
           currentb%value=trim(filename)
         endif
       elseif (cstr(lineaux(1:8),"endblock")) then
-! endblock without block    
+! endblock without block
         call ParseErr("endblock without block",myname,nam,lineno,ioLoc)
       else
         ireport%tokens=ireport%tokens+1
@@ -195,14 +195,14 @@ contains
         if (errno/=0) storeline=''
 ! check for the token in the existent list and add it if is new
         if (ireport%tokens==1) then
-          currentt=>tnames 
+          currentt=>tnames
           tnames%nam=trim(tokename)
         else
           if (FindName(trim(tokename),tnames)) &
             call ParseErr("found token "//trim(tokename)//" duplicated",&
             myname,nam,lineno,ioLoc)
           call AddName(trim(tokename),currentt)
-        endif 
+        endif
         currentt%value=trim(storeline)
       endif
 
@@ -221,9 +221,10 @@ contains
 
   logical function GetLine(uno,line)
     character(len=*), parameter :: myname = 'GetLine'
-    character(len=k_ml), intent(out) :: line 
+    character(len=k_ml), intent(out) :: line
     integer, intent(in) ::uno
     integer :: errno
+
     inquire(unit=uno,iostat=errno)
     GetLine=.false.
     if (errno/=0) then
@@ -240,11 +241,11 @@ contains
 !> \date 14th of January 2006
 !> \param word character(len=*), value for field nam of the node
 !> \param current pointer to the last node in the list
-!> \param lines integer, optional value for field lines 
+!> \param lines integer, optional value for field lines
 
   subroutine AddName(word,current,lines)
     character(len=*), parameter :: myname = 'AddName'
-    character(len=*),intent(in) :: word 
+    character(len=*),intent(in) :: word
     integer,intent(in),optional :: lines
     type(names),pointer :: current
     type(names),pointer :: node
@@ -287,7 +288,7 @@ contains
 !> \details
 !> \author Alin M Elena
 !> \date 14th of January 2006
-!> \param root type(names), pointer  starting node in the Printing list 
+!> \param root type(names), pointer  starting node in the Printing list
 !> \param ioLoc type(ioType) conatins the unit to Print (see m_Types::ioType)
 !> \remarks
   subroutine PrintName(root,ioLoc)
@@ -319,7 +320,7 @@ contains
       call DeleteList(current)
     else
       deallocate(root)
-    endif 
+    endif
   end subroutine DeleteList
 
 !> \brief parses a line removing comments
@@ -328,7 +329,7 @@ contains
 !> \date 14th of January 2006
 !> \param line character(len=*) the line to be parsed
   character(k_ml) function ParseLine(line)
-    character(len=*), parameter :: myname = 'ParseLine' 
+    character(len=*), parameter :: myname = 'ParseLine'
     character(len=*), intent(in) :: line
     integer ::p(1:3),pos
 
@@ -432,11 +433,11 @@ contains
     if (FindName(trim(label),tnames,found)) then
       if ((cstr(trim(found%value),"yes")).or.(cstr(trim(found%value),"true")) &
         .or.(cstr(trim(found%value),".true.")).or.(cstr(trim(found%value),"t"))&
-        .or.(cstr(trim(found%value),"y")).or.(cstr(trim(found%value),"1"))) then 
+        .or.(cstr(trim(found%value),"y")).or.(cstr(trim(found%value),"1"))) then
         GetLogical=.true.
       elseif ((cstr(trim(found%value),"no")).or.(cstr(trim(found%value),"false")) &
         .or.(cstr(trim(found%value),".false.")).or.(cstr(trim(found%value),"f")) &
-        .or.(cstr(trim(found%value),"n")).or.(cstr(trim(found%value),"0"))) then 
+        .or.(cstr(trim(found%value),"n")).or.(cstr(trim(found%value),"0"))) then
         GetLogical=.false.
       else
         call error("Unsuported value: "//&
@@ -448,7 +449,7 @@ contains
         GetLogical=dflt
       else
         GetLogical=.true.
-      endif 
+      endif
       write(ioLoc%udeb,'(a,2x,l1,a)') trim(label),GetLogical, " default"
     endif
   end function GetLogical
@@ -475,21 +476,21 @@ character(len=k_mw) function GetString(ioLoc,label,dflt,Print)
 ! so be sure that you provide a default parameter
     if (FindName(trim(label),tnames,found)) then
       GetString=trim(found%value)
-      if (present(Print).and.(.not.Print)) then 
-      else 
+      if (present(Print).and.(.not.Print)) then
+      else
         write(ioLoc%udeb,'(a,2x,a)') trim(label),trim(GetString)
-      endif   
+      endif
     else
       if (present(dflt)) then
         GetString=trim(dflt)
       else
         GetString=''
       endif
-      if (present(Print).and.(.not.Print)) then 
-      else   
+      if (present(Print).and.(.not.Print)) then
+      else
         write(ioLoc%udeb,'(a,2x,a,a)') trim(label),trim(GetString), " default"
-      endif   
-    endif  
+      endif
+    endif
   end function GetString
 
 !> \brief  returns a real(kind=k_pr) value found in the input file(s) associated with the token \em label
@@ -583,7 +584,7 @@ character(len=k_mw) function GetString(ioLoc,label,dflt,Print)
     if (FindName(trim(label),bnames,found)) then
       GetBlock=.true.
       nt=found%ut
-      line=found%value  
+      line=found%value
       open(unit=nt,action="read",status="old",file=trim(line))
       write(ioLoc%udeb,'(a,2x,l1)') trim(label),GetBlock
     else

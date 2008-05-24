@@ -1394,7 +1394,7 @@ end subroutine CloseIoGeneral
 !> \param io type(ioType) i/o units
 !> \param general type(generalType) general data
 !> \param specs type(speciesType) contains info about atoms
-
+!> \param specBasis type(orbitalType) optional contains the information about the basis set for each specie
   subroutine ReadSpecies(io,general,specs,specBasis)
     character(len=*), parameter :: sMyName="ReadSpecies"
     type(ioType), intent(inout) :: io

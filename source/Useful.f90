@@ -476,12 +476,11 @@ contains
     endif
   end function LocalMoment
 
-!> \brief returns the maximum l for an atom
+!> \brief returns the maximum l for a specie
 !> \author Alin M Elena
 !> \date 03/11/07, 11:03:47
-!> \param at integer the atom
-!> \param atomic type(atomicx) all the info about atoms
-!> \param specBas type(orbitalType) all the info about species basis
+!> \param sp integer the atom
+!> \param specBasis type(orbitalType) all the info about species basis
 !> \param spec type(speciesType) all the info about species
   integer function GetLmax(sp,specBasis,spec)
     !--subroutine name--------------------------------!
@@ -511,7 +510,6 @@ contains
 !> \brief returns the maximum l for an atom
 !> \author Alin M Elena
 !> \date 25/11/08, 23:03:47
-!> \param at integer the atom
 !> \param specBas type(orbitalType) all the info about species basis
 !> \param spec type(speciesType) all the info about species
   integer function Lmax(specBas,spec)
