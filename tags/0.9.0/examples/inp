@@ -1,0 +1,109 @@
+OutputFile output.out
+DebugFile  output.dbg
+OutputLevel 0
+DebugLevel  1
+OnScreen   No
+
+JobName test
+RanSeed 0.142
+Units  RY
+MaxOrbsPerAtom 10
+
+
+#RunType SinglePoint
+#RunType BODynamics
+#RunType Ehrenfest
+RunType EhrenfestDamped
+#RunType Fit
+#RunType GeometryOptimization
+
+NetCharge 0.0
+VBias 1.0
+
+Spin Yes 
+CollinearSpins Yes
+Electrostatics PointCharges
+
+SmearingMethod           FD
+ElectronicTemperature    50.1
+
+SCF yes	 
+SCFSteps 100
+SCFTolerance          0.000000000010
+SCFMixing             0.7500
+SCFMixIterations      4
+
+#Time evolution
+DeltaT 0.001
+Nsteps 200000
+WriteAnimation Yes
+
+ScaleVelocities  No
+IonicTemperature 550.0
+
+Gamma 0.05
+EulerSteps 100
+# excitation
+Excite Yes
+HoleState 3
+HoleSpin  U
+ExciteState 4
+ExciteSpin U
+
+### Fit
+FitMethod  TrustRegion
+NoFitParams  10
+FitTol                0.0001000000000000 
+RestartFit  F 
+FitNeps  4 
+# simplex specific
+SimplexMaxIter  10000 
+# SA specific
+SAMaxFeval  100000 default
+SACycles  20 
+SAnBefRed 5 
+SATemp    100.00 
+SAstep    1.00
+SAStepAdj 2.00
+SATempRed 0.50
+#Trust-Region specific
+TRstep 100.0
+TRMaxIter 100000
+
+# simplexSA
+
+BondType GSP
+Embedding No
+SymRefRho Yes
+Screened No 
+ReadVel Yes
+HElTres 1.0e-10
+
+
+# Geometry Optimisation
+
+EnergyTolerance                0.0001
+ForceTolerance 0.9
+XTolerance                1.0e-10
+EpsilonE                1.0e-10
+EpsilonG                1.0e-10
+EpsilonX                1.0e-10
+MaxFEval  20 
+GeometryNSteps  100 
+HessianM   7
+
+
+###################
+block DeltaPol
+1
+0.1
+0.2
+2
+endblock DeltaPol
+###############
+
+include coords.dat
+include species.dat
+include basis.dat
+include gsp.dat
+

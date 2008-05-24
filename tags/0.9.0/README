@@ -1,0 +1,32 @@
+1. General
+2. How to install
+-You will need cmake in order to install tdtb+uj. I did it with cmake 
+2.4.4 you can download it from www.cmake.org and install it..
+Two enviroment variables affect the behaviour FC and FFLAGS they will 
+help you to set the fortran compiler and the flags necessary to compile.
+(eg. export FC=ifort;export FFLAGS="-O3 -axT" for a Pentium Core2Duo
+processor with intel fortran compiler and bash-like shell or
+setenv FC ifort; setenv FFLAGS="-O4  -axT" for a csh like shell)
+----- cmake .
+this will generate the Makefile if you want to install it in a certain 
+location the command will be (cmake . -DPREFIX="/your_path")
+----- make
+this will build the binaries bin/tdtbuj
+----- make install 
+this will install the binaries at the desired location
+----- make uninstall 
+this will uninstall the the program (will delete the files written by 
+make install)
+----- make docs
+this will generate a documentation using doxygen 
+(www.stack.nl/~dimitri/doxygen/) you will need also 
+latex and makeindex.
+----- make package
+generates the binary package (.tar.gz tar.bz2 and .zip)
+----- make package_source
+generates the package source
+
+paranoic debug flags intel compiler
+PS C:\Users\Alin M Elena\tdtbuj> $env:FFLAGS="/traceback /check:pointer /check:bounds /check:uninit /check:format /check
+:output_conversion /check:arg_temp_created /Qopenmp-profile /Qfpp2  /Od  /gen-interfaces /stand:f03"
+
