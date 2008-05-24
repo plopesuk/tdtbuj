@@ -466,6 +466,8 @@ module m_DriverRoutines
   end subroutine EhrenfestDynamics
 !> \brief driver routine for verlet velocity Ehrenfest molecular dynamics
 !> damped
+!> \details numerical instabilities in time propragation of density matrix are handled using the scheme proposed in 
+!> J. Phys.: Condens. Matter Vol 17, Issue 25 (2005), pp. 3985-3995, section 3.3
 !> \author Alin M Elena
 !> \date 10/11/07, 15:22:53
 !> \param io type(ioType) contains all the info about I/O files

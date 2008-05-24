@@ -1,3 +1,7 @@
+!> \brief implements limited memory bfgs method for large scale optimization
+!> \details (citation needed)
+!> \author Alin M. Elena
+!> \date 18th of January 2008
 module m_LBFGS
 use m_Constants
 use m_Useful
@@ -16,8 +20,8 @@ contains
 !> \brief        limited memory bfgs method for large scale optimization
 !> \details     this subroutine solves the unconstrained minimization problem
 !> \details   min f(x),    x= (x1,x2,...,xn),
-!> \details  using the limited memory bfgs method.
-!> \author jorge nocedal (citation to be added), Alin M Elena
+!> \details  using the limited memory bfgs method
+!> \author jorge nocedal (see module description), Alin M Elena
 !> \date   july 1990,  18th of January 2008
 !>\param   n       is an integer variable that must be set by the user to the
 !>             number of variables. it is not altered by the routine.
@@ -566,7 +570,7 @@ end subroutine lbfgs
     p5 = 0.5_k_pr
     p66 = 0.66_k_pr
     xtrapf = 4.0_k_pr
-    
+
     write(io%uout,'(a,a)')"Energy update from: ", myname
     res=func(gen,atomic,tb,sol,io,x,f,g)
     infoc = 1

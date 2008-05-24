@@ -13,7 +13,7 @@ module m_LinearAlgebra
    use m_Useful
    use m_Types
    use mkl95_LAPACK, only : heev
-   use mkl95_BLAS, only : gemm, herk
+   use mkl95_blas, only : gemm, herk
 
    implicit none
    private
