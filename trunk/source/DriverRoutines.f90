@@ -466,7 +466,7 @@ module m_DriverRoutines
   end subroutine EhrenfestDynamics
 !> \brief driver routine for verlet velocity Ehrenfest molecular dynamics
 !> damped
-!> \details numerical instabilities in time propragation of density matrix are handled using the scheme proposed in 
+!> \details numerical instabilities in time propragation of density matrix are handled using the scheme proposed in
 !> J. Phys.: Condens. Matter Vol 17, Issue 25 (2005), pp. 3985-3995, section 3.3
 !> \author Alin M Elena
 !> \date 10/11/07, 15:22:53
@@ -846,22 +846,26 @@ module m_DriverRoutines
     res=UpdatePoint(gen,atomic,tb,sol,io,x,ftol,x)
     deallocate(x)
 
-       write(io%uout,'(/a)')&
-          'Final forces:'
-       call PrintForces(atomic%atoms,io)
-       write(io%uout,'(/a)')&
-          'Final coordinates:'
-       call PrintCoordinates(io,atomic)
-       if (info<0) then
-          write(io%uout,'(/a,i4)')&
-             'WARNING: Optimization did not converge.',info
-       endif
-       if (gen%writeAnimation) then
-          close(aniunit)
-       endif
+    open(unit=1,file="new_coords.xyz",status="unknown",action="write")
+    call PrintXYZ(1,atomic,.false.,"Optimised coordinates")
+    close(unit=1)
+
+    write(io%uout,'(/a)')&
+      'Final forces:'
+    call PrintForces(atomic%atoms,io)
+    write(io%uout,'(/a)')&
+      'Final coordinates:'
+    call PrintCoordinates(io,atomic)
+    if (info<0) then
+      write(io%uout,'(/a,i4)')&
+          'WARNING: Optimization did not converge.',info
+    endif
+    if (gen%writeAnimation) then
+      close(aniunit)
+    endif
 ! !      call write_fdf_coords()
-       write(io%uout,'(/a)')&
-          '----------------------------------------------------------------'
+    write(io%uout,'(/a)')&
+      '----------------------------------------------------------------'
    end subroutine BFGS
 
   integer function UpdatePoint(gen,atomic,tb,sol,io,x,f,gradient)

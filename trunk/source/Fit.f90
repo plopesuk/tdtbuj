@@ -136,7 +136,6 @@ contains
     tb%hopping(1,1)%eps(5:7)=yfit(1)+yfit(2)
 
     tb%hopping(2,2)%eps(0:1)=yfit(3)
-
     tb%hopping(3,3)%eps(0)=yfit(4)
     tb%hopping(3,3)%eps(1:3)=yfit(4)+yfit(5)
     tb%hopping(3,3)%eps(4)=yfit(4)
