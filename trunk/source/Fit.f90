@@ -45,7 +45,7 @@ module m_Fit
   character(len=100), parameter :: cOutFit="fitout.dat"
   character(len=100), parameter :: cBounds="bounds.dat"
   character(len=100), parameter :: cRestart="restartfit.dat"
-  character(len=100), parameter :: cFdfFile="new_ch_param.fdf"
+  character(len=100), parameter :: cFdfFile="new_param.fdf"
   character(len=100), parameter :: cAtomicData="new_AtomicData.fdf"
 
 contains
@@ -240,11 +240,7 @@ contains
     tb%hopping(4,3)%rc=yfit(62)
     tb%hopping(4,3)%n=yfit(63)
     tb%hopping(4,3)%nc=yfit(64)
-
-
     call setTails(io,gen,atomic,tb,sol)
-    call PrintTbGSP(io,gen,atomic,tb)
-    call PrintSpecies(gen,io,atomic%species)
   end subroutine UpdateParams
 
 !> \brief computes the cost function for a set o parameters
@@ -274,14 +270,12 @@ contains
     if (.not.gen%lIsSCFConverged) then
       UpdateCost=k_infinity
     else
-
       do i=1,atomic%atoms%natoms
         aux=aux+(fitData%exper(i)-atomic%atoms%chrg(i))**2
       enddo
       UpdateCost=aux
     endif
 end function UpdateCost
-
 
 !> \brief prints the fit results
 !> \author Alin M Elena
@@ -302,21 +296,27 @@ end function UpdateCost
     integer:: i,j
     real(k_pr) :: aux
     aux=UpdateCost(best,gen,atomic,tb,sol,io)
+    fitData%fit=atomic%atoms%chrg
     open(1,file=trim(cOutFit),status="unknown",action="write")
     do i=1,fitData%n
       write(1,'(i6,4g16.6)')i,fitData%x(i),fitData%exper(i),fitData%fit(i),fitData%exper(i)-fitData%fit(i)
     enddo
     write(1,'(a,f16.8)') "cost:",aux
     close(1)
-    open(2,file=trim(cAtomicData),status="unknown",action="write")
-    write(2,'(a)') "%block AtomicData"
+    open(1,file=trim(cAtomicData),status="unknown",action="write")
+    write(1,'(a)') "%block AtomicData"
     do j=1,atomic%species%nspecies
-      write(2,'(i0,1x,i0,4f16.8)')j,atomic%species%z(j),atomic%species%mass(j)/k_amuToInternal,atomic%species%ulocal(j,1),&
+      write(1,'(i0,1x,i0,4f16.8)')j,atomic%species%z(j),atomic%species%mass(j)/k_amuToInternal,atomic%species%ulocal(j,1),&
         atomic%species%jlocal(j,1),atomic%species%uinter(j)
     enddo
-    write(2,'(a)') "%endblock AtomicData"
-    close(2)
+    write(1,'(a)') "%endblock AtomicData"
 
+    open(1,file=trim(cFdfFile),status="unknown",action="write")
+    i=io%uout
+    io%uout=1
+    call PrintTbGSP(io,gen,atomic,tb)
+    io%uout=i
+    close(1)
   end subroutine PrintFit
 !
 !
@@ -477,7 +477,7 @@ end function UpdateCost
         allocate(best(1:gen%fit%iNoParams))
         call SimplexSA(gen,atomic,tb,sol,io)
         do i=1,gen%fit%neps
-          tol(i)=1e25_k_pr
+          tol(i)=1.0e25_k_pr
         enddo
         copt=UpdateCost(best,gen,atomic,tb,sol,io)
         write(io%uout,*)"simplex step"
@@ -527,7 +527,6 @@ end function UpdateCost
           write(2,*) best(i)
         enddo
         close(2)
-  !              call print_gsp(trim(cFdfFile))
         deallocate(y,p,best)
       case (k_SA)
         allocate(best(1:gen%fit%iNoParams))
@@ -553,14 +552,10 @@ end function UpdateCost
          deallocate(best)
     end select
 
-
     deallocate(fitData%x,fitData%exper,fitData%fit)
     deallocate(bounds)
     deallocate(tol)
   end subroutine fitting
-!
-!
-
 
 !> \brief initializes the simplex method
 !> \author Alin M Elena
@@ -728,7 +723,7 @@ end function UpdateCost
     type(solutionType), intent(inout) :: sol
     type(modelType), intent(inout) :: tb
     real(k_pr) :: opt(1:gen%fit%iNoParams),yb,temperature,copt
-    integer  :: i,iter
+    integer  :: i,iter,k
     logical :: quit
     real(k_pr), allocatable :: tol(:)
         !init simplex
@@ -750,14 +745,18 @@ end function UpdateCost
     copt=UpdateCost(p(1,:),gen,atomic,tb,sol,io)
     write(io%uout,*)"initial cost function: ",copt
     best(:)=p(1,:)
+    k=0
     do
-      iter=gen%fit%iter/10
+      iter=gen%fit%iter
+      k=k+1
+      write(io%uout,'(a,i0)')"Enter simplex step: ",k
+      write(io%uout,'(a,f16.8)')"current temperature: ",temperature
       call amebsa(p,y,opt,yb,gen%fit%fitTol,UpdateCost,iter,temperature,bounds,gen,atomic,tb,sol,io)
+      write(io%uout,'(a,i0)')"iterations in simplex step: ",iter
       do  i = gen%fit%neps, 2, -1
         tol(i) = tol(i-1)
       enddo
       tol(1)=yb
-      write(io%uout,*)"current temperature: ",temperature
       call PrintVectorA(opt,'current parameters:',.true.,.false.,io)
       quit = .false.
       if (abs(copt - tol(1)) < gen%fit%fitTol) then
@@ -796,7 +795,7 @@ end function UpdateCost
 !> \param tb type(modelType) contains information about the tight binding model parameters
 !> \param sol type(solutionType) contains information about the solution space
   subroutine TrustRegion(gen,atomic,tb,sol,io)
-    character(len=*),parameter :: myname="SimplexSA"
+    character(len=*),parameter :: myname="TrustRegion"
     type(ioType), intent(inout) :: io
     type(generalType), intent(inout) :: gen
     type(atomicxType), intent(inout) :: atomic
@@ -956,6 +955,7 @@ end function UpdateCost
     !! x in: vector for function calculation
     !! f out: function value f(x)
   subroutine ObjectiveFunctions (m,n, x, f,gen,atomic,tb,sol,io)
+    character(len=*), parameter :: myname="ObjectiveFunctions"
     integer, intent(inout) :: n,m
     real(k_pr), intent(inout) :: x(:), f(:)
     type(ioType), intent(inout) :: io
@@ -1004,8 +1004,6 @@ end function UpdateCost
 
     rci_request = 0
     successful = 0
-
-
     ComputeJacobi=tr_success-1
 
     if (djacobi_init (handle,n,m,x,fjac,jac_eps) /= tr_success) then

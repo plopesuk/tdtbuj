@@ -8,7 +8,7 @@ module m_SimplexSA
   use m_Useful
   implicit none
 
-  private 
+  private
 
   public :: amebsa
 contains
@@ -35,7 +35,7 @@ contains
 subroutine amebsa(p,y,pb,yb,ftol,func,iter,temptr,bounds,gen,atomic,tb,sol,io)
     integer, intent(inout) :: iter
     real(k_pr), intent(inout) :: yb
-    real(k_pr), intent(in) :: ftol,temptr
+    real(k_pr), intent(inout) :: ftol,temptr
     real(k_pr), dimension(:), intent(inout) :: y,pb
     real(k_pr), dimension(:,:), intent(inout) :: p
     real(k_pr), dimension(:,:),intent(in) :: bounds
@@ -153,5 +153,4 @@ subroutine amebsa(p,y,pb,yb,ftol,func,iter,temptr,bounds,gen,atomic,tb,sol,io)
       amotsa=yflu
     end function amotsa
   end subroutine amebsa
-
 end module m_SimplexSA
