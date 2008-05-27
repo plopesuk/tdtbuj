@@ -669,10 +669,8 @@ module m_DriverRoutines
       else
         scfE = 0.0_k_pr
       endif
-
       penergy = eenergy + renergy + scfE
       kenergy = KineticEnergy(atomic)
-
       if (gen%writeAnimation) then
         call CalcExcessCharges(gen,atomic,sol)
         call CalcDipoles(gen,atomic,sol)
@@ -803,19 +801,18 @@ module m_DriverRoutines
     type(generalType), intent(inout) :: gen
     type(atomicxType), intent(inout) :: atomic
     type(solutionType), intent(inout) :: sol
-    type(modelType), intent(inout) :: tb
-    integer :: aniunit
+    type(modelType), intent(inout) :: tb    
     integer  :: i
     integer  :: m,n, res
     real(k_pr) :: epsx,epsf,epsg,gtol,xtol,ftol
     real(k_pr), allocatable :: x(:)
     integer  :: info,atom, iprint(1:2),maxfev
 
-    aniunit=GetUnit()
+    gen%aniunit=GetUnit()
     write(io%uout,'(/a/)')&
-         '--BFGS Optimization Run-----------------------------------------'
+         "--BFGS Optimization Run-----------------------------------------"
     if (gen%writeAnimation) then
-       open(file='bfgsDyn.xyz',unit=aniunit)
+       open(file="bfgsDyn.xyz",unit=gen%aniunit)
     endif
     n = atomic%atoms%nmoving*3
     m=min(gen%HessianM,n)
@@ -851,22 +848,22 @@ module m_DriverRoutines
     close(unit=1)
 
     write(io%uout,'(/a)')&
-      'Final forces:'
+      "Final forces:"
     call PrintForces(atomic%atoms,io)
     write(io%uout,'(/a)')&
-      'Final coordinates:'
+      "Final coordinates:"
     call PrintCoordinates(io,atomic)
     if (info<0) then
       write(io%uout,'(/a,i4)')&
-          'WARNING: Optimization did not converge.',info
+          "WARNING: Optimization did not converge.",info
     endif
     if (gen%writeAnimation) then
-      close(aniunit)
+      close(gen%aniunit)
     endif
 ! !      call write_fdf_coords()
     write(io%uout,'(/a)')&
-      '----------------------------------------------------------------'
-   end subroutine BFGS
+      "----------------------------------------------------------------"
+  end subroutine BFGS
 
   integer function UpdatePoint(gen,atomic,tb,sol,io,x,f,gradient)
     character(len=*), parameter :: myname = 'UpdatePoint'
@@ -885,6 +882,9 @@ module m_DriverRoutines
       atomic%atoms%y(atom) = x(3*(i-1)+2)
       atomic%atoms%z(atom) = x(3*(i-1)+3)
     enddo
+    if (gen%writeAnimation) then
+      call PrintXYZ(gen%aniunit,atomic,.false.,"Optimised coordinates")
+    endif
     call SinglePoint(io,gen,atomic,tb,sol)
     if (.not.gen%lIsSCFConverged) then
       UpdatePoint=1

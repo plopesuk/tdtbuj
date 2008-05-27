@@ -126,6 +126,7 @@ module m_Types
     real(k_pr) :: epsF,ftol
     integer :: maxFEval
     integer :: HessianM
+    integer :: aniunit
   end type generalType
 
 !> \brief data type for atoms properties
