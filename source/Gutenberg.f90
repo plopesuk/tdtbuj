@@ -345,7 +345,7 @@ contains
 !> \author Alin M Elena
 !> \date 31/10/07, 16:55:21
 !> \param io type(ioType) contains all the info about I/O files
-!> \param gen type(generalType) contains the info needed by the program to k_run
+!> \param gen type(generalType) contains the info needed by the program to run
 !> \param atomix type(atomicType) contains all info about the atoms and basis set and some parameters
 !> \param tbMod type(modelType) contains iformation about the tight binding model parameters
   subroutine PrintTbGSP(io,gen,atomix,tbMod)
@@ -363,7 +363,7 @@ contains
     write(io%uout,*) &
         "A.P. Horsfield,P.D. Godwin,D.G. Pettifor,A.P. Sutton"
     write(io%uout,*) &
-        "Computational materials synthesis. I. A tight-binding schek_me"
+        "Computational materials synthesis. I. A tight-binding scheme"
     write(io%uout,*) &
         "for hydrocarbons - Phys. Rev. B 54, 22, 15 773"
     write(io%uout,'(a)')"===================================================="

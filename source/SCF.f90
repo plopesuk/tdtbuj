@@ -85,24 +85,24 @@ contains
 !                   if (genLoc%k_electrostatics==tbu_multi)call init_qvs(densityin)
 !               endif
             if (genLoc%spin) then
-            labels(1)="Hin: Spin DD"
-            labels(2)="Hin: Spin UU"
-            labels(3)="Hin: Spin DU"
-            labels(4)="Hin: Spin UD"
-            call PrintMatrixBlocks(sol%h,labels,ioLoc,.false.,.not.genLoc%collinear)
-            labels(1)="Eigenvectors: Spin DD"
-            labels(2)="Eigenvectors: Spin UU"
-            labels(3)="Eigenvectors: Spin DU"
-            labels(4)="Eigenvectors: Spin UD"
-            call PrintMatrixBlocks(sol%eigenvecs,labels,ioLoc,.false.,.not.genLoc%collinear)
-            labels(1)="Hin: Spin DD"
-            labels(2)="Hin: Spin UU"
-            labels(3)="Hin: Spin DU"
-            labels(4)="Hin: Spin UD"
-            labelsH2(1)="H2: Spin DD"
-            labelsH2(2)="H2: Spin UU"
-            labelsH2(3)="H2: Spin DU"
-            labelsH2(4)="H2: Spin UD"
+              labels(1)="Hin: Spin DD"
+              labels(2)="Hin: Spin UU"
+              labels(3)="Hin: Spin DU"
+              labels(4)="Hin: Spin UD"
+              call PrintMatrixBlocks(sol%h,labels,ioLoc,.false.,.not.genLoc%collinear)
+              labels(1)="Eigenvectors: Spin DD"
+              labels(2)="Eigenvectors: Spin UU"
+              labels(3)="Eigenvectors: Spin DU"
+              labels(4)="Eigenvectors: Spin UD"
+              call PrintMatrixBlocks(sol%eigenvecs,labels,ioLoc,.false.,.not.genLoc%collinear)
+              labels(1)="Hin: Spin DD"
+              labels(2)="Hin: Spin UU"
+              labels(3)="Hin: Spin DU"
+              labels(4)="Hin: Spin UD"
+              labelsH2(1)="H2: Spin DD"
+              labelsH2(2)="H2: Spin UU"
+              labelsH2(3)="H2: Spin DU"
+              labelsH2(4)="H2: Spin UD"
             else
               call PrintMatrix(sol%H,"Hin: ",ioLoc)
               call PrintMatrix(sol%eigenvecs,"Eigenvectors: ",ioLoc)
@@ -113,7 +113,6 @@ contains
             trace = MatrixTrace(sol%rho,ioLoc)
             write(saux,'(a,"(",f0.4,1x,f0.4,"i)")') "Density matrix, Trace= ",trace
             call PrintMatrix(sol%rho,trim(saux),ioLoc)
-
           endif
 !           if (genLoc%alter_dm) then
 !             call create_dm_spin_altered(eigenvec,eigenval)
@@ -127,9 +126,7 @@ contains
           call CalcExcessCharges(genLoc,atomic,sol)
           call CalcDipoles(genLoc,atomic,sol)
           call ComputeMagneticMoment(genLoc,atomic,sol,ioLoc)
-
-          if (ioLoc%Verbosity >= k_highVerbos) then
-!
+          if (ioLoc%Verbosity >= k_highVerbos) then!
 !               if (.not.genLoc%compElec) then
 !                   if (genLoc%k_electrostatics==tbu_multi)call init_qvs(densityin)
 !               endif
@@ -256,40 +253,40 @@ contains
               if (dmax < genLoc%scftol) exit
             end do
 !
-            if ( ioLoc%uout /= 6) then
-              if (nit>genLoc%maxscf) then
-                write(6,'(a,i0,a,ES12.4)')"Warning: it did not converge after ",genLoc%maxscf," the tolerance reached is ",dmax
-                genLoc%lIsSCFConverged = .false.
-              else
-                write(6,'(a,i0,a,ES12.4)') "converged in ",nit, " iterations up to ",dmax
-              endif
-            endif
+          if ( ioLoc%uout /= 6) then
             if (nit>genLoc%maxscf) then
-              write(ioLoc%uout,'(a,i0,a,ES12.4)')"Warning: it did not converge after ",nit," the tolerance reached is ",dmax
+              write(6,'(a,i0,a,ES12.4)')"Warning: it did not converge after ",genLoc%maxscf," the tolerance reached is ",dmax
               genLoc%lIsSCFConverged = .false.
             else
-               write(ioLoc%uout,'(a,i0,a,ES12.4)') "converged in ",nit, " iterations up to ",dmax
+              write(6,'(a,i0,a,ES12.4)') "converged in ",nit, " iterations up to ",dmax
             endif
+          endif
+          if (nit>genLoc%maxscf) then
+            write(ioLoc%uout,'(a,i0,a,ES12.4)')"Warning: it did not converge after ",nit," the tolerance reached is ",dmax
+            genLoc%lIsSCFConverged = .false.
+          else
+              write(ioLoc%uout,'(a,i0,a,ES12.4)') "converged in ",nit, " iterations up to ",dmax
+          endif
 
-            call CalcExcessCharges(genLoc,atomic,sol)
-            call CalcDipoles(genLoc,atomic,sol)
-            call ComputeMagneticMoment(genLoc,atomic,sol,ioLoc)
+          call CalcExcessCharges(genLoc,atomic,sol)
+          call CalcDipoles(genLoc,atomic,sol)
+          call ComputeMagneticMoment(genLoc,atomic,sol,ioLoc)
 !           ! calculate the forces
 !             if (.not.genLoc%compElec) then
 !               if (genLoc%k_electrostatics==tbu_multi) call init_qvs(densityin)
 !             endif
 
-            call ZeroForces(atomic)
-            call RepulsiveForces(genLoc,atomic%atoms,tbMod)
-            call ElectronicForces(atomic,genLoc,tbMod,sol,ioLoc)
-            call ScfForces(genLoc,atomic,sol,ioLoc)
+          call ZeroForces(atomic)
+          call RepulsiveForces(genLoc,atomic%atoms,tbMod)
+          call ElectronicForces(atomic,genLoc,tbMod,sol,ioLoc)
+          call ScfForces(genLoc,atomic,sol,ioLoc)
 !             call Print_eigens(eigenval,eigenvec,555,.false.)
 !             call write_density_matrix("rho.bin",rho%a,rho%dim)
-            if (ioLoc%verbosity >= k_mediumVerbos) then
-              trace = MatrixTrace(sol%rho,ioLoc)
-              write(saux,'(a,"(",f0.4,1x,f0.4,"i)")') "Density matrix, Trace= ",trace
-             call PrintMatrix(sol%rho,trim(saux),ioLoc)
-            endif
+          if (ioLoc%verbosity >= k_mediumVerbos) then
+            trace = MatrixTrace(sol%rho,ioLoc)
+            write(saux,'(a,"(",f0.4,1x,f0.4,"i)")') "Density matrix, Trace= ",trace
+            call PrintMatrix(sol%rho,trim(saux),ioLoc)
+          endif
         end select
       else
         call BuildHamiltonian(ioLoc,genLoc,atomic,tbMod,sol)
