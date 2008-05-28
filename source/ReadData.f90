@@ -134,8 +134,14 @@ character(len=*),parameter :: myname="ReadIo"
   if (errno /= 0) call error("I can not create file "//&
     trim(ioLoc%debugFile),myname,.true.,ioLoc)
 
-!comm_io OutputFile & string & input file name.out & Name of the output file \\
-!comm_io OnScreen & logical & .false. & on/off Printing on the screen, on means that nothing will be written in the output file \\
+  ioLoc%aniFile=GetString(ioLoc,"aniFile",&
+    trim(ioLoc%inpFile)//".xyz",.false.)
+  ioLoc%uani=GetUnit()
+  open(unit=ioLoc%uani,file=trim(ioLoc%aniFile),status="replace",&
+    action="write",iostat=errno)
+  if (errno /= 0) call error("I can not create file "//&
+    trim(ioLoc%aniFile),myname,.true.,ioLoc)
+
   ioLoc%outputFile=GetString(ioLoc,"OutputFile",&
     trim(ioLoc%inpFile)//".out")
   ioLoc%stdout=GetLogical(ioLoc,"OnScreen",.false.)
@@ -160,18 +166,20 @@ character(len=*),parameter :: myname="ReadIo"
       ,ioLoc%firstTime
   endif
 
-  write( ioLoc%uout,'(a,a)')"Input file: "&
-    ,trim(ioLoc%inpFile)
-  write( ioLoc%uout,'(a,a)')"Output file(OutputFile): "&
-    ,trim(ioLoc%outputFile)
+  write( ioLoc%uout,'(a,a,a,i0)')"Input file: "&
+    ,trim(ioLoc%inpFile)," on unit: ",ioLoc%uinp
+  write( ioLoc%uout,'(a,a,a,i0)')"Output file(OutputFile): "&
+    ,trim(ioLoc%outputFile), "on unit: ",ioLoc%uout
   write( ioLoc%uout,'(a,i0)')"Output Level(OutputLevel): "&
     ,ioLoc%verbosity
-  write( ioLoc%uout,'(a,a)')"Debug file(DebugFile): "&
-    ,trim(ioLoc%debugFile)
+  write( ioLoc%uout,'(a,a,a,i0)')"Debug file(DebugFile): "&
+    ,trim(ioLoc%debugFile),"on unit: ",ioLoc%udeb
   write( ioLoc%uout,'(a,i0)')"Debug Level(DebugLevel): "&
     ,ioLoc%debug
-  write( ioLoc%uout,'(a,a)')"Error file: "&
-    ,trim(ioLoc%inpErr)
+  write( ioLoc%uout,'(a,a,a,i0)')"Error file: "&
+    ,trim(ioLoc%inpErr)," on unit: ",ioLoc%uerr
+  write( ioLoc%uout,'(a,a,a,i0)')"Animation file: "&
+    ,trim(ioLoc%aniFile)," on unit: ",ioLoc%uani
   write( ioLoc%uout,'(a,l1)')"Standard Output(OnScreen): "&
     ,ioLoc%stdout
 end subroutine ReadIo
@@ -192,6 +200,8 @@ end subroutine ReadIo
 !> DebugLevel & 5,15,25 & 5 & debug information level (low, medium,high) \\\
 !>\hline
 !> OutputLevel & 5,15,25 & 5 & output information level (low, medium,high) \\\
+!> \hline
+!> AniFile & string & animation file name.xyz & Name of the animation file \\\
 !>\hline
 !> \end{tabular}
 !> \endlatexonly
@@ -211,6 +221,11 @@ end subroutine ReadIo
 !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>string</TD>
 !> <TD ALIGN="CENTER">input file name.out</TD>
 !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>Name of the output file</TD>
+!> </TR>
+!> <TR><TD ALIGN="CENTER">AniFile</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>string</TD>
+!> <TD ALIGN="CENTER">animation file name.xyz</TD>
+!> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>Name of the animation file</TD>
 !> </TR>
 !> <TR><TD ALIGN="CENTER">OnScreen</TD>
 !> <TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>logical</TD>
@@ -1063,17 +1078,21 @@ subroutine CloseIoGeneral(ioLoc)
   type(ioType), intent(inout) :: ioLoc
   integer :: errno
 
-  if (.not.ioLoc%stdout) then
-    close(unit=ioLoc%uout,iostat=errno)
-    if (errno /= 0) call error("I can not close file "//trim(ioLoc%outputFile)&
-      ,myname,.false.,ioLoc)
-  endif
   close(unit=ioLoc%udeb,iostat=errno)
   if (errno /= 0) call error("I can not close file "//&
     trim(ioLoc%debugFile),myname,.false.,ioLoc)
   close(unit=ioLoc%uerr,iostat=errno)
   if (errno /= 0) call error("I can not close file "//&
     trim(ioLoc%inpErr),myname,.false.,ioLoc)
+  close(unit=ioLoc%uani,iostat=errno)
+  if (errno /= 0) call error("I can not close file "//&
+    trim(ioLoc%aniFile),myname,.false.,ioLoc)
+
+  if (.not.ioLoc%stdout) then
+    close(unit=ioLoc%uout,iostat=errno)
+    if (errno /= 0) call error("I can not close file "//trim(ioLoc%outputFile)&
+      ,myname,.false.,ioLoc)
+  endif
 end subroutine CloseIoGeneral
 
 

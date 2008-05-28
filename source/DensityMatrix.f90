@@ -453,24 +453,6 @@ contains
 !     call find_fermi(eigenvecs,eigenvals,qtotal)
 !     print *, qtotal, general%electronic_mu
     call GenerateRhoExcited(gen,sol,io,homo,sol%buff%pos1,sol%buff%pos2)
-!       if (control_var%output_level>ol_verbose) then
-!          trace = matrix_trace(rho)
-!          write(control_var%output_file,*) &
-!             '--Density Matrix Altered---------------------------------------'
-!          write(control_var%output_file,'(a,2f8.3)') &
-!             'trace = ',trace
-!          do i=1,rho%dim
-!             write(control_var%output_file,'(a,i5,a,1500f7.3)') &
-!                'row ',i,'=',(real(rho%a(i,j)),j=1,rho%dim)
-!          enddo
-!          write(control_var%output_file,*)' '
-!          do i=1,rho%dim
-!             write(control_var%output_file,'(a,i5,a,1500f7.3)') &
-!                'row ',i,'=',(aimag(rho%a(i,j)),j=1,rho%dim)
-!          enddo
-!          write(control_var%output_file,*) &
-!             '---------------------------------------------------------------'
-!       endif
   end subroutine CreateDensityMatrixExcited
 
   subroutine FindHomo(gen,sol,io,pos,homoLevel)
