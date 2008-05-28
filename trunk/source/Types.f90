@@ -10,15 +10,17 @@ module m_Types
 !> \brief I/O data type
 !> \details see m_ReadData::read_io
   type, public :: ioType
-  character(len=k_mw) :: inpFile !<  name of the input file from which the data are read
+  character(len=k_mw) :: inpFile !<  name of the input file from which the data is read
 !>  name of the error input file (parsing errors, before opening specific output files)
   character(len=k_mw) :: inpErr
 !>  name of the file in which the output is put
   character(len=k_mw)  :: outputFile
 !>  how much information to be Printed in the output file
   integer :: verbosity
-!>   name of the file in which the debug data are written
+!>   name of the file in which the debug data is written
   character(len=k_mw)  :: debugFile
+!>   name of the file in which the animation data is written
+  character(len=k_mw)  :: aniFile
 !>  the debug level
   integer :: debug
 !>  output on screen?
@@ -31,6 +33,8 @@ module m_Types
   integer :: udeb=-1
 !>  unit number for error file
   integer :: uerr
+!>  unit number for animation file
+  integer :: uani
 !> is it first time when is read?
   logical :: firstTime = .false.
   end type ioType
@@ -126,7 +130,6 @@ module m_Types
     real(k_pr) :: epsF,ftol
     integer :: maxFEval
     integer :: HessianM
-    integer :: aniunit
   end type generalType
 
 !> \brief data type for atoms properties

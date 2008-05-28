@@ -108,7 +108,6 @@ module m_DriverRoutines
     integer  :: i,istep,k
     real(k_pr) :: dt,mi
     character(len=k_ml) :: saux
-    aniunit=GetUnit()
     eneunit=GetUnit()
     xunit=GetUnit()
     runit=GetUnit()
@@ -116,12 +115,11 @@ module m_DriverRoutines
       '--Velocity Verlet Born-Oppenheimer Dynamics---------------------'
 
     if (gen%writeAnimation) then
-      open(file='bo_dyn.xyz',unit=aniunit)
 !          open(unit=xunit,file="bo_dyn.gcd",form="UNFORMATTED",status="unknown",action="write")
 !          call write_header(xunit,gen%nsteps,gen%deltat,atomic%natoms)
 !          open(unit=runit,file="bo_dyn.rho",form="UNFORMATTED",status="unknown",action="write")
 !          call write_header_rho(runit,gen%nsteps,gen%deltat,n)
-      call PrintXYZ(aniunit,atomic,.false.,"T = 0.0")
+      call PrintXYZ(io%uani,atomic,.false.,"T = 0.0")
     endif
     open(file='bo_dyn.ENE',unit=eneunit)
     ! initialize forces and velocities
@@ -152,7 +150,7 @@ module m_DriverRoutines
       "-TS","Kinetic Energy",  "Total Energy"
     do istep=1,gen%nsteps
       !set global time variable
-      gen%CurrSimTime = gen%CurrSimTime*k_time2SI
+      gen%CurrSimTime = (istep-1)*dt*k_time2SI
        ! calculates positions at t+dt
 !       write(io%uout,*)"timestep"
 !       call PrintCoordinates(io,atomic)
@@ -215,7 +213,7 @@ module m_DriverRoutines
 !             call writeAnimation_frame(aniunit)
 ! !           call write_frame_rho(runit)
         write(saux,'(a,f0.8)')"Time = ",gen%CurrSimTime
-        call PrintXYZ(aniunit,atomic,.false.,trim(saux))
+        call PrintXYZ(io%uani,atomic,.false.,trim(saux))
       endif
       if (io%Verbosity >= k_HighVerbos) then
         call PrintCoordinates(io,atomic)
@@ -227,13 +225,10 @@ module m_DriverRoutines
     enddo
 
     if (gen%writeAnimation) then
-         close(aniunit)
 !          close(xunit)
 !          close(runit)
     endif
     close(eneunit)
-
-!      call write_fdf_coords()
     write(io%uout,'(/a)')&
        'Final coordinates:'
     call PrintCoordinates(io,atomic)
@@ -266,7 +261,7 @@ module m_DriverRoutines
     real(k_pr) ::biasFactor,bfa
     character(len=k_ml) :: saux
 
-    aniunit=GetUnit()
+
     eneunit=GetUnit()
     popunit=GetUnit()
     xunit=GetUnit()
@@ -277,7 +272,6 @@ module m_DriverRoutines
     write(io%uout,'(/a/)')&
          '--Velocity Verlet Ehrenfest Dynamics----------------------------'
     if (gen%writeAnimation) then
-      open(file='eh_dyn.xyz',unit=aniunit)
       open(unit=xunit,file="eh_dyn.gcd",form="UNFORMATTED",status="unknown",action="write")
       open(unit=accUnit,file="eacceptor.dat",status="unknown",action="write")
       open(unit=donUnit,file="edonor.dat",status="unknown",action="write")
@@ -302,7 +296,7 @@ module m_DriverRoutines
       call BuildDensity(atomic,sol)
       call CalcExcessCharges(gen,atomic,sol)
       call CalcDipoles(gen,atomic,sol)
-      call PrintXYZ(aniunit,atomic,.false.,"T=0.0")
+      call PrintXYZ(io%uani,atomic,.false.,"T=0.0")
       write(accUnit,*) "0.0", ChargeOnGroup(atomic%atoms%acceptor,atomic%atoms)
       write(donUnit,*) "0.0", ChargeOnGroup(atomic%atoms%donor,atomic%atoms)
       write(spacUnit,*) "0.0", ChargeOnGroup(atomic%atoms%spacer,atomic%atoms)
@@ -439,7 +433,7 @@ module m_DriverRoutines
         write(donUnit,*) gen%CurrSimTime, ChargeOnGroup(atomic%atoms%donor,atomic%atoms)
         write(spacUnit,*) gen%CurrSimTime, ChargeOnGroup(atomic%atoms%spacer,atomic%atoms)
         write(saux,'(a,f0.8)')"Time = ", gen%CurrSimTime
-        call PrintXYZ(aniunit,atomic,.false.,trim(saux))
+        call PrintXYZ(io%uani,atomic,.false.,trim(saux))
       endif
 !            call write_currents(h,rho)
 !            if (mod(istep,50).eq.1) call write_rho_eigenvalues(rho)
@@ -447,7 +441,6 @@ module m_DriverRoutines
 
     enddo !istep loop
     if (gen%writeAnimation) then
-      close(aniunit)
       close(xunit)
       close(runit)
       close(accUnit)
@@ -490,8 +483,6 @@ module m_DriverRoutines
     type(matrixType) :: rhoold,rhodot,rhonew,rho0,deltaRho
     real(k_pr) ::biasFactor,bfa,gamma
     character(len=k_ml) :: saux
-
-    aniunit=GetUnit()
     eneunit=GetUnit()
     popunit=GetUnit()
     xunit=GetUnit()
@@ -503,7 +494,6 @@ module m_DriverRoutines
          '--Velocity Verlet Ehrenfest Dynamics Damped----------------------------'
     gamma=-gen%Gamma
     if (gen%writeAnimation) then
-      open(file='eh_dyn.xyz',unit=aniunit)
       open(unit=xunit,file="eh_dyn.gcd",form="UNFORMATTED",status="unknown",action="write")
       open(unit=accUnit,file="eacceptor.dat",status="unknown",action="write")
       open(unit=donUnit,file="edonor.dat",status="unknown",action="write")
@@ -540,7 +530,7 @@ module m_DriverRoutines
       write(accUnit,*) "0.0", ChargeOnGroup(atomic%atoms%acceptor,atomic%atoms)
       write(donUnit,*) "0.0", ChargeOnGroup(atomic%atoms%donor,atomic%atoms)
       write(spacUnit,*) "0.0", ChargeOnGroup(atomic%atoms%spacer,atomic%atoms)
-      call PrintXYZ(aniunit,atomic,.false.,"T = 0.0")
+      call PrintXYZ(io%uani,atomic,.false.,"T = 0.0")
     endif
 !          if (.not.gen%comp_elec) then
 !             if (gen%electrostatics==tbu_multi) call init_qvs(density)
@@ -679,13 +669,12 @@ module m_DriverRoutines
         write(donUnit,*) gen%CurrSimTime, ChargeOnGroup(atomic%atoms%donor,atomic%atoms)
         write(spacUnit,*) gen%CurrSimTime, ChargeOnGroup(atomic%atoms%spacer,atomic%atoms)
         write(saux,'(a,f0.8)')"Time = ", gen%CurrSimTime
-        call PrintXYZ(aniunit,atomic,.false.,trim(saux))
+        call PrintXYZ(io%uani,atomic,.false.,trim(saux))
       endif
 !            if (mod(istep,50).eq.1) call write_rho_eigenvalues(rho)
       write(eneunit,'(7f25.18)')gen%CurrSimTime,renergy,eenergy,scfE,kenergy,penergy+kenergy,real(trrho)
     enddo !istep loop
     if (gen%writeAnimation) then
-      close(aniunit)
       close(xunit)
       close(runit)
       close(accUnit)
@@ -801,19 +790,16 @@ module m_DriverRoutines
     type(generalType), intent(inout) :: gen
     type(atomicxType), intent(inout) :: atomic
     type(solutionType), intent(inout) :: sol
-    type(modelType), intent(inout) :: tb    
+    type(modelType), intent(inout) :: tb
     integer  :: i
     integer  :: m,n, res
     real(k_pr) :: epsx,epsf,epsg,gtol,xtol,ftol
     real(k_pr), allocatable :: x(:)
     integer  :: info,atom, iprint(1:2),maxfev
 
-    gen%aniunit=GetUnit()
+
     write(io%uout,'(/a/)')&
          "--BFGS Optimization Run-----------------------------------------"
-    if (gen%writeAnimation) then
-       open(file="bfgsDyn.xyz",unit=gen%aniunit)
-    endif
     n = atomic%atoms%nmoving*3
     m=min(gen%HessianM,n)
     if (io%verbosity > k_highVerbos) then
@@ -857,9 +843,6 @@ module m_DriverRoutines
       write(io%uout,'(/a,i4)')&
           "WARNING: Optimization did not converge.",info
     endif
-    if (gen%writeAnimation) then
-      close(gen%aniunit)
-    endif
 ! !      call write_fdf_coords()
     write(io%uout,'(/a)')&
       "----------------------------------------------------------------"
@@ -883,7 +866,7 @@ module m_DriverRoutines
       atomic%atoms%z(atom) = x(3*(i-1)+3)
     enddo
     if (gen%writeAnimation) then
-      call PrintXYZ(gen%aniunit,atomic,.false.,"Optimised coordinates")
+      call PrintXYZ(io%uani,atomic,.false.,"Optimised coordinates")
     endif
     call SinglePoint(io,gen,atomic,tb,sol)
     if (.not.gen%lIsSCFConverged) then
