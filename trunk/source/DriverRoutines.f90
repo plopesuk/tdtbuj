@@ -15,6 +15,7 @@ module m_DriverRoutines
   use m_Dynamics
   use m_DensityMatrix
   use m_LBFGS
+  use m_BFGS
   implicit none
 
   private
@@ -23,8 +24,7 @@ module m_DriverRoutines
   public :: BornOppenheimerDynamics
   public :: EhrenfestDynamics
   public :: EhrenfestDynamicsDamped
-  public :: BFGS
-
+  public :: Geometry
   contains
 
 !> \brief the driver for total energy and electronic structure calculations
@@ -216,7 +216,7 @@ module m_DriverRoutines
         call PrintXYZ(io%uani,atomic,.false.,trim(saux))
       endif
       if (io%Verbosity >= k_HighVerbos) then
-        call PrintCoordinates(io,atomic)
+        call PrintCoordinates(io,atomic,gen)
         call PrintForces(atomic%atoms,io)
       endif
       write(io%uout,'(i5,a,f13.6,a,f13.6,a,f13.6)')&
@@ -231,7 +231,7 @@ module m_DriverRoutines
     close(eneunit)
     write(io%uout,'(/a)')&
        'Final coordinates:'
-    call PrintCoordinates(io,atomic)
+    call PrintCoordinates(io,atomic,gen)
     write(io%uout,'(/a/)')&
          '----------------------------------------------------------------'
    end subroutine BornOppenheimerDynamics
@@ -475,7 +475,7 @@ module m_DriverRoutines
     type(atomicxType), intent(inout) :: atomic
     type(solutionType), intent(inout) :: sol
     type(modelType), intent(inout) :: tb
-    integer :: aniunit, eneunit, popunit, xunit,runit, accUnit, donUnit, spacUnit
+    integer :: dipunit, eneunit, popunit, xunit,runit, accUnit, donUnit, spacUnit
     real(k_pr) :: eenergy,renergy,kenergy,penergy,scfE
     integer  :: i,istep,k
     real(k_pr) :: dt,mi
@@ -483,6 +483,7 @@ module m_DriverRoutines
     type(matrixType) :: rhoold,rhodot,rhonew,rho0,deltaRho
     real(k_pr) ::biasFactor,bfa,gamma
     character(len=k_ml) :: saux
+    dipunit=GetUnit()
     eneunit=GetUnit()
     popunit=GetUnit()
     xunit=GetUnit()
@@ -495,19 +496,18 @@ module m_DriverRoutines
     gamma=-gen%Gamma
     if (gen%writeAnimation) then
       open(unit=xunit,file="eh_dyn.gcd",form="UNFORMATTED",status="unknown",action="write")
+      open(unit=dipunit,file="eh_dipole.dat",status="unknown",action="write")
       open(unit=accUnit,file="eacceptor.dat",status="unknown",action="write")
       open(unit=donUnit,file="edonor.dat",status="unknown",action="write")
       open(unit=spacUnit,file="espacer.dat",status="unknown",action="write")
-!      call write_header(xunit,gen%nsteps,gen%deltat,atomic%natoms)
       open(unit=runit,file="eh_dyn.rho",form="UNFORMATTED",status="unknown",action="write")
     endif
     open(file='eh_dyn.ENE',unit=eneunit)
-    open(file='eh_dyn.POP',unit=popunit)
     ! prepare the electronic subsystem,
     ! which is an eigenstate of the hamitonian
     ! with the bias
     gen%lIsExcited=.false.
-    call FullSCF(io,gen,atomic,tb,sol)
+    call SinglePoint(io,gen,atomic,tb,sol)
     atomic%atoms%chrg0=atomic%atoms%chrg
     dt = gen%deltat
     ! initialize DM storage spaces
@@ -518,19 +518,28 @@ module m_DriverRoutines
     call CreateMatrix(deltaRho,sol%h%dim,.true.)
     call CopyMatrix(rho0,sol%rho,io)
     call CreateDensityMatrixExcited(gen,atomic,sol,io)
-    ! get the starting density matrix
+
+! get the starting density matrix
 !     call GetRho(sol%rho)
+
     if (gen%writeAnimation) then
       call BuildDensity(atomic,sol)
       call CalcExcessCharges(gen,atomic,sol)
       call CalcDipoles(gen,atomic,sol)
+      call PrintDipoles(atomic,io)
 !      call write_frame(xunit)
 !        call write_frame_rho(runit,rho0)
-!            call writeAnimation_frame(aniunit)
+      write(dipunit,*) "0.0",atomic%atoms%tdipx,atomic%atoms%tdipy,atomic%atoms%tdipz,&
+                  sqrt(atomic%atoms%tdipx**2+atomic%atoms%tdipy**2+atomic%atoms%tdipz**2)
       write(accUnit,*) "0.0", ChargeOnGroup(atomic%atoms%acceptor,atomic%atoms)
       write(donUnit,*) "0.0", ChargeOnGroup(atomic%atoms%donor,atomic%atoms)
       write(spacUnit,*) "0.0", ChargeOnGroup(atomic%atoms%spacer,atomic%atoms)
       call PrintXYZ(io%uani,atomic,.false.,"T = 0.0")
+    else
+      call BuildDensity(atomic,sol)
+      call CalcExcessCharges(gen,atomic,sol)
+      call CalcDipoles(gen,atomic,sol)
+      call PrintDipoles(atomic,io)
     endif
 !          if (.not.gen%comp_elec) then
 !             if (gen%electrostatics==tbu_multi) call init_qvs(density)
@@ -665,6 +674,8 @@ module m_DriverRoutines
         call CalcExcessCharges(gen,atomic,sol)
         call CalcDipoles(gen,atomic,sol)
 !               call write_frame_rho(runit,rho0)
+        write(dipunit,*) gen%CurrSimTime,atomic%atoms%tdipx,atomic%atoms%tdipy,atomic%atoms%tdipz,&
+                  sqrt(atomic%atoms%tdipx**2+atomic%atoms%tdipy**2+atomic%atoms%tdipz**2)
         write(accUnit,*) gen%CurrSimTime, ChargeOnGroup(atomic%atoms%acceptor,atomic%atoms)
         write(donUnit,*) gen%CurrSimTime, ChargeOnGroup(atomic%atoms%donor,atomic%atoms)
         write(spacUnit,*) gen%CurrSimTime, ChargeOnGroup(atomic%atoms%spacer,atomic%atoms)
@@ -675,6 +686,7 @@ module m_DriverRoutines
       write(eneunit,'(7f25.18)')gen%CurrSimTime,renergy,eenergy,scfE,kenergy,penergy+kenergy,real(trrho)
     enddo !istep loop
     if (gen%writeAnimation) then
+      close(dipunit)
       close(xunit)
       close(runit)
       close(accUnit)
@@ -682,7 +694,6 @@ module m_DriverRoutines
       close(spacUnit)
     endif
     close(eneunit)
-    close(popunit)
     call DestroyMatrix(rhoold,io)
     call DestroyMatrix(rhodot,io)
     call DestroyMatrix(rhonew,io)
@@ -776,86 +787,38 @@ module m_DriverRoutines
     deallocate(a)
   end subroutine GetRho
 
-!> \brief driver routine for BFGS optimization
+!> \brief driver routine for geometry optimization
 !> \author Alin M Elena
-!> \date 10/11/07, 15:22:53
+!> \date 30/05/08, 15:22:53
 !> \param io type(ioType) contains all the info about I/O files
 !> \param gen type(generalType) contains the info needed by the program to k_run
 !> \param atomic type(atomicxType) contains all info about the atoms and basis set and some parameters
 !> \param tb type(modelType) contains information about the tight binding model parameters
 !> \param sol type(solutionType) contains information about the solution space
-  subroutine BFGS(io,gen,atomic,tb,sol)
-    character(len=*), parameter :: myname = 'BFGS'
+  subroutine Geometry(io,gen,atomic,tb,sol)
+    character(len=*), parameter :: myname = 'driverBFGS'
     type(ioType), intent(inout) :: io
     type(generalType), intent(inout) :: gen
     type(atomicxType), intent(inout) :: atomic
     type(solutionType), intent(inout) :: sol
     type(modelType), intent(inout) :: tb
-    integer  :: i
-    integer  :: m,n, res
-    real(k_pr) :: epsx,epsf,epsg,gtol,xtol,ftol
-    real(k_pr), allocatable :: x(:)
-    integer  :: info,atom, iprint(1:2),maxfev
+    select case(gen%geomAlg)
+      case(k_lbfgs)
+        call linearBFGS(io,gen,atomic,tb,sol,UpdatePoint)
+      case(k_bfgs)
+        call driverBFGS(io,gen,atomic,tb,sol,UpdatePoint)
+    end select
+  end subroutine Geometry
 
-
-    write(io%uout,'(/a/)')&
-         "--BFGS Optimization Run-----------------------------------------"
-    n = atomic%atoms%nmoving*3
-    m=min(gen%HessianM,n)
-    if (io%verbosity > k_highVerbos) then
-      iprint(1) = 1
-    else
-      iprint(1) = -1
-    endif
-    iprint(2) = 0
-    epsf = gen%epsF
-    epsg = gen%epsG
-    epsx = gen%epsX
-    xtol = gen%xtol
-    gtol=gen%ftol
-    info = 0
-    maxfev=gen%maxFeval
-    ftol=gen%ftol
-    allocate(x(1:n))
-
-    do i=1,atomic%atoms%nmoving
-      atom=atomic%atoms%id(atomic%atoms%moving(i))
-      x(3*(i-1)+1) = atomic%atoms%x(atom)
-      x(3*(i-1)+2) = atomic%atoms%y(atom)
-      x(3*(i-1)+3) = atomic%atoms%z(atom)
-    enddo
-    call lbfgs(n,m,x,epsg,epsf,epsx,xtol,gtol,ftol,maxfev,gen%nsteps,iprint,info,&
-                 UpdatePoint,gen,atomic,tb,sol,io)
-    res=UpdatePoint(gen,atomic,tb,sol,io,x,ftol,x)
-    deallocate(x)
-
-    open(unit=1,file="new_coords.xyz",status="unknown",action="write")
-    call PrintXYZ(1,atomic,.false.,"Optimised coordinates")
-    close(unit=1)
-
-    write(io%uout,'(/a)')&
-      "Final forces:"
-    call PrintForces(atomic%atoms,io)
-    write(io%uout,'(/a)')&
-      "Final coordinates:"
-    call PrintCoordinates(io,atomic)
-    if (info<0) then
-      write(io%uout,'(/a,i4)')&
-          "WARNING: Optimization did not converge.",info
-    endif
-! !      call write_fdf_coords()
-    write(io%uout,'(/a)')&
-      "----------------------------------------------------------------"
-  end subroutine BFGS
-
-  integer function UpdatePoint(gen,atomic,tb,sol,io,x,f,gradient)
+integer function UpdatePoint(gen,atomic,tb,sol,io,x,f,gradient)
     character(len=*), parameter :: myname = 'UpdatePoint'
     type(ioType), intent(inout) :: io
     type(generalType), intent(inout) :: gen
     type(atomicxType), intent(inout) :: atomic
     type(solutionType), intent(inout) :: sol
     type(modelType), intent(inout) :: tb
-    real(k_pr), intent(inout) :: f, gradient(:)
+    real(k_pr), intent(inout) :: f
+    real(k_pr), intent(inout), optional ::gradient(:)
     real(k_pr), intent(in) :: x(:)
     integer :: i,atom
     UpdatePoint=0
@@ -876,12 +839,16 @@ module m_DriverRoutines
       call SinglePoint(io,gen,atomic,tb,sol)
       gen%scf=.true.
     endif
-    do i=1,atomic%atoms%nmoving
-      atom=atomic%atoms%id(atomic%atoms%moving(i))
-      gradient(3*(i-1)+1) = -atomic%atoms%fx(atom)
-      gradient(3*(i-1)+2) = -atomic%atoms%fy(atom)
-      gradient(3*(i-1)+3) = -atomic%atoms%fz(atom)
-    enddo
+    if (present(gradient)) then
+      do i=1,atomic%atoms%nmoving
+        atom=atomic%atoms%id(atomic%atoms%moving(i))
+        gradient(3*(i-1)+1) = atomic%atoms%fx(atom)
+        gradient(3*(i-1)+2) = atomic%atoms%fy(atom)
+        gradient(3*(i-1)+3) = atomic%atoms%fz(atom)
+      enddo
+    endif
     f=sol%totalEnergy
    end function UpdatePoint
+
+
 end module m_DriverRoutines

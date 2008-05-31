@@ -45,6 +45,7 @@ module m_Useful
   public :: MarzariS
   public :: LMax
   public :: getUnits
+
   interface Swap
     module procedure SwapScalar,SwapVector
   end interface
@@ -973,4 +974,5 @@ contains
         getUnits="atomic Rydberg units (Rydberg-Bohr)"
     end select
   end function getUnits
+
 end module m_Useful

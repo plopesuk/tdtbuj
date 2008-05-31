@@ -130,6 +130,7 @@ module m_Types
     real(k_pr) :: epsF,ftol
     integer :: maxFEval
     integer :: HessianM
+    integer :: geomAlg !< the geometry optimisation algorithm
   end type generalType
 
 !> \brief data type for atoms properties

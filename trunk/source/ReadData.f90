@@ -398,7 +398,7 @@ subroutine ReadGeneral(ioLoc,genLoc)
     elseif (cstr(trim(saux),'ehrenfestdamped')) then
       genLoc%runType = k_runEhrenfestDamped
     elseif (cstr(trim(saux),'GeometryOptimization')) then
-      genLoc%runType = k_runGeomBFGS
+      genLoc%runType = k_runGeometryOptimisation
     elseif (cstr(trim(saux),'Special')) then
       genLoc%runType = k_runSpecial
     else
@@ -504,6 +504,9 @@ subroutine ReadGeneral(ioLoc,genLoc)
   genLoc%gamma=GetReal(ioLoc,"Gamma",0.5_k_pr)
   write( ioLoc%uout,'(a,ES12.4)')"damping factor in Ehrenfest Equation(Gamma): "&
      ,genLoc%gamma
+
+
+
 
   if (genLoc%Runtype==k_RunFit) then
       saux=GetString(ioLoc,"FitMethod","Simplex")
@@ -635,34 +638,61 @@ subroutine ReadGeneral(ioLoc,genLoc)
       call error("The requested spin type is not implemented",name,.true.,ioLoc)
     endif
   endif
-  if (genLoc%runType == k_runGeomBFGS) then
-    genLoc%fTol=GetReal(ioLoc,"EnergyTolerance",1.0e-4_k_pr)
-    write( ioLoc%uout,'(a,ES12.4)')"Energy Tolerance (during geometry optimisation)(EnergyTolerance): "&
-      ,genLoc%fTol
-    genLoc%gTol=GetReal(ioLoc,"ForceTolerance",1.0e-10_k_pr)
-    write( ioLoc%uout,'(a,ES12.4)')"Force Tolerance (during geometry optimisation)(ForceTolerance): "&
-      ,genLoc%gTol
-    genLoc%xTol=GetReal(ioLoc,"XTolerance",1.0e-10_k_pr)
-    write( ioLoc%uout,'(a,ES12.4)')" Coordinates Tolerance (during geometry optimisation)(XTolerance): "&
-      ,genLoc%xTol
-    genLoc%epsf=GetReal(ioLoc,"EpsilonE",1.0e-10_k_pr)
-    write( ioLoc%uout,'(a,ES12.4)')"Epsilon Energy Tolerance (during geometry optimisation)(EpsilonE): "&
-      ,genLoc%epsf
-    genLoc%epsg=GetReal(ioLoc,"EpsilonG",1.0e-10_k_pr)
-    write( ioLoc%uout,'(a,ES12.4)')"Epsilon Gradient Tolerance (during geometry optimisation)(EpsilonG): "&
-      ,genLoc%epsg
-    genLoc%epsX=GetReal(ioLoc,"EpsilonX",1.0e-10_k_pr)
-    write( ioLoc%uout,'(a,ES12.4)')"Epsilon Coordinates Tolerance (during geometry optimisation)(EpsilonX): "&
-      ,genLoc%epsx
-    genLoc%maxFEval=GetInteger(ioLoc,"MaxFEval",20)
-    write(ioLoc%uout,'(a,i8)') &
-          "Maximum number of evaluations for energy during each step of geometry optimisation (MaxFEval)",genLoc%maxFeval
-    genLoc%nsteps=GetInteger(ioLoc,"GeometryNSteps",100)
-    write( ioLoc%uout,'(a,i0)')"Number of steps for geometry optimisation (GeometryNSteps): "&
-        ,genLoc%nsteps
-    genLoc%HessianM=GetInteger(ioLoc,"HessianM",7)
-    write(ioLoc%uout,'(a,i8)') &
-          "Number of corrections used (3<= m <=7) by bfgs to compute hessian geometry optimisation (HessianM) ",genLoc%HessianM
+  if (genLoc%runType == k_runGeometryOptimisation) then
+      saux=GetString(ioLoc,"GeomOptAlg","LBFGS")
+      write(ioLoc%uout,'(a,a)') &
+       "Geometry Optimization algorithm (GeomOptAlg): ", trim(saux)
+    if (cstr(trim(saux),"LBFGS")) then
+      genLoc%geomAlg=k_lbfgs
+    elseif(cstr(trim(saux),"BFGS")) then
+      genLoc%geomAlg=k_bfgs
+    else
+      call error("The requested fitting method is not implemented",name,.true.,ioLoc)
+    endif
+
+    select case(k_runGeometryOptimisation)
+      case(k_lbfgs)
+        genLoc%fTol=GetReal(ioLoc,"EnergyTolerance",1.0e-4_k_pr)
+        write( ioLoc%uout,'(a,ES12.4)')"Energy Tolerance (during geometry optimisation)(EnergyTolerance): "&
+          ,genLoc%fTol
+        genLoc%gTol=GetReal(ioLoc,"ForceTolerance",1.0e-10_k_pr)
+        write( ioLoc%uout,'(a,ES12.4)')"Force Tolerance (during geometry optimisation)(ForceTolerance): "&
+          ,genLoc%gTol
+        genLoc%xTol=GetReal(ioLoc,"XTolerance",1.0e-10_k_pr)
+        write( ioLoc%uout,'(a,ES12.4)')" Coordinates Tolerance (during geometry optimisation)(XTolerance): "&
+          ,genLoc%xTol
+        genLoc%epsf=GetReal(ioLoc,"EpsilonE",1.0e-10_k_pr)
+        write( ioLoc%uout,'(a,ES12.4)')"Epsilon Energy Tolerance (during geometry optimisation)(EpsilonE): "&
+          ,genLoc%epsf
+        genLoc%epsg=GetReal(ioLoc,"EpsilonG",1.0e-10_k_pr)
+        write( ioLoc%uout,'(a,ES12.4)')"Epsilon Gradient Tolerance (during geometry optimisation)(EpsilonG): "&
+          ,genLoc%epsg
+        genLoc%epsX=GetReal(ioLoc,"EpsilonX",1.0e-10_k_pr)
+        write( ioLoc%uout,'(a,ES12.4)')"Epsilon Coordinates Tolerance (during geometry optimisation)(EpsilonX): "&
+          ,genLoc%epsx
+        genLoc%maxFEval=GetInteger(ioLoc,"MaxFEval",20)
+        write(ioLoc%uout,'(a,i8)') &
+              "Maximum number of evaluations for energy during each step of geometry optimisation (MaxFEval)",genLoc%maxFeval
+        genLoc%nsteps=GetInteger(ioLoc,"GeometryNSteps",100)
+        write( ioLoc%uout,'(a,i0)')"Number of steps for geometry optimisation (GeometryNSteps): "&
+            ,genLoc%nsteps
+        genLoc%HessianM=GetInteger(ioLoc,"HessianM",7)
+        write(ioLoc%uout,'(a,i8)') &
+              "Number of corrections used (3<= m <=7) by bfgs to compute hessian geometry optimisation (HessianM) ",genLoc%HessianM
+    case(k_bfgs)
+        genLoc%fTol=GetReal(ioLoc,"EnergyTolerance",1.0e-4_k_pr)
+        write( ioLoc%uout,'(a,ES12.4)')"Energy Tolerance (during geometry optimisation)(EnergyTolerance): "&
+          ,genLoc%fTol
+        genLoc%gTol=GetReal(ioLoc,"ForceTolerance",1.0e-10_k_pr)
+        write( ioLoc%uout,'(a,ES12.4)')"Force Tolerance (during geometry optimisation)(ForceTolerance): "&
+          ,genLoc%gTol
+        genLoc%xTol=GetReal(ioLoc,"XTolerance",1.0e-10_k_pr)
+        write( ioLoc%uout,'(a,ES12.4)')" Coordinates Tolerance (during geometry optimisation)(XTolerance): "&
+          ,genLoc%xTol
+                genLoc%nsteps=GetInteger(ioLoc,"GeometryNSteps",100)
+        write( ioLoc%uout,'(a,i0)')"Number of steps for geometry optimisation (GeometryNSteps): "&
+            ,genLoc%nsteps
+    end select
   endif
 
 end subroutine ReadGeneral
@@ -706,7 +736,7 @@ end subroutine ReadGeneral
 !> \hline
 !> SCFMixN & integer & 4 & number of iterations to mix\\\
 !> \hline
-!> RunType & SinglePoint, BODynamics, Ehrenfest, EhrenfestDamped, Fit & SinglePoint & Type of calculation\\\
+!> RunType & SinglePoint, BODynamics, Ehrenfest, EhrenfestDamped, Fit, GeometryOptimization & SinglePoint & Type of calculation\\\
 !> \hline
 !> HElThres & real & 1e-10 & hamiltionian element thresold. Any element smaller that the thresold is made zero.\\\
 !> \hline
@@ -782,6 +812,8 @@ end subroutine ReadGeneral
 !> SATemp & real & 100.0 & initial temperature in SA method\\\
 !> \hline
 !> ForceTolerance & real & 10E-10 & Force tolerance for geometry optimisation\\\
+!> \hline
+!> GeomOptAlg & LBFGS, BFGS & LBFGS &Geometry Optimisation Algorithm Linear BFGS or BFGS (Broyden-Fletcher-Goldfarb-Shanno))\\\
 !> \hline
 !> \end{longtable}
 !> \endlatexonly
@@ -874,7 +906,7 @@ end subroutine ReadGeneral
 !><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>number of iterations to mix</TD>
 !></TR>
 !><TR><TD ALIGN="CENTER">RunType</TD>
-!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>SinglePoint, BODynamics, Ehrenfest, EhrenfestDamped, Fit</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>SinglePoint, BODynamics, Ehrenfest, EhrenfestDamped, Fit, GeometryOptimization</TD>
 !><TD ALIGN="CENTER">SinglePoint</TD>
 !><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>Type of calculation</TD>
 !></TR>
@@ -1064,6 +1096,11 @@ end subroutine ReadGeneral
 !><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real</TD>
 !><TD ALIGN="CENTER">10E-10</TD>
 !><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>force tolerance for geometry optimisation</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">GeomOptAlg</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>LBFGS, BFGS</TD>
+!><TD ALIGN="CENTER">LBFGS</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>Geometry Optimisation Algorithm Linear BFGS or BFGS (Broyden-Fletcher-Goldfarb-Shanno))</TD>
 !></TR>
 !></TABLE>
 !> \endhtmlonly
@@ -1429,12 +1466,7 @@ end subroutine CloseIoGeneral
       call error(sMyName,"NumberOfSpecies token is missing or is negative! ---",.true.,io)
     endif
     specs%created = .true.
-
-    select case(general%scfType)
-    case(k_scftbuj)
-      if (.not.general%spin) then
-         call error(sMyName,"This model suppose to be spin polarised try SCFType = TB+U ---",.true.,io)
-      endif
+    if (.not.general%scf) then
       allocate(specs%id(1:specs%nspecies))
       allocate(specs%mass(1:specs%nspecies))
       allocate(specs%z(1:specs%nspecies))
@@ -1466,60 +1498,25 @@ end subroutine CloseIoGeneral
       else
         call error("Specie block is missing!!!",sMyName,.true.,io)
       endif
-    case(k_scftbu)
-      if (general%spin) then
-         call error(sMyName,"This model suppose to be spinless try SCFType = TB+UJ ---",.true.,io)
-      endif
-      allocate(specs%id(1:specs%nspecies))
-      allocate(specs%mass(1:specs%nspecies))
-      allocate(specs%z(1:specs%nspecies))
-      allocate(specs%zval(1:specs%nspecies))
-      allocate(specs%ulocal(1:specs%nspecies,1:1))
-      allocate(specs%jlocal(1:specs%nspecies,1:1))
-      allocate(specs%uinter(1:specs%nspecies))
-      allocate(specs%norbs(1:specs%nspecies))
-      specs%norbs=0
-      specs%zval=0
-      specs%jlocal=0.0_k_pr
-      if (GetBlock(io,"SpeciesData",nt)) then
-        do i = 1, specs%nspecies
-          read(nt,fmt=*,iostat=errno) sp,specs%z(i),specs%mass(i),specs%ulocal(i,1),specs%uinter(i)
-          specs%id(i)=i
-          if (sp/=i) then
-            write(saux,'(a,i0,a,i0,a,i0)')"the id of the specie differs from the one expected by convention found ",&
-              sp," expected ",i," will make it ",i
-            call error(trim(saux),sMyName,.true.,io)
-          endif
-          if (errno/=0) then
-            call error("block SpeciesData is not in the right format",sMyName,.true.,io)
-          endif
-          write(io%udeb,'(2i6,3f16.6)') specs%id(i),specs%z(i),specs%mass(i),specs%ulocal(i,1),specs%uinter(i)
-          specs%mass(i)=specs%mass(i)*k_amuToInternal
-        enddo
-        if (isUnique(specs%id(1:specs%nspecies))) then
-          call error("id must be unique for each specie",sMyName,.true.,io)
+    else
+      select case(general%scfType)
+      case(k_scftbuj)
+        if (.not.general%spin) then
+          call error(sMyName,"This model suppose to be spin polarised try SCFType = TB+U ---",.true.,io)
         endif
-      else
-        call error("Specie block is missing!!!",sMyName,.true.,io)
-      endif
-    case(k_scftbuo,k_scftbujo)
-      if (.not.present(specBasis)) then
         allocate(specs%id(1:specs%nspecies))
         allocate(specs%mass(1:specs%nspecies))
         allocate(specs%z(1:specs%nspecies))
         allocate(specs%zval(1:specs%nspecies))
-        allocate(specs%uinter(1:specs%nspecies))
-        allocate(specs%norbs(1:specs%nspecies))
         allocate(specs%ulocal(1:specs%nspecies,1:1))
         allocate(specs%jlocal(1:specs%nspecies,1:1))
-        specs%jlocal=0.0_k_pr
-        specs%ulocal=0.0_k_pr
+        allocate(specs%uinter(1:specs%nspecies))
+        allocate(specs%norbs(1:specs%nspecies))
         specs%norbs=0
         specs%zval=0
-
         if (GetBlock(io,"SpeciesData",nt)) then
           do i = 1, specs%nspecies
-            read(nt,fmt=*,iostat=errno) sp,specs%z(i),specs%mass(i),specs%uinter(i)
+            read(nt,fmt=*,iostat=errno) sp,specs%z(i),specs%mass(i),specs%ulocal(i,1),specs%jlocal(i,1),specs%uinter(i)
             specs%id(i)=i
             if (sp/=i) then
               write(saux,'(a,i0,a,i0,a,i0)')"the id of the specie differs from the one expected by convention found ",&
@@ -1529,7 +1526,7 @@ end subroutine CloseIoGeneral
             if (errno/=0) then
               call error("block SpeciesData is not in the right format",sMyName,.true.,io)
             endif
-            write(io%udeb,'(2i6,2f16.6)') specs%id(i),specs%z(i),specs%mass(i),specs%uinter(i)
+            write(io%udeb,'(2i6,4f16.6)') specs%id(i),specs%z(i),specs%mass(i),specs%ulocal(i,1),specs%jlocal(i,1),specs%uinter(i)
             specs%mass(i)=specs%mass(i)*k_amuToInternal
           enddo
           if (isUnique(specs%id(1:specs%nspecies))) then
@@ -1538,80 +1535,153 @@ end subroutine CloseIoGeneral
         else
           call error("Specie block is missing!!!",sMyName,.true.,io)
         endif
-      else
-        maxL=Lmax(specBasis,specs)+1
-        deallocate(specs%ulocal)
-        deallocate(specs%jlocal)
-        if (general%scftype == k_scftbuo) then
-          allocate(specs%ulocal(1:specs%nspecies,0:maxL))
-          allocate(specs%jlocal(1:specs%nspecies,0:maxL))
+      case(k_scftbu)
+        if (general%spin) then
+          call error(sMyName,"This model suppose to be spinless try SCFType = TB+UJ ---",.true.,io)
+        endif
+        allocate(specs%id(1:specs%nspecies))
+        allocate(specs%mass(1:specs%nspecies))
+        allocate(specs%z(1:specs%nspecies))
+        allocate(specs%zval(1:specs%nspecies))
+        allocate(specs%ulocal(1:specs%nspecies,1:1))
+        allocate(specs%jlocal(1:specs%nspecies,1:1))
+        allocate(specs%uinter(1:specs%nspecies))
+        allocate(specs%norbs(1:specs%nspecies))
+        specs%norbs=0
+        specs%zval=0
+        specs%jlocal=0.0_k_pr
+        if (GetBlock(io,"SpeciesData",nt)) then
+          do i = 1, specs%nspecies
+            read(nt,fmt=*,iostat=errno) sp,specs%z(i),specs%mass(i),specs%ulocal(i,1),specs%uinter(i)
+            specs%id(i)=i
+            if (sp/=i) then
+              write(saux,'(a,i0,a,i0,a,i0)')"the id of the specie differs from the one expected by convention found ",&
+                sp," expected ",i," will make it ",i
+              call error(trim(saux),sMyName,.true.,io)
+            endif
+            if (errno/=0) then
+              call error("block SpeciesData is not in the right format",sMyName,.true.,io)
+            endif
+            write(io%udeb,'(2i6,3f16.6)') specs%id(i),specs%z(i),specs%mass(i),specs%ulocal(i,1),specs%uinter(i)
+            specs%mass(i)=specs%mass(i)*k_amuToInternal
+          enddo
+          if (isUnique(specs%id(1:specs%nspecies))) then
+            call error("id must be unique for each specie",sMyName,.true.,io)
+          endif
+        else
+          call error("Specie block is missing!!!",sMyName,.true.,io)
+        endif
+      case(k_scftbuo,k_scftbujo)
+        if (.not.present(specBasis)) then
+          allocate(specs%id(1:specs%nspecies))
+          allocate(specs%mass(1:specs%nspecies))
+          allocate(specs%z(1:specs%nspecies))
+          allocate(specs%zval(1:specs%nspecies))
+          allocate(specs%uinter(1:specs%nspecies))
+          allocate(specs%norbs(1:specs%nspecies))
+          allocate(specs%ulocal(1:specs%nspecies,1:1))
+          allocate(specs%jlocal(1:specs%nspecies,1:1))
           specs%jlocal=0.0_k_pr
           specs%ulocal=0.0_k_pr
-          if (general%spin) then
-            call error(sMyName,"This model suppose to be spinless try SCFType = TB+UJ ---",.true.,io)
-          endif
-          if (GetBlock(io,"HubbardU",nt)) then
+          specs%norbs=0
+          specs%zval=0
+
+          if (GetBlock(io,"SpeciesData",nt)) then
             do i = 1, specs%nspecies
-              read(nt,fmt=*,iostat=errno) sp
+              read(nt,fmt=*,iostat=errno) sp,specs%z(i),specs%mass(i),specs%uinter(i)
+              specs%id(i)=i
               if (sp/=i) then
-                 write(saux,'(a,i0,a,i0)')"the id of the specie differs from the one expected by convention found ",&
-                   sp," expected ",i
-                 call error(trim(saux),sMyName,.true.,io)
+                write(saux,'(a,i0,a,i0,a,i0)')"the id of the specie differs from the one expected by convention found ",&
+                  sp," expected ",i," will make it ",i
+                call error(trim(saux),sMyName,.true.,io)
               endif
               if (errno/=0) then
-                 call error("block HubbardU is not in the right format",sMyName,.true.,io)
+                call error("block SpeciesData is not in the right format",sMyName,.true.,io)
               endif
-              write(io%udeb,'(i0)')sp
-              specs%ulocal(i,0)=getLMax(i,specBasis,specs)+1
-              do j=1,ceiling(specs%ulocal(i,0))
-                read(nt,fmt=*,iostat=errno) specs%ulocal(i,j)
-                if (errno/=0) then
-                  call error("block SpeciesData is not in the right format",sMyName,.true.,io)
-                endif
-                write(io%udeb,'(f16.6)') specs%ulocal(i,j)
-              enddo
+              write(io%udeb,'(2i6,2f16.6)') specs%id(i),specs%z(i),specs%mass(i),specs%uinter(i)
+              specs%mass(i)=specs%mass(i)*k_amuToInternal
             enddo
+            if (isUnique(specs%id(1:specs%nspecies))) then
+              call error("id must be unique for each specie",sMyName,.true.,io)
+            endif
           else
-            call error("HubbardU block is missing!!!",sMyName,.true.,io)
+            call error("Specie block is missing!!!",sMyName,.true.,io)
+          endif
+        else
+          maxL=Lmax(specBasis,specs)+1
+          deallocate(specs%ulocal)
+          deallocate(specs%jlocal)
+          if (general%scftype == k_scftbuo) then
+            allocate(specs%ulocal(1:specs%nspecies,0:maxL))
+            allocate(specs%jlocal(1:specs%nspecies,0:maxL))
+            specs%jlocal=0.0_k_pr
+            specs%ulocal=0.0_k_pr
+            if (general%spin) then
+              call error(sMyName,"This model suppose to be spinless try SCFType = TB+UJ ---",.true.,io)
+            endif
+            if (GetBlock(io,"HubbardU",nt)) then
+              do i = 1, specs%nspecies
+                read(nt,fmt=*,iostat=errno) sp
+                if (sp/=i) then
+                  write(saux,'(a,i0,a,i0)')"the id of the specie differs from the one expected by convention found ",&
+                    sp," expected ",i
+                  call error(trim(saux),sMyName,.true.,io)
+                endif
+                if (errno/=0) then
+                  call error("block HubbardU is not in the right format",sMyName,.true.,io)
+                endif
+                write(io%udeb,'(i0)')sp
+                specs%ulocal(i,0)=getLMax(i,specBasis,specs)+1
+                do j=1,ceiling(specs%ulocal(i,0))
+                  read(nt,fmt=*,iostat=errno) specs%ulocal(i,j)
+                  if (errno/=0) then
+                    call error("block SpeciesData is not in the right format",sMyName,.true.,io)
+                  endif
+                  write(io%udeb,'(f16.6)') specs%ulocal(i,j)
+                enddo
+              enddo
+            else
+              call error("HubbardU block is missing!!!",sMyName,.true.,io)
+            endif
+          endif
+          if (general%scftype == k_scftbujo) then
+            allocate(specs%ulocal(1:specs%nspecies,0:2*maxL))
+            allocate(specs%jlocal(1:specs%nspecies,0:2*maxL))
+            specs%jlocal=0.0_k_pr
+            specs%ulocal=0.0_k_pr
+            if (.not.general%spin) then
+              call error(sMyName,"This model suppose to be spin polarised try SCFType = TB+UJO ---",.true.,io)
+            endif
+            if (GetBlock(io,"HubbardUJ",nt)) then
+              do i = 1, specs%nspecies
+                read(nt,fmt=*,iostat=errno) sp
+                if (sp/=i) then
+                  write(saux,'(a,i0,a,i0)')"the id of the specie differs from the one expected by convention found ",&
+                    sp," expected ",i
+                  call error(trim(saux),sMyName,.true.,io)
+                endif
+                if (errno/=0) then
+                  call error("block HubbardUJ is not in the right format",sMyName,.true.,io)
+                endif
+                write(io%udeb,'(i0)')sp
+                specs%ulocal(i,0)=getLMax(i,specBasis,specs)+1
+                specs%jlocal(i,0)=getLMax(i,specBasis,specs)+1
+                shift=specs%ulocal(i,0)
+                do j=1,ceiling(specs%ulocal(i,0))
+                  read(nt,fmt=*,iostat=errno)specs%ulocal(i,j),specs%ulocal(i,j+shift),specs%jlocal(i,j),specs%jlocal(i,j+shift)
+                  if (errno/=0) then
+                    call error("block SpeciesData is not in the right format",sMyName,.true.,io)
+                  endif
+                  write(io%udeb,'(4f16.6)')specs%ulocal(i,j),specs%ulocal(i,j+shift),specs%jlocal(i,j),specs%jlocal(i,j+shift)
+                enddo
+              enddo
+            else
+              call error("HubbardUJ block is missing!!!",sMyName,.true.,io)
+            endif
           endif
         endif
-        if (general%scftype == k_scftbujo) then
-          allocate(specs%ulocal(1:specs%nspecies,0:2*maxL))
-          allocate(specs%jlocal(1:specs%nspecies,0:2*maxL))
-          specs%jlocal=0.0_k_pr
-          specs%ulocal=0.0_k_pr
-          if (.not.general%spin) then
-            call error(sMyName,"This model suppose to be spin polarised try SCFType = TB+UJO ---",.true.,io)
-          endif
-          if (GetBlock(io,"HubbardUJ",nt)) then
-            do i = 1, specs%nspecies
-              read(nt,fmt=*,iostat=errno) sp
-              if (sp/=i) then
-                 write(saux,'(a,i0,a,i0)')"the id of the specie differs from the one expected by convention found ",&
-                   sp," expected ",i
-                 call error(trim(saux),sMyName,.true.,io)
-              endif
-              if (errno/=0) then
-                 call error("block HubbardUJ is not in the right format",sMyName,.true.,io)
-              endif
-              write(io%udeb,'(i0)')sp
-              specs%ulocal(i,0)=getLMax(i,specBasis,specs)+1
-              specs%jlocal(i,0)=getLMax(i,specBasis,specs)+1
-              shift=specs%ulocal(i,0)
-              do j=1,ceiling(specs%ulocal(i,0))
-                read(nt,fmt=*,iostat=errno)specs%ulocal(i,j),specs%ulocal(i,j+shift),specs%jlocal(i,j),specs%jlocal(i,j+shift)
-                if (errno/=0) then
-                  call error("block SpeciesData is not in the right format",sMyName,.true.,io)
-                endif
-                write(io%udeb,'(4f16.6)')specs%ulocal(i,j),specs%ulocal(i,j+shift),specs%jlocal(i,j),specs%jlocal(i,j+shift)
-              enddo
-            enddo
-          else
-            call error("HubbardUJ block is missing!!!",sMyName,.true.,io)
-          endif
-        endif
-      endif
-    end select
+      end select
+    endif
   end subroutine ReadSpecies
 
   !> \page species "Atomic Species Data"

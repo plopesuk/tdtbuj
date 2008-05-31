@@ -134,7 +134,7 @@ program tbuj
   character(len=k_mw) :: arg
   character(len=10) :: dt
   character(len=12) :: tm
-  
+
 !
   type(ioType) :: ioInfo
   type(generalType) :: general
@@ -162,8 +162,8 @@ program tbuj
 
   if (general%runType == k_runSp) then
     call SinglePoint(ioInfo,general,atomicx,tbModel,SolSpace)
-  elseif (general%runType == k_runGeomBFGS) then
-    call BFGS(ioInfo,general,atomicx,tbModel,SolSpace)
+  elseif (general%runType == k_runGeometryOptimisation) then
+    call Geometry(ioInfo,general,atomicx,tbModel,SolSpace)
   elseif (general%runType == k_runBO) then
     call BornOppenheimerDynamics(ioInfo,general,atomicx,tbModel,SolSpace)
   elseif (general%runType == k_runEhrenfest) then

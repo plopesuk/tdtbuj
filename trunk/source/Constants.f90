@@ -28,7 +28,7 @@ module m_Constants
   integer, parameter, public :: k_runForceTestz = 8
   integer, parameter, public :: k_runEhrenfestDamped = 9
   integer, parameter, public :: k_runFragments = 10
-  integer, parameter, public :: k_runGeomBFGS = 11
+  integer, parameter, public :: k_runGeometryOptimisation = 11
   integer, parameter, public :: k_runSpecial = 99
 !> RunType
 
@@ -65,6 +65,9 @@ module m_Constants
   integer, parameter, public :: k_TrustRegion=4
 !> fitting methods
 
+  integer, parameter, public :: k_lbfgs=0
+  integer, parameter, public :: k_bfgs=1
+!> geometry optimisation algorithms
  ! mathematics
   real(k_pr), parameter, public :: k_pi = 3.14159265358979323846264338327950_k_pr !< \f$ \pi \f$
   real(k_pr), parameter, public :: k_infinity = huge(1.0_k_pr) !< infinity
