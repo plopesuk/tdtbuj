@@ -1,6 +1,6 @@
 PROJECT(tdtbuj Fortran)
 
-set(CMAKE_BUILD_TYPE "Release")
+set(CMAKE_BUILD_TYPE "Debug")
 
 set(VERSION_MAJOR "0")
 set(VERSION_MINOR "9")
@@ -103,6 +103,7 @@ ${src_dir}/SimplexSA.f90
 ${src_dir}/Fit.f90
 ${src_dir}/Dynamics.f90
 ${src_dir}/LBFGS.f90
+${src_dir}/BFGS.f90
 ${src_dir}/DriverRoutines.f90
 ${src_dir}/main.f90
 )

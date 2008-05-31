@@ -513,6 +513,10 @@ contains
     hole=gen%holeState+gen%holeSpin*n/2
     excite=gen%exciteState+gen%exciteSpin*n/2
 
+   if ((hole==0).or.(excite==0)) then
+      call error("Please give correct instructions to create excitation",myname,.true.,io)
+    endif
+
     if (pos(hole)>homo) then
       call error("You can not create a hole at a level already empty",myname,.true.,io)
     endif

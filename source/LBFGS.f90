@@ -6,16 +6,111 @@ module m_LBFGS
 use m_Constants
 use m_Useful
 use m_Types
+use m_Gutenberg
 use mkl95_BLAS, only : dot,axpy
 implicit none
 
 private
 
-public :: lbfgs
-
-
+public :: linearBFGS
 
 contains
+
+!> \brief driver routine for linearBFGS optimization
+!> \author Alin M Elena
+!> \date 10/11/07, 15:22:53
+!> \param io type(ioType) contains all the info about I/O files
+!> \param gen type(generalType) contains the info needed by the program to k_run
+!> \param atomic type(atomicxType) contains all info about the atoms and basis set and some parameters
+!> \param tb type(modelType) contains information about the tight binding model parameters
+!> \param sol type(solutionType) contains information about the solution space
+  subroutine linearBFGS(io,gen,atomic,tb,sol,func)
+    character(len=*), parameter :: myname = 'linearBFGS'
+    type(ioType), intent(inout) :: io
+    type(generalType), intent(inout) :: gen
+    type(atomicxType), intent(inout) :: atomic
+    type(solutionType), intent(inout) :: sol
+    type(modelType), intent(inout) :: tb
+
+    interface
+      function func(gen,atomic,tb,sol,io,x,f,gradient)
+        use m_Constants
+        use m_Types
+        implicit none
+          real(k_pr), dimension(:), intent(in) :: x
+          real(k_pr), dimension(:), intent(inout),optional :: gradient
+          real(k_pr), intent(inout) :: f
+          type(generalType), intent(inout) :: gen
+          type(atomicxType), intent(inout) :: atomic
+          type(modelType), intent(inout) :: tb
+          type(solutionType), intent(inout) :: sol
+          type(ioType), intent(inout) :: io
+          integer :: func
+      end function func
+    end interface
+
+    integer  :: i
+    integer  :: m,n, res
+    real(k_pr) :: epsx,epsf,epsg,gtol,xtol,ftol
+    real(k_pr), allocatable :: x(:)
+    integer  :: info,atom, iprint(1:2),maxfev
+
+    write(io%uout,'(/a/)')&
+         "--LBFGS Optimization Run-----------------------------------------"
+    n = atomic%atoms%nmoving*3
+    m=min(gen%HessianM,n)
+    if (io%verbosity > k_highVerbos) then
+      iprint(1) = 1
+      iprint(2) = 3
+    else
+      iprint(1) = -1
+      iprint(2) = 0
+    endif
+
+    epsf = gen%epsF
+    epsg = gen%epsG
+    epsx = gen%epsX
+    xtol = gen%xtol
+    gtol=gen%gtol
+    info = 0
+    maxfev=gen%maxFeval
+    ftol=gen%ftol
+    allocate(x(1:n))
+
+    do i=1,atomic%atoms%nmoving
+      atom=atomic%atoms%id(atomic%atoms%moving(i))
+      x(3*(i-1)+1) = atomic%atoms%x(atom)
+      x(3*(i-1)+2) = atomic%atoms%y(atom)
+      x(3*(i-1)+3) = atomic%atoms%z(atom)
+    enddo
+    call lbfgs(n,m,x,epsg,epsf,epsx,xtol,gtol,ftol,maxfev,gen%nsteps,iprint,info,&
+                 func,gen,atomic,tb,sol,io)
+    res=func(gen,atomic,tb,sol,io,x,ftol,x)
+    deallocate(x)
+
+    open(unit=1,file="new_coords.xyz",status="unknown",action="write")
+    call PrintXYZ(1,atomic,.false.,"Optimised coordinates")
+    close(unit=1)
+
+    write(io%uout,'(/a)')&
+      "Final forces:"
+    call PrintForces(atomic%atoms,io)
+    write(io%uout,'(/a)')&
+      "Final coordinates:"
+    call PrintCoordinates(io,atomic,gen)
+    if (info<0) then
+      write(io%uout,'(/a,i4)')&
+          "WARNING: Optimization did not converge.",info
+    endif
+! !      call write_fdf_coords()
+    write(io%uout,'(/a)')&
+      "----------------------------------------------------------------"
+  end subroutine linearBFGS
+
+
+
+
+
 
 !> \brief        limited memory bfgs method for large scale optimization
 !> \details     this subroutine solves the unconstrained minimization problem
@@ -45,7 +140,7 @@ contains
 !>
 !> \param    g       is a double precision array of length n. before initial
 !>             entry and on a re-entry with iflag=1, it must be set by
-!>             the user to contain the compk_onents of the gradient g at
+!>             the user to contain the components of the gradient g at
 !>             the point x.
 !>
 !> \param     diagco  is a logical variable that must be set to .true. if the
@@ -179,7 +274,7 @@ contains
         use m_Types
         implicit none
           real(k_pr), dimension(:), intent(in) :: x
-          real(k_pr), dimension(:), intent(inout) :: gradient
+          real(k_pr), dimension(:), intent(inout),optional :: gradient
           real(k_pr), intent(inout) :: f
           type(generalType), intent(inout) :: gen
           type(atomicxType), intent(inout) :: atomic
@@ -344,61 +439,61 @@ contains
 
     deallocate(g,diag,w,tx,ta,xold)
 
-end subroutine lbfgs
+  end subroutine lbfgs
 
 
-       subroutine IterationReport(iprint,iter,nfun,gnorm,n,m,x,f,g,stp,finish,io)
+  subroutine IterationReport(iprint,iter,nfun,gnorm,n,m,x,f,g,stp,finish,io)
 
  !     -------------------------------------------------------------
  !     this routine prints monitoring information. the frequency and
  !     amount of output are controlled by iprint.
  !     -------------------------------------------------------------
  !
-       integer, intent(in) :: iprint(2),iter,nfun,n,m
-       real(k_pr), intent(in) :: x(:),g(:),f,gnorm,stp
-       type(ioType), intent(in) :: io
-       logical, intent(in) :: finish
-       integer :: i
+    integer, intent(in) :: iprint(2),iter,nfun,n,m
+    real(k_pr), intent(in) :: x(:),g(:),f,gnorm,stp
+    type(ioType), intent(in) :: io
+    logical, intent(in) :: finish
+    integer :: i
 
-       if (iter == 0)then
-            write(io%uout,'(a)')"=============================================================="
-            write(io%uout,'(a,i0,a,i0,a)') "n= ",n," number of corrections= ",m, "initial values"
-            write(io%uout,'(a,ES12.4,a,ES12.4)')"f=",f," gnorm= ",gnorm
-                  if (iprint(2)>=1)then
-                      write(io%uout,'(a)') "vector X:"
-                      write(io%uout,'(1500f16.8)') (x(i),i=1,n)
-                      write(io%uout,'(a)')"gradient vector (Forces): "
-                      write(io%uout,'(1500f16.8)') (g(i),i=1,n)
-                   endif
-            write(io%uout,'(a)')"=============================================================="
-            write(io%uout,'(a,4x,a,8x,a,7x,a)')"   i   nfn","func","gnorm","steplength"
-       else
-           if ((iprint(1)==0).and.(iter/=1.and..not.finish))return
-               if (iprint(1)/=0)then
-                    if(mod(iter-1,iprint(1))==0.or.finish)then
-                          if(iprint(2)>1.and.iter>1) write(io%uout,'(a,4x,a,8x,a,7x,a)')"   i   nfn","func","gnorm","steplength"
-                          write(io%uout,'(2(i4,1x),3x,3(1f10.3,2x))')iter,nfun,f,gnorm,stp
-                    else
-                          return
-                    endif
-               else
-                    if( iprint(2)>1.and.finish) write(io%uout,'(a,4x,a,8x,a,7x,a)')"   i   nfn","func","gnorm","steplength"
+    if (iter == 0)then
+      write(io%uout,'(a)')"=============================================================="
+      write(io%uout,'(a,i0,a,i0,a)') "n= ",n," number of corrections= ",m, "initial values"
+      write(io%uout,'(a,ES12.4,a,ES12.4)')"f=",f," gnorm= ",gnorm
+            if (iprint(2)>=1)then
+                write(io%uout,'(a)') "vector X:"
+                write(io%uout,'(1500f16.8)') (x(i),i=1,n)
+                write(io%uout,'(a)')"gradient vector (Forces): "
+                write(io%uout,'(1500f16.8)') (g(i),i=1,n)
+              endif
+      write(io%uout,'(a)')"=============================================================="
+      write(io%uout,'(a,4x,a,8x,a,7x,a)')"   i   nfn","func","gnorm","steplength"
+    else
+      if ((iprint(1)==0).and.(iter/=1.and..not.finish))return
+          if (iprint(1)/=0)then
+              if(mod(iter-1,iprint(1))==0.or.finish)then
+                    if(iprint(2)>1.and.iter>1) write(io%uout,'(a,4x,a,8x,a,7x,a)')"   i   nfn","func","gnorm","steplength"
                     write(io%uout,'(2(i4,1x),3x,3(1f10.3,2x))')iter,nfun,f,gnorm,stp
-               endif
-               if (iprint(2)==2.or.iprint(2)==3)then
-                     if (finish)then
-                         write(io%uout,'(a)')"final point X: "
-                     else
-                         write(io%uout,'(a)') "vector X:"
-                     endif
-                       write(io%uout,'(1500f16.8)')(x(i),i=1,n)
-                   if (iprint(2)==3)then
-                       write(io%uout,'(a)')"gradient vector (Forces): "
-                       write(io%uout,'(1500f16.8)')(g(i),i=1,n)
-                   endif
-               endif
-             if (finish) write(io%uout,'(a)') " the minimization terminated without detecting errors. iflag = 0"
-       endif
+              else
+                    return
+              endif
+          else
+              if( iprint(2)>1.and.finish) write(io%uout,'(a,4x,a,8x,a,7x,a)')"   i   nfn","func","gnorm","steplength"
+              write(io%uout,'(2(i4,1x),3x,3(1f10.3,2x))')iter,nfun,f,gnorm,stp
+          endif
+          if (iprint(2)==2.or.iprint(2)==3)then
+                if (finish)then
+                    write(io%uout,'(a)')"final point X: "
+                else
+                    write(io%uout,'(a)') "vector X:"
+                endif
+                  write(io%uout,'(1500f16.8)')(x(i),i=1,n)
+              if (iprint(2)==3)then
+                  write(io%uout,'(a)')"gradient vector (Forces): "
+                  write(io%uout,'(1500f16.8)')(g(i),i=1,n)
+              endif
+          endif
+        if (finish) write(io%uout,'(a)') " the minimization terminated without detecting errors. iflag = 0"
+    endif
   end subroutine IterationReport
 !
 ! !c
@@ -470,9 +565,8 @@ end subroutine lbfgs
 ! !c         initial estimate of a satisfactory step. on output
 ! !c         stp contains the final estimate.
 ! !c
-! !c       ftol and gtol are nonnegative input variables. (in this reverse
-! !c         communication implementation gtol is defined in a common
-! !c         statement.) termination occurs when the sufficient decrease
+! !c       ftol and gtol are nonnegative input variables.
+! !          termination occurs when the sufficient decrease
 ! !c         condition and the directional derivative condition are
 ! !c         satisfied.
 ! !c
@@ -516,16 +610,6 @@ end subroutine lbfgs
 ! !c         calls to fcn.
 ! !c
 ! !c       wa is a work array of length n.
-! !c
-! !c     subprograms called
-! !c
-! !c       mcstep
-! !c
-! !c       fortran-supplied...abs,max,min
-! !c
-! !c     argonne national laboratory. minpack project. june 1983
-! !c     jorge j. more', david j. thuente
-! !c
 ! !c     **********
 
   subroutine mcsrch(n,x,f,g,s,stp,ftol,xtol,maxfev,info,nfev,wa,gtol,stpmin,stpmax, &
@@ -548,7 +632,7 @@ end subroutine lbfgs
         use m_Types
         implicit none
           real(k_pr), dimension(:), intent(in) :: x
-          real(k_pr), dimension(:), intent(inout) :: gradient
+          real(k_pr), dimension(:), intent(inout),optional :: gradient
           real(k_pr), intent(inout) :: f
           type(generalType), intent(inout) :: gen
           type(atomicxType), intent(inout) :: atomic
@@ -631,7 +715,6 @@ end subroutine lbfgs
       write(io%uout,'(a,a)')"Energy update from: ", myname
       res=func(gen,atomic,tb,sol,io,x,f,g)
       info = 0
-
       nfev = nfev+1
       dg = 0.0_k_pr
       do j = 1,n
@@ -772,8 +855,6 @@ end subroutine lbfgs
     real(k_pr), intent(inout) :: stx,fx,dx,sty,fy,dy,stp,fp,dp
     real(k_pr), intent(in) :: stmin,stmax
     logical, intent(inout) :: brackt
-
-
     real(k_pr) :: p, q, r, s, sgnd, stpc, stpf, stpq, theta, p66,gamma
     logical :: bound
 

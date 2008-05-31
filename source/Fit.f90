@@ -785,7 +785,7 @@ end function UpdateCost
    deallocate(tol)
   end subroutine SimplexSA
 
-!> \brief initializes the simplex-simulated annealing method
+!> \brief initializes the trust-region method
 !> \author Alin M Elena
 !> \date 14/11/07, 13:48:55
 !> \param io type(ioType) contains all the info about I/O files
@@ -948,11 +948,8 @@ end function UpdateCost
     deallocate(lw,up,fvec,fjac)
     deallocate(f1,f2)
   end subroutine TrustRegion
-    !! routine for extendet powell function calculation
-    !! m in: dimension of function value
-    !! n in: number of function variables
-    !! x in: vector for function calculation
-    !! f out: function value f(x)
+
+
   subroutine ObjectiveFunctions (m,n, x, f,gen,atomic,tb,sol,io)
     character(len=*), parameter :: myname="ObjectiveFunctions"
     integer, intent(inout) :: n,m

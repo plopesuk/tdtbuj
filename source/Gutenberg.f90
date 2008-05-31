@@ -95,17 +95,19 @@ contains
     type(atomicxType), intent(in) :: atomix
     integer :: i
 
-    call PrintCoordinates(io,atomix)
+    call PrintCoordinates(io,atomix,general)
     if (general%ReadVelocity) then
       call PrintVelocities(io,atomix)
     endif
     write(io%uout,'(a)')"=AtomicLists=========================================="
-    if(atomix%atoms%nscf/=0) then
-      write(io%uout,'(a)')"SCFAtoms:"
-      do i=1,atomix%atoms%nscf
-        write(io%uout,'(i0,a1,a,a2)',advance="no")atomix%atoms%scf(i),"(",symbol(GetZ(atomix,atomix%atoms%scf(i))),") "
-      enddo
-      write(io%uout,*)
+    if (general%scf) then
+      if(atomix%atoms%nscf/=0) then
+        write(io%uout,'(a)')"SCFAtoms:"
+        do i=1,atomix%atoms%nscf
+          write(io%uout,'(i0,a1,a,a2)',advance="no")atomix%atoms%scf(i),"(",symbol(GetZ(atomix,atomix%atoms%scf(i))),") "
+        enddo
+        write(io%uout,*)
+      endif
     endif
     if(atomix%atoms%nmoving/=0) then
       write(io%uout,'(a)')"Moving Atoms:"
@@ -170,10 +172,12 @@ contains
 !> \date 30/10/07, 13:22:04
 !> \param io type(ioType) i/o units
 !> \param atomix type(atomicxType) contains info about atoms
-  subroutine PrintCoordinates(io,atomix)
+!> \param gen type(generalType) general dat
+  subroutine PrintCoordinates(io,atomix,gen)
     character(len=*), parameter :: sMyName="PrintCoordinates"
     type(ioType), intent(inout) :: io
     type(atomicxType), intent(in) :: atomix
+    type(generalType), intent(in)  :: gen
     integer :: i
 
     write(io%uout,'(a)')  "=StartAtomsData==============================================================================="
@@ -182,7 +186,7 @@ contains
     do i=1,atomix%atoms%natoms
       write(io%uout,'(i8,i4,1x,a2,4f16.8,5x,l1,8x,l1)')atomix%atoms%id(i),atomix%atoms%sp(i),symbol(GetZ(atomix,i)),&
             atomix%atoms%x(i),atomix%atoms%y(i),atomix%atoms%z(i),atomix%atoms%bias(i),&
-            atomix%atoms%isscf(i),atomix%atoms%ismoving(i)
+            (gen%scf.and.atomix%atoms%isscf(i)),atomix%atoms%ismoving(i)
     enddo
     write(io%uout,'(a)')   "=EndAtomsData================================================================================="
   end subroutine PrintCoordinates
