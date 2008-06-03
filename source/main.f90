@@ -127,6 +127,7 @@ program tbuj
   use m_TightBinding
   use m_DriverRoutines
   use m_Fit
+  use m_Testing
   implicit none
 
 
@@ -171,13 +172,13 @@ program tbuj
   elseif (general%runType==k_runFit) then
     call Fitting(ioInfo,general,atomicx,tbModel,SolSpace)
   elseif (general%runType==k_runForceTest) then
-!     call forceTest
+    call ForceTest(ioInfo,general,atomicx,tbModel,SolSpace)
   elseif (general%runType==k_runForceTestx) then
-!     call forceTestx
+    call forceTestx(ioInfo,general,atomicx,tbModel,SolSpace)
   elseif (general%runType==k_runForceTesty) then
-!     call forceTesty
+    call forceTesty(ioInfo,general,atomicx,tbModel,SolSpace)
   elseif (general%runType==k_runForceTestz) then
-!     call forceTestz
+    call forceTestz(ioInfo,general,atomicx,tbModel,SolSpace)
   elseif (general%runType==k_runEhrenfestDamped) then
     call EhrenfestDynamicsDamped(ioInfo,general,atomicx,tbModel,SolSpace)
   elseif (general%runType==k_runFragments) then

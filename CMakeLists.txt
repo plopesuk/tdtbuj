@@ -105,6 +105,7 @@ ${src_dir}/Dynamics.f90
 ${src_dir}/LBFGS.f90
 ${src_dir}/BFGS.f90
 ${src_dir}/DriverRoutines.f90
+${src_dir}/Testing.f90
 ${src_dir}/main.f90
 )
 ####################

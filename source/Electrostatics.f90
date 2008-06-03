@@ -87,9 +87,9 @@ contains
     select case(gen%electrostatics)
       case (k_electrostaticsPoint)
         do i=1,atomic%atoms%natoms
-          atomic%atoms%dx(i)= atomic%atoms%x(i)*atomic%atoms%chrg(i)
-          atomic%atoms%dy(i)= atomic%atoms%y(i)*atomic%atoms%chrg(i)
-          atomic%atoms%dz(i)= atomic%atoms%z(i)*atomic%atoms%chrg(i)
+          atomic%atoms%dx(i) = atomic%atoms%x(i)*atomic%atoms%chrg(i)
+          atomic%atoms%dy(i) = atomic%atoms%y(i)*atomic%atoms%chrg(i)
+          atomic%atoms%dz(i) = atomic%atoms%z(i)*atomic%atoms%chrg(i)
         enddo
       case(k_electrostaticsMultipoles)
         do i=1,atomic%atoms%natoms

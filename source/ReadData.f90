@@ -505,9 +505,6 @@ subroutine ReadGeneral(ioLoc,genLoc)
   write( ioLoc%uout,'(a,ES12.4)')"damping factor in Ehrenfest Equation(Gamma): "&
      ,genLoc%gamma
 
-
-
-
   if (genLoc%Runtype==k_RunFit) then
       saux=GetString(ioLoc,"FitMethod","Simplex")
       write(ioLoc%uout,'(a,a)') &
@@ -595,9 +592,30 @@ subroutine ReadGeneral(ioLoc,genLoc)
         genLoc%fit%iter=GetInteger(ioLoc,"TrMaxIter",10000)
          write(ioLoc%uout,'(a,i8)') &
           "MAximum number of iterations for TrustRegion = ",genLoc%fit%iter
-
     end select
   endif
+
+  if (genLoc%runType == k_runForceTest) then
+    genLoc%fdx=GetReal(ioLoc,"DerivStep",0.001_k_pr)
+    write(ioLoc%uout,'(a,f8.3)') &
+               "Step for numerical derivative (DerivStep) = ",genLoc%fdx
+  endif
+
+  if ((genLoc%runType == k_runForceTestx) .or.(genLoc%runType == k_runForceTesty) .or.(genLoc%runType == k_runForceTestz))then
+    genLoc%fdx=GetReal(ioLoc,"DerivStep",0.001_k_pr)
+    write(ioLoc%uout,'(a,f8.3)') &
+               "Step for numerical derivative (DerivStep) = ",genLoc%fdx
+    genLoc%fstart=GetReal(ioLoc,"ForceStart",0.0_k_pr)
+    write(ioLoc%uout,'(a,f8.3)') &
+               "Start for numerical derivative (ForceStart) = ",genLoc%fstart
+    genLoc%fsteps=GetInteger(ioLoc,"ForceSteps",100)
+    write(ioLoc%uout,'(a,i0)') &
+               "No of steps for sampling (ForceSteps) = ",genLoc%fsteps
+   genLoc%fatom=GetInteger(ioLoc,"ForceOnAtom",1)
+    write(ioLoc%uout,'(a,i0)') &
+               "Compute force on atom (ForceOnAtom) = ",genLoc%fatom
+  endif
+
 
 ! !comm_gen Excite & logical & .false. & on/off create an excited state \\
   genLoc%lIsExcited=GetLogical(ioLoc,"Excite",.false.)
@@ -650,7 +668,7 @@ subroutine ReadGeneral(ioLoc,genLoc)
       call error("The requested fitting method is not implemented",name,.true.,ioLoc)
     endif
 
-    select case(k_runGeometryOptimisation)
+    select case(genLoc%geomAlg)
       case(k_lbfgs)
         genLoc%fTol=GetReal(ioLoc,"EnergyTolerance",1.0e-4_k_pr)
         write( ioLoc%uout,'(a,ES12.4)')"Energy Tolerance (during geometry optimisation)(EnergyTolerance): "&
@@ -736,7 +754,7 @@ end subroutine ReadGeneral
 !> \hline
 !> SCFMixN & integer & 4 & number of iterations to mix\\\
 !> \hline
-!> RunType & SinglePoint, BODynamics, Ehrenfest, EhrenfestDamped, Fit, GeometryOptimization & SinglePoint & Type of calculation\\\
+!> RunType & SinglePoint, BODynamics, Ehrenfest, EhrenfestDamped, Fit, GeometryOptimization, ForceTest, ForceTestX, ForceTestY, ForceTestZ & SinglePoint & Type of calculation\\\
 !> \hline
 !> HElThres & real & 1e-10 & hamiltionian element thresold. Any element smaller that the thresold is made zero.\\\
 !> \hline
@@ -814,6 +832,8 @@ end subroutine ReadGeneral
 !> ForceTolerance & real & 10E-10 & Force tolerance for geometry optimisation\\\
 !> \hline
 !> GeomOptAlg & LBFGS, BFGS & LBFGS &Geometry Optimisation Algorithm Linear BFGS or BFGS (Broyden-Fletcher-Goldfarb-Shanno))\\\
+!> \hline
+!> DerivStep & real & 10E-3 & step for numerical derivatives\\\
 !> \hline
 !> \end{longtable}
 !> \endlatexonly
@@ -906,7 +926,7 @@ end subroutine ReadGeneral
 !><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>number of iterations to mix</TD>
 !></TR>
 !><TR><TD ALIGN="CENTER">RunType</TD>
-!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>SinglePoint, BODynamics, Ehrenfest, EhrenfestDamped, Fit, GeometryOptimization</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>SinglePoint, BODynamics, Ehrenfest, EhrenfestDamped, Fit, GeometryOptimization, ForceTest, ForceTestX, ForceTestY, ForceTestZ</TD>
 !><TD ALIGN="CENTER">SinglePoint</TD>
 !><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>Type of calculation</TD>
 !></TR>
@@ -1101,6 +1121,11 @@ end subroutine ReadGeneral
 !><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>LBFGS, BFGS</TD>
 !><TD ALIGN="CENTER">LBFGS</TD>
 !><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>Geometry Optimisation Algorithm Linear BFGS or BFGS (Broyden-Fletcher-Goldfarb-Shanno))</TD>
+!></TR>
+!><TR><TD ALIGN="CENTER">DerivStep</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>real</TD>
+!><TD ALIGN="CENTER">10E-3</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>step used for numercal derivatives</TD>
 !></TR>
 !></TABLE>
 !> \endhtmlonly

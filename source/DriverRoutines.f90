@@ -45,10 +45,9 @@ module m_DriverRoutines
     real(k_pr) :: eenergy,renergy, minusts,scfE
     integer :: aux
 
- eenergy=0.0_k_pr
- renergy=0.0_k_pr
- scfE=0.0_k_pr
-
+    eenergy=0.0_k_pr
+    renergy=0.0_k_pr
+    scfE=0.0_k_pr
     if (genLoc%spin)  then
       call InitMagneticMoment(atomic)
       write(ioLoc%uout,"(a)")"Initial Magnetic Moment"
@@ -58,9 +57,8 @@ module m_DriverRoutines
     eenergy = ElectronicEnergy(genLoc,sol,ioLoc)
     renergy = RepulsiveEnergy(genLoc,atomic%atoms,tbMod)
     minusts = sol%electronicEntropy
-
     write(ioLoc%uout,'(/a)')&
-         '--Single Point Run----------------------------------------------'
+         "--Single Point Run----------------------------------------------"
     call PrintAtoms(ioLoc,genLoc,atomic)
     call PrintCharges(genLoc,atomic,ioLoc)
     call PrintDipoles(atomic,ioLoc)
@@ -83,9 +81,9 @@ module m_DriverRoutines
           "Total energy      = ",eenergy+renergy+scfE+minusts
     call PrintForces(atomic%atoms,ioLoc)
     write(ioLoc%uout,'(/a/)')&
-          '----------------------------------------------------------------'
-    sol%totalEnergy=eenergy+renergy+minusts+scfE
+          "_______________________________________________________________"
 
+    sol%totalEnergy=eenergy+renergy+minusts+scfE
   end subroutine SinglePoint
 
 !> \brief driver routine for verlet velocity Born-Oppenheimer molecular dynamics
@@ -821,6 +819,7 @@ integer function UpdatePoint(gen,atomic,tb,sol,io,x,f,gradient)
     real(k_pr), intent(inout), optional ::gradient(:)
     real(k_pr), intent(in) :: x(:)
     integer :: i,atom
+    character(len=k_mw) :: saux
     UpdatePoint=0
     do i=1,atomic%atoms%nmoving
       atom=atomic%atoms%id(atomic%atoms%moving(i))
@@ -828,9 +827,6 @@ integer function UpdatePoint(gen,atomic,tb,sol,io,x,f,gradient)
       atomic%atoms%y(atom) = x(3*(i-1)+2)
       atomic%atoms%z(atom) = x(3*(i-1)+3)
     enddo
-    if (gen%writeAnimation) then
-      call PrintXYZ(io%uani,atomic,.false.,"Optimised coordinates")
-    endif
     call SinglePoint(io,gen,atomic,tb,sol)
     if (.not.gen%lIsSCFConverged) then
       UpdatePoint=1
@@ -842,12 +838,16 @@ integer function UpdatePoint(gen,atomic,tb,sol,io,x,f,gradient)
     if (present(gradient)) then
       do i=1,atomic%atoms%nmoving
         atom=atomic%atoms%id(atomic%atoms%moving(i))
-        gradient(3*(i-1)+1) = atomic%atoms%fx(atom)
-        gradient(3*(i-1)+2) = atomic%atoms%fy(atom)
-        gradient(3*(i-1)+3) = atomic%atoms%fz(atom)
+        gradient(3*(i-1)+1) =  -atomic%atoms%fx(atom)
+        gradient(3*(i-1)+2) =  -atomic%atoms%fy(atom)
+        gradient(3*(i-1)+3) =  -atomic%atoms%fz(atom)
       enddo
     endif
     f=sol%totalEnergy
+    if (gen%writeAnimation) then
+      write(saux,"(a,f16.8)")"E = ",f
+      call PrintXYZ(io%uani,atomic,.false.,trim(saux))
+    endif
    end function UpdatePoint
 
 

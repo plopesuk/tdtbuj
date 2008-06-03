@@ -58,7 +58,7 @@ contains
     write(io%uout,'(/a/)')&
          "--LBFGS Optimization Run-----------------------------------------"
     n = atomic%atoms%nmoving*3
-    m=min(gen%HessianM,n)
+    m = min(gen%HessianM,n)
     if (io%verbosity > k_highVerbos) then
       iprint(1) = 1
       iprint(2) = 3
@@ -101,15 +101,13 @@ contains
     if (info<0) then
       write(io%uout,'(/a,i4)')&
           "WARNING: Optimization did not converge.",info
+    else
+      write(io%uout,'(/a,i4)')&
+          "LBFGS report: Optimization converged with code: ",info
     endif
-! !      call write_fdf_coords()
     write(io%uout,'(/a)')&
       "----------------------------------------------------------------"
   end subroutine linearBFGS
-
-
-
-
 
 
 !> \brief        limited memory bfgs method for large scale optimization
@@ -215,7 +213,7 @@ contains
 !>                      info = 2  relative width of the interval of
 !>                                uncertainty is at most xtol.
 !>
-!>                      info = 3  more than 20 function evaluations were
+!>                      info = 3  more than n function evaluations were
 !>                                required at the present iteration.
 !>
 !>                      info = 4  the step is too small.
@@ -305,7 +303,7 @@ contains
     w=0.0_k_pr
     tx=0.0_k_pr
     ta=0.0_k_pr
-
+    f=0.0_k_pr
     write(io%uout,'(a,a)')"Energy update from: ", myname
     res=func(gen,atomic,tb,sol,io,x,f,g)
 
@@ -321,8 +319,6 @@ contains
     point = 0
     finish = .false.
     diag=1.0_k_pr
-
-
     stpmin = 10.0e-20_k_pr
     stpmax = 10.0e20_k_pr
     ispt = n+2*m;
@@ -412,13 +408,13 @@ contains
           return
         endif
         call IterationReport(iprint,iter,nfun,gnorm,n,m,x,f,g,stp,finish,io)
-        gnorm = dot(g,g)
+        gnorm = sqrt(dot(g,g))
         if( gnorm<=epsg ) then
           info = 4
           return
         endif
         tf = max(abs(fold), max(abs(f), 1.0_k_pr))
-        if( fold-f<=epsf*tf ) then
+        if( abs(fold-f)<=epsf*tf ) then
           info = 1
           return
         endif
@@ -654,7 +650,7 @@ contains
     p5 = 0.5_k_pr
     p66 = 0.66_k_pr
     xtrapf = 4.0_k_pr
-
+    f=0.0_k_pr
     write(io%uout,'(a,a)')"Energy update from: ", myname
     res=func(gen,atomic,tb,sol,io,x,f,g)
     infoc = 1

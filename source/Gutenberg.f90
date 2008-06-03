@@ -869,18 +869,16 @@ contains
     integer :: m,n,j
     real(k_pr) :: ch=0.0_k_pr
 
-    n=atomic%basis%norbitals
-    m=n*(n-1)/2
     if (present(i)) then
       write(io%uout,'(i5,1x,i8,1x,f16.8,1x,f16.8)')i,atomic%atoms%sp(i),atomic%atoms%chrg(i),&
           atomic%atoms%chrg(i)+atomic%species%zval(atomic%atoms%sp(i))
     else
       write(io%uout,'(a)')"Atom | Specie | Charge execess |    Total Charge |"
       ch=0.0_k_pr
-        do j=1,atomic%atoms%natoms
-          call PrintCharges(gen,atomic,io,j)
-          ch=ch+atomic%atoms%chrg(j)
-        enddo
+      do j=1,atomic%atoms%natoms
+        call PrintCharges(gen,atomic,io,j)
+        ch=ch+atomic%atoms%chrg(j)
+      enddo
       write(io%uout,'(a,f16.8)') &
           "Excess charge on all atoms ",ch
     endif
@@ -891,6 +889,10 @@ contains
 !> \date 08/11/07, 10:47:22
 !> \param io type(ioType) contains all the info about I/O files
 !> \param atomic type(atomicxType) contains all info about the atoms and basis set and some parameters
+!> \remarks  minus factor gives the proper definition to the dipole moment.
+!> up to now we computed the dipole moment as electron numbers times distance in local units
+!> here we do the proper transformations for printing. Be sure that you do them if you use
+!> the dipole moment in calculations
   subroutine PrintDipoles(atomic,io)
     character(len=*), parameter :: myname = 'PrintDipoles'
     type(atomicxType), intent(inout) :: atomic
@@ -900,7 +902,8 @@ contains
     ax=0.0_k_pr
     ay=0.0_k_pr
     az=0.0_k_pr
-    u2SI=k_length2SI*k_charge2SI
+
+    u2SI=-k_length2SI*k_chargeSI
     u2D=u2SI/k_debye2SI
 !! point charges dipoles
     write(io%uout,'(a)')" Dipoles from point charges =========================================="
