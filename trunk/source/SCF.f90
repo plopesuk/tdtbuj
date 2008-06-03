@@ -268,14 +268,15 @@ contains
               write(ioLoc%uout,'(a,i0,a,ES12.4)') "converged in ",nit, " iterations up to ",dmax
           endif
 
-          call CalcExcessCharges(genLoc,atomic,sol)
-          call CalcDipoles(genLoc,atomic,sol)
-          call ComputeMagneticMoment(genLoc,atomic,sol,ioLoc)
+
 !           ! calculate the forces
 !             if (.not.genLoc%compElec) then
 !               if (genLoc%k_electrostatics==tbu_multi) call init_qvs(densityin)
 !             endif
 
+          call CalcExcessCharges(genLoc,atomic,sol)
+          call CalcDipoles(genLoc,atomic,sol)
+          call ComputeMagneticMoment(genLoc,atomic,sol,ioLoc)
           call ZeroForces(atomic)
           call RepulsiveForces(genLoc,atomic%atoms,tbMod)
           call ElectronicForces(atomic,genLoc,tbMod,sol,ioLoc)

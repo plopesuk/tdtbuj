@@ -7,6 +7,7 @@ module m_BFGS
   use m_Useful
   use m_Types
   use m_Gutenberg
+  use mkl95_BLAS, only : dot
   implicit none
 
   private
@@ -61,11 +62,11 @@ module m_BFGS
     write(io%uout,'(/a/)')&
          "--BFGS Optimization Run-----------------------------------------"
     n = atomic%atoms%nmoving*3
-    eps= gen%ftol
+    eps  = gen%ftol
     xtol = gen%xtol
-    gtol=gen%gtol
+    gtol = gen%gtol
     itermax=gen%nsteps
-    stpmax=200.0_k_pr
+    stpmax=100.0_k_pr
     info = 0
 
     allocate(x(1:n))
@@ -90,9 +91,12 @@ module m_BFGS
     write(io%uout,'(/a)')&
       "Final coordinates:"
     call PrintCoordinates(io,atomic,gen)
-    if (info<0) then
+    if (info<=0) then
       write(io%uout,'(/a,i4)')&
           "WARNING: Optimization did not converge.",info
+    else
+      write(io%uout,'(/a,i4)')&
+          "BFGS report: Optimization converged with code: ",info
     endif
 ! !      call write_fdf_coords()
     write(io%uout,'(/a)')&
@@ -180,7 +184,7 @@ module m_BFGS
       test=0.0_k_pr
       den=max(fret,1.0_k_pr)
       do i=1,n
-        temp=abs(g(i))/max(abs(x(i)),den)
+        temp=abs(g(i))*max(abs(x(i)),1.0_k_pr)/den
         if (temp > test)  then
           test=temp
         endif
@@ -194,7 +198,7 @@ module m_BFGS
       do i=1,n
         hdg(i)=0.0_k_pr
         do j=1,n
-           hdg(i) = hdg(i) + hessin(i,j)*dg(j)
+          hdg(i) = hdg(i) + hessin(i,j)*dg(j)
         enddo
       enddo
       fac=0.0_k_pr
@@ -271,16 +275,11 @@ module m_BFGS
     slope=0.0_k_pr
     sum=0.0_k_pr
     check=.false.
-    do i=1,n
-      sum=sum+p(i)*p(i)
-    enddo
-    sum=sqrt(sum)
+    sum=sqrt(dot(p,p))
     if (sum > stpmax) then
         p=p*stpmax/sum
     endif
-    do i=1,n
-      slope=slope+g(i)*p(i)
-    enddo
+    slope=dot(g,p)
     if (slope >= 0.0_k_pr) then
       call error("Roundoff problem in "//trim(myname), myname,.false.,io)
       info = -1
@@ -301,7 +300,7 @@ module m_BFGS
       if (alam < alamin) then
         x=xold
         check = .true.
-        info = 2
+        info = 1
         return
       elseif (f <= fold+alf*alam*slope) then
         return
@@ -311,9 +310,9 @@ module m_BFGS
         else
           rhs1 = f - fold - slope*alam
           rhs2 = f2 - fold - slope*alam2
-          a =  (rhs1/(alam*alam)-rhs2/(alam*alam))/(alam-alam2)
+          a =  (rhs1/(alam*alam)-rhs2/(alam2*alam2))/(alam-alam2)
           b =  (-alam2*rhs1/(alam*alam) + alam*rhs2/(alam2*alam2))/(alam-alam2)
-          if (abs(a-1.0_k_pr)<=tiny(1.0_k_pr)) then
+          if (abs(a)<=tiny(1.0_k_pr)) then
             tmplam = -slope/(2.0_k_pr*b)
           else
             disc=b*b - 3.0_k_pr*a*slope
@@ -324,6 +323,9 @@ module m_BFGS
             else
                 tmplam = -slope/(b+sqrt(disc))
             endif
+          endif
+          if (tmplam > 0.5_k_pr*alam) then
+            tmplam=0.5_k_pr*alam
           endif
         endif
       endif

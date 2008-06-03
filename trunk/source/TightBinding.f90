@@ -165,6 +165,8 @@ contains
          sol%hermite=0.0_k_pr
       endif
     endif
+
+
   end subroutine SetSolutionSpace
 
 
@@ -188,8 +190,8 @@ contains
     integer ::i,j
     real(k_pr) :: f,fp,fpp
     integer :: k,k1,k2
-!     real(k_pr) :: r
-!     integer :: z,y
+     real(k_pr) :: r
+     integer :: z,y
 !    calculate the tail function parameters
     do i=1,atomic%species%nspecies
       do j=1,atomic%species%nspecies
@@ -239,6 +241,16 @@ contains
 !             enddo
 !           enddo
 !         enddo
+!       enddo
+!     enddo
+!     do i=1,atomic%species%nspecies
+!       do j=1,atomic%species%nspecies
+!         write(z,'(a,i0,x,i0)')"# r ",i,j
+!         do y=50,1000
+!           r=y*0.01_k_pr
+!           write(z,*)r,rep(r,atomic%species%id(i),atomic%species%id(j),tbMod,genLoc)
+!         enddo
+!         z=z+1
 !       enddo
 !     enddo
 end subroutine setTails

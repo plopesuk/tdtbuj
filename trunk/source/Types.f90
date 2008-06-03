@@ -95,9 +95,10 @@ module m_Types
     integer  :: bond
     logical  :: embedding !< Has the model embedding?
 ! !   for the force test
-!   integer :: f_steps
-!   real(k_pr) :: f_start
-!   real(k_pr) :: f_dx
+    integer :: fsteps   !< no of steps to sample the force testing step
+    integer :: fatom  !< atom on which we test
+    real(k_pr) :: fstart !< the starting position of the atom
+    real(k_pr) :: fdx !< step for numerical derivative used in testing
 ! ! for smearing methods Methfessel&Paxton
     integer :: mpN
     real(k_pr) :: mpW

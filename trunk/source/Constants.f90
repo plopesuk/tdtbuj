@@ -89,6 +89,7 @@ module m_Constants
   real(k_pr), public :: k_length2SI !< length to SI conversion factor
   real(k_pr), public :: k_time2SI !< time to SI conversion factor
   real(k_pr), parameter,public :: k_debye2SI=3.335640952D-30 !< debye to SI (Cm) conversion factor
+  real(k_pr), parameter,public :: k_chargeSI=1.60217653D-19 !< charge in SI (C)
   integer, parameter :: k_nz=110 !< no of atomic elements that have info associated with
 
   ! error messages codes for Trust region algorithm
