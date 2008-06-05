@@ -43,7 +43,7 @@ module m_DriverRoutines
     type(modelType), intent(inout) :: tbMod
     type(solutionType), intent(inout) :: sol
     real(k_pr) :: eenergy,renergy, minusts,scfE
-    integer :: aux
+    integer :: aux,xyz
 
     eenergy=0.0_k_pr
     renergy=0.0_k_pr
@@ -75,15 +75,20 @@ module m_DriverRoutines
     else
       scfE = 0.0_k_pr
     endif
-    write(ioLoc%uout,"(a,f16.8,/a,f16.8,/a,f16.8,/)") &
+    write(ioLoc%uout,"(a,f16.8,/a,f16.8,/a,f16.8,/a,f16.8)") &
        "Total SCF energy  = ",scfE, &
           "-TS               = ",minusts, &
-          "Total energy      = ",eenergy+renergy+scfE+minusts
+          "Total energy      = ",eenergy+renergy+scfE+minusts,&
+          "# of electrons    = ", real(MatrixTrace(sol%rho,ioLoc))
     call PrintForces(atomic%atoms,ioLoc)
     write(ioLoc%uout,'(/a/)')&
           "_______________________________________________________________"
 
-    sol%totalEnergy=eenergy+renergy+minusts+scfE
+   sol%totalEnergy=eenergy+renergy+minusts+scfE
+   xyz=GetUnit()
+    open(xyz,file="coords.xyz",status="unknown",action="write")
+    call PrintXYZ(xyz,atomic,.false.,getUnits(genLoc))
+   close(xyz)
   end subroutine SinglePoint
 
 !> \brief driver routine for verlet velocity Born-Oppenheimer molecular dynamics

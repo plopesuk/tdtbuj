@@ -3,6 +3,8 @@ module m_Testing
   use m_Types
   use m_Useful
   use m_DriverRoutines
+  use m_TightBinding
+  use m_Gutenberg
   implicit none
   private
 
@@ -11,6 +13,8 @@ module m_Testing
   public :: forceTestx
   public :: forceTesty
   public :: forceTestz
+  public :: testTails
+  public :: centerMolecule
 
 contains
 !> \brief tests force on x
@@ -229,5 +233,109 @@ contains
     write(*,'(a,F16.8,2X,F16.8,2X,F16.8)')" Numeric: ",totnx,totny,totnz
     write(*,'(a,F16.8,2X,F16.8,2X,F16.8)')"An.-Num.: ",fa_x-totnx,fa_y-totny,fa_z-totnz
   end subroutine forceTest
+
+
+!> \brief  prints the hopping integrals and repulsive potential radial components
+!> \author Alin M. Elena (Belfast)
+!> \date 3rd of June, 2008
+!> \param io type(ioType) contains all the info about I/O files
+!> \param gen type(generalType) contains the info needed by the program to k_run
+!> \param atomic type(atomicxType) contains all info about the atoms and basis set and some parameters
+!> \param tb type(modelType) contains information about the tight binding model parameters
+!> \param sol type(solutionType) contains information about the solution space
+  subroutine testTails(io,gen,atomic,tb,sol)
+    character(len=*), parameter :: myname = 'testTails'
+    type(ioType), intent(inout) :: io
+    type(generalType), intent(inout) :: gen
+    type(atomicxType), intent(inout) :: atomic
+    type(solutionType), intent(inout) :: sol
+    type(modelType), intent(inout) :: tb
+
+     real(k_pr) :: r
+     integer :: z,y,three,i,j,k,k1,k2
+
+    z=600
+    three = 3
+    do i=1,atomic%species%nspecies
+      do j=1,atomic%species%nspecies
+        do k=0,tb%hopping(i,j)%l1
+          do k1=0,tb%hopping(i,j)%l2
+            do k2=0,min(k,k1)
+              write(z,*)"# r ",trim(ccnlm(i,j,k,k1,k2))
+              do y=50,1000
+                r=y*0.01_k_pr
+                write(z,*)r,rad(r,atomic%species%id(i),atomic%species%id(j),gen,tb,k,k1,k2)
+                write(z+1,*)r,radp(three,r,atomic%species%id(i),atomic%species%id(j),gen,tb,k,k1,k2)
+              enddo
+              z=z+2
+            enddo
+          enddo
+        enddo
+      enddo
+    enddo
+    do i=1,atomic%species%nspecies
+      do j=1,atomic%species%nspecies
+        write(z,'(a,i0,x,i0)')"# r ",i,j
+        do y=50,1000
+          r=y*0.01_k_pr
+          write(z,*)r,rep(r,atomic%species%id(i),atomic%species%id(j),tb,gen)
+          write(z+1,*)r,repp(r,atomic%species%id(i),atomic%species%id(j),tb,gen)
+        enddo
+        z=z+2
+      enddo
+    enddo
+  end subroutine testTails
+
+  subroutine centerMolecule(io,gen,atomic,tb,sol)
+    character(len=*), parameter :: myname = 'centerMolecule'
+    type(ioType), intent(inout) :: io
+    type(generalType), intent(inout) :: gen
+    type(atomicxType), intent(inout) :: atomic
+    type(solutionType), intent(inout) :: sol
+    type(modelType), intent(inout) :: tb
+
+    integer :: i
+    real(k_pr) :: cx,cy,cz,l,ca,sa,nx,ny,nz
+    real(k_pr), dimension(3) :: a,b,c,n
+    cx=0.0_k_pr
+    cy=0.0_k_pr
+    cz=0.0_k_pr
+    do i=1, atomic%atoms%natoms
+      cx=cx+atomic%atoms%x(i)
+      cy=cy+atomic%atoms%y(i)
+      cz=cz+atomic%atoms%z(i)
+    enddo
+    cx=cx/real(atomic%atoms%natoms,k_pr)
+    cy=cy/real(atomic%atoms%natoms,k_pr)
+    cz=cz/real(atomic%atoms%natoms,k_pr)
+    do i=1, atomic%atoms%natoms
+      atomic%atoms%x(i)=atomic%atoms%x(i)-cx
+      atomic%atoms%y(i)=atomic%atoms%y(i)-cy
+      atomic%atoms%z(i)=atomic%atoms%z(i)-cz
+    enddo
+    a(1)=atomic%atoms%x(2)-atomic%atoms%x(1)
+    a(2)=atomic%atoms%y(2)-atomic%atoms%y(1)
+    a(3)=atomic%atoms%z(2)-atomic%atoms%z(1)
+    b(1)=atomic%atoms%x(3)-atomic%atoms%x(1)
+    b(2)=atomic%atoms%y(3)-atomic%atoms%y(1)
+    b(3)=atomic%atoms%z(3)-atomic%atoms%z(1)
+    n(1)= a(2)*b(3)-a(3)*b(2)
+    n(2)=-a(1)*b(3)+b(1)*a(3)
+    n(3)= a(1)*b(2)-b(1)*a(2)
+    l=n(1)**2+n(2)**2+n(3)**2
+    n(1)=n(1)/l
+    n(2)=n(2)/l
+    n(3)=n(3)/l
+    ca=n(2)/sqrt(n(1)**2+n(2)**2)
+    sa=n(1)/sqrt(n(1)**2+n(2)**2)
+    print *, n
+    do i=1, atomic%atoms%natoms
+      nx=ca*atomic%atoms%x(i)-sa*atomic%atoms%y(i)
+      ny=sa*atomic%atoms%x(i)+ca*atomic%atoms%y(i)
+      nz=atomic%atoms%z(i)
+      write(*,'(i0,3f12.8)')atomic%atoms%sp(i),nx,ny,nz
+    enddo
+    call PrintXYZ(999,atomic,.false.,"centred geometry")
+  end subroutine centerMolecule
 
 end module m_Testing

@@ -354,28 +354,18 @@ subroutine ReadGeneral(ioLoc,genLoc)
     else
        call error("The requested SCFType is not implemented",name,.true.,ioLoc)
     endif
-
- !comm_gen SCFSteps & integer & 100 & maximum number of steps used for scf\\
     genLoc%maxscf=GetInteger(ioLoc,"SCFSteps",100)
     write( ioLoc%uout,'(a,i0)')"SCF Maximum number of steps(SCFSteps): "&
       ,genLoc%maxscf
-  !comm_gen SCFMix & real & 0.85 & mixing parameter\\
     genLoc%scfMix=GetReal(ioLoc,"SCFMix",0.85_k_pr)
     write( ioLoc%uout,'(a,f0.8)')"SCF Mixing parameter(SCFMix): "&
       ,genLoc%scfMix
-
-!comm_gen SCFTol & real & 1e-8 & convergence tolerance\\
     genLoc%scftol=GetReal(ioLoc,"SCFTol",1.0e-8_k_pr)
     write( ioLoc%uout,'(a,ES12.4)')"SCF convergence tolerance(SCFTol): "&
       ,genLoc%scftol
-
-  !comm_gen SCFMixN & integer & 4 & number of iterations to mix\\
     genLoc%scfMixn=GetInteger(ioLoc,"SCFMixN",4)
     write( ioLoc%uout,'(a,i0)')"number of iterations to mix(SCFMixN): "&
       ,genLoc%scfMixn
-
-!comm_gen RunType & SinglePoint, BODynamics, Ehrenfest, EhrenfestDamped, Fit, ForceTest, ForceTestX,
-! ForceTestY, ForceTestZ & SinglePoint & Type of calculation\\
     saux=GetString(ioLoc,"RunType","SinglePoint")
     write( ioLoc%uout,'(a,a)')"Calculation type(RunType): "&
       ,trim(saux)
@@ -399,6 +389,8 @@ subroutine ReadGeneral(ioLoc,genLoc)
       genLoc%runType = k_runEhrenfestDamped
     elseif (cstr(trim(saux),'GeometryOptimization')) then
       genLoc%runType = k_runGeometryOptimisation
+    elseif (cstr(trim(saux),'TestTails')) then
+      genLoc%runType = k_runtestTails
     elseif (cstr(trim(saux),'Special')) then
       genLoc%runType = k_runSpecial
     else
@@ -754,7 +746,7 @@ end subroutine ReadGeneral
 !> \hline
 !> SCFMixN & integer & 4 & number of iterations to mix\\\
 !> \hline
-!> RunType & SinglePoint, BODynamics, Ehrenfest, EhrenfestDamped, Fit, GeometryOptimization, ForceTest, ForceTestX, ForceTestY, ForceTestZ & SinglePoint & Type of calculation\\\
+!> RunType & SinglePoint, BODynamics, Ehrenfest, EhrenfestDamped, Fit, GeometryOptimization, ForceTest, ForceTestX, ForceTestY, ForceTestZ, TestTails & SinglePoint & Type of calculation\\\
 !> \hline
 !> HElThres & real & 1e-10 & hamiltionian element thresold. Any element smaller that the thresold is made zero.\\\
 !> \hline
@@ -926,7 +918,7 @@ end subroutine ReadGeneral
 !><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>number of iterations to mix</TD>
 !></TR>
 !><TR><TD ALIGN="CENTER">RunType</TD>
-!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>SinglePoint, BODynamics, Ehrenfest, EhrenfestDamped, Fit, GeometryOptimization, ForceTest, ForceTestX, ForceTestY, ForceTestZ</TD>
+!><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=100>SinglePoint, BODynamics, Ehrenfest, EhrenfestDamped, Fit, GeometryOptimization, ForceTest, ForceTestX, ForceTestY, ForceTestZ, TestTails</TD>
 !><TD ALIGN="CENTER">SinglePoint</TD>
 !><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=125>Type of calculation</TD>
 !></TR>
@@ -1199,7 +1191,7 @@ end subroutine CloseIoGeneral
     type(generalType), intent(in)  :: general
     type(atomicxType), intent(inout) :: atomix
     ! arguments of the subroutine
-    integer :: nt, errno,i,k, atomId,xyz
+    integer :: nt, errno,i,k, atomId
     character(len=k_ml) :: saux
     integer, allocatable :: ids(:)
     real(k_pr) :: vx,vy,vz
@@ -1319,11 +1311,7 @@ end subroutine CloseIoGeneral
           endif
         enddo
     endif
-    xyz=GetUnit()
-    open(xyz,file="coords.xyz",status="unknown",action="write")
-    call PrintXYZ(xyz,atomix,.false.,getUnits(general))
     call ComputeEuclideanMatrix(atomix%atoms,io)
-    close(xyz)
 
     if (general%ReadVelocity) then
       if (GetBlock(io,"VelocitiesData",nt)) then

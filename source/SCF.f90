@@ -60,9 +60,6 @@ contains
 ! delta density matrix is stored in an array as upper triangular part followed by the diagonal
       select case(genLoc%scfType)
         case (k_scfTbuj,k_scfTBu, k_scfTBUO,k_scfTBujo)
-!          if (.not.genLoc%spin) then
-!            call error("This model should be spin polarised!",smyname,.true.,ioLoc)
-!          endif
 !           if((.not.genLoc%compElec).and.(genLoc%k_electrostatics==k_electrostaticsMultipoles)) then
 !             call allocate_qvs
 !           endif
@@ -80,7 +77,6 @@ contains
           call DiagHamiltonian(ioLoc,genLoc,atomic,sol)
           if (ioLoc%Verbosity >= k_highVerbos) then
             write(ioLoc%uout,'(a)') "Before entering the SCF LOOP"
-!
 !               if (.not.genLoc%compElec) then
 !                   if (genLoc%k_electrostatics==tbu_multi)call init_qvs(densityin)
 !               endif
@@ -155,11 +151,10 @@ contains
               call PrintMagneticMoment(atomic,sol,.false.,ioLoc)
             endif
 !
-            if (ioLoc%Verbosity >= k_highVerbos) then
-              write(ioLoc%uout,*) 'SCF'
-              write(ioLoc%uout,*) &
-                  'nit          energy          res        drmax      Tr[rho]           mu'
-            endif
+
+              write(ioLoc%uout,'(a)') "SCF"
+              write(ioLoc%uout,'(a)') "SCFReport   nit          energy             res           drmax         Tr[rho]             mu"
+
             do nit=1,genLoc%maxscf
               if (ioLoc%Verbosity >=k_highVerbos)  then
                    write(ioLoc%uout,'(a,i0)') "SCF LOOP iteration: ",nit
@@ -250,6 +245,8 @@ contains
                 write(ioLoc%uout,'(a,f16.8)')"       SCF: ",scfe
                 write(ioLoc%uout,'(a,f16.8)')"     Total: ",ee+re+scfe
               endif
+              write(ioLoc%uout,'(a,i5,f16.8,f16.8,f16.8,f16.8,f16.8)')"SCFReport ",nit,ee+re+scfe,residual,dmax,&
+                             real(MatrixTrace(sol%rho,ioLoc)),genLoc%electronicMu
               if (dmax < genLoc%scftol) exit
             end do
 !
