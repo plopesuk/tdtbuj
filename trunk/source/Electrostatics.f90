@@ -122,7 +122,9 @@ contains
 !> \param gen type(generalType) contains the info needed by the program to k_run
 !> \param atomic type(atomicxType) contains all info about the atoms and basis set and some parameters
 !> \param sol type(solutionType) contains information about the solution space
-!> \internal add reference
+!> \remark The screened potential is given by Klopman-Ohno approximation
+!>  for more see J Phys Chem A Vol 111, No 26, pp. 5614-5621, (2007)
+
   subroutine BuildPotential(gen,atomic,sol)
     character(len=*), parameter :: myname = 'BuildPotential'
     type(solutionType),intent(inout) :: sol

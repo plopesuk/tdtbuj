@@ -1021,13 +1021,15 @@ contains
     write(io%uout,*) "==End ",trim(label),"======"
     end subroutine PrintAtomMatrix
 
-!> \brief prints to the unit the atoms in xyz format
+!> \brief prints to the unit the atoms in a sligthly changed xyz format
 !> \author Alin M Elena
 !> \date 15/11/07, 10:15:42
 !> \param unit output unit
 !> \param atomic type(atomicxType) contains all info about the atoms and basis set and some parameters
 !> \param lIsVelocity logical if set to true prints the velocities also
 !> \param label characters if present will be printed in the comment line
+!> \remarks first line number of atoms, second line a title given by variable labe and then each line has the structure
+!> AtomSymbol X Y Z (cartesian coordinates) q (charge) dx dy dz (dipole moment cartesian components) vx vy vz (cartesian components of the velocity)
   subroutine PrintXYZ(unit,atomic,lIsVelocity,label)
     character(len=*), parameter :: sMyName="PrintXYZ"
     type(atomicxType), intent(in) :: atomic
@@ -1043,11 +1045,13 @@ contains
     endif
     do i=1,atomic%atoms%natoms
     if (lIsVelocity) then
-      write(unit,'(a2,1x,6f16.8)') symbol(atomic%atoms%sp(i)),atomic%atoms%x(i),atomic%atoms%y(i),atomic%atoms%z(i),&
+      write(unit,'(a2,1x,10f16.8)') symbol(atomic%atoms%sp(i)),atomic%atoms%x(i),atomic%atoms%y(i),atomic%atoms%z(i),&
+        -atomic%atoms%chrg(i),atomic%atoms%dx(i),atomic%atoms%dy(i),atomic%atoms%dz(i),&
         atomic%atoms%vx(i),atomic%atoms%vy(i),atomic%atoms%vz(i)
     else
-      write(unit,'(a2,1x,3f16.8)')  &
-        symbol(atomic%species%z(atomic%atoms%sp(i))),atomic%atoms%x(i),atomic%atoms%y(i),atomic%atoms%z(i)
+      write(unit,'(a2,1x,7f16.8)')  &
+        symbol(atomic%species%z(atomic%atoms%sp(i))),atomic%atoms%x(i),atomic%atoms%y(i),atomic%atoms%z(i), -atomic%atoms%chrg(i),&
+        atomic%atoms%dx(i),atomic%atoms%dy(i),atomic%atoms%dz(i)
     endif
     enddo
   end subroutine PrintXYZ

@@ -29,6 +29,7 @@ module m_Constants
   integer, parameter, public :: k_runEhrenfestDamped = 9
   integer, parameter, public :: k_runFragments = 10
   integer, parameter, public :: k_runGeometryOptimisation = 11
+  integer, parameter, public :: k_runtestTails = 12
   integer, parameter, public :: k_runSpecial = 99
 !> RunType
 

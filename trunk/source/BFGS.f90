@@ -142,7 +142,7 @@ module m_BFGS
    !! local variables now
     real(k_pr) :: den,fac,fad,fae,fp,stpmax,sum,sumdg,sumxi,temp,test,fret,f
     real(k_pr),allocatable :: dg(:),g(:),hdg(:),xnew(:),xi(:),hessin(:,:)
-    integer :: i,j,iters,iter,res,infoLine
+    integer :: i,j,iters,res,infoLine
     allocate(dg(1:n),g(1:n),hdg(1:n),xnew(1:n),xi(1:n),hessin(1:n,1:n))
     sum=0.0_k_pr
     info = -1
@@ -155,7 +155,6 @@ module m_BFGS
     enddo
     stpmax=stpmx*max(sqrt(sum),real(n,k_pr))
     do iters=1,itermax
-      iter = iters
       call lineSearch(x,fp,g,xi,xnew,fret,stpmax,n,xtol,infoLine,func,gen,atomic,tb,sol,io)
       if (infoLine < 0) then
         deallocate(dg,g,hdg,xnew,xi,hessin)
@@ -318,7 +317,7 @@ module m_BFGS
             disc=b*b - 3.0_k_pr*a*slope
             if (disc <0.0_k_pr) then
               tmplam = 0.5_k_pr*alam
-              elseif (b<= 0.0_k_pr) then
+            elseif (b<= 0.0_k_pr) then
                 tmplam = (-b+sqrt(disc))/(3.0_k_pr*a)
             else
                 tmplam = -slope/(b+sqrt(disc))

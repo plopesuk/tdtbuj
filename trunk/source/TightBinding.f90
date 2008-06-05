@@ -190,8 +190,7 @@ contains
     integer ::i,j
     real(k_pr) :: f,fp,fpp
     integer :: k,k1,k2
-     real(k_pr) :: r
-     integer :: z,y
+
 !    calculate the tail function parameters
     do i=1,atomic%species%nspecies
       do j=1,atomic%species%nspecies
@@ -226,33 +225,6 @@ contains
     enddo
 
     call PrintTail(atomic,tbMod,ioLoc)
-!     z=600
-!     do i=1,atomic%species%nspecies
-!       do j=1,atomic%species%nspecies
-!         do k=0,tbMod%hopping(i,j)%l1
-!           do k1=0,tbMod%hopping(i,j)%l2
-!             do k2=0,min(k,k1)
-!               write(z,*)"# r ",trim(ccnlm(i,j,k,k1,k2))
-!               do y=50,1000
-!                 r=y*0.01_k_pr
-!                 write(z,*)r,rad(r,atomic%species%id(i),atomic%species%id(j),genLoc,tbMod,k,k1,k2)
-!               enddo
-!               z=z+1
-!             enddo
-!           enddo
-!         enddo
-!       enddo
-!     enddo
-!     do i=1,atomic%species%nspecies
-!       do j=1,atomic%species%nspecies
-!         write(z,'(a,i0,x,i0)')"# r ",i,j
-!         do y=50,1000
-!           r=y*0.01_k_pr
-!           write(z,*)r,rep(r,atomic%species%id(i),atomic%species%id(j),tbMod,genLoc)
-!         enddo
-!         z=z+1
-!       enddo
-!     enddo
 end subroutine setTails
 
 

@@ -179,12 +179,14 @@ program tbuj
     call forceTesty(ioInfo,general,atomicx,tbModel,SolSpace)
   elseif (general%runType==k_runForceTestz) then
     call forceTestz(ioInfo,general,atomicx,tbModel,SolSpace)
+  elseif (general%runType==k_runtestTails) then
+    call testTails(ioInfo,general,atomicx,tbModel,SolSpace)
   elseif (general%runType==k_runEhrenfestDamped) then
     call EhrenfestDynamicsDamped(ioInfo,general,atomicx,tbModel,SolSpace)
   elseif (general%runType==k_runFragments) then
 !     call fragments_k_run
   elseif (general%runType==k_runSpecial) then
-!     call special_k_run
+    call  centerMolecule(ioInfo,general,atomicx,tbModel,SolSpace)
   else
     call error("RunType not implemented",'TDTB+UJ',.true.,ioInfo)
   endif
