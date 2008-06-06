@@ -313,6 +313,7 @@ contains
       atomic%atoms%y(i)=atomic%atoms%y(i)-cy
       atomic%atoms%z(i)=atomic%atoms%z(i)-cz
     enddo
+
     a(1)=atomic%atoms%x(2)-atomic%atoms%x(1)
     a(2)=atomic%atoms%y(2)-atomic%atoms%y(1)
     a(3)=atomic%atoms%z(2)-atomic%atoms%z(1)
@@ -323,19 +324,19 @@ contains
     n(2)=-a(1)*b(3)+b(1)*a(3)
     n(3)= a(1)*b(2)-b(1)*a(2)
     l=n(1)**2+n(2)**2+n(3)**2
-    n(1)=n(1)/l
-    n(2)=n(2)/l
-    n(3)=n(3)/l
-    ca=n(2)/sqrt(n(1)**2+n(2)**2)
-    sa=n(1)/sqrt(n(1)**2+n(2)**2)
-    print *, n
+    n(1)=n(1)/l-atomic%atoms%x(1)
+    n(2)=n(2)/l-atomic%atoms%y(1)
+    n(3)=n(3)/l-atomic%atoms%z(1)
+    ca=n(1)/sqrt(n(1)**2+n(2)**2)
+    sa=n(2)/sqrt(n(1)**2+n(2)**2)
     do i=1, atomic%atoms%natoms
-      nx=ca*atomic%atoms%x(i)-sa*atomic%atoms%y(i)
-      ny=sa*atomic%atoms%x(i)+ca*atomic%atoms%y(i)
-      nz=atomic%atoms%z(i)
-      write(*,'(i0,3f12.8)')atomic%atoms%sp(i),nx,ny,nz
+      nx=atomic%atoms%x(i)
+      atomic%atoms%x(i)=ca*nx-sa*atomic%atoms%y(i)
+      atomic%atoms%y(i)=sa*nx+ca*atomic%atoms%y(i)
+      atomic%atoms%z(i)=nz
     enddo
-    call PrintXYZ(999,atomic,.false.,"centred geometry")
+    call PrintXYZ(998,atomic,.false.,"centred geometry")
+
   end subroutine centerMolecule
 
 end module m_Testing

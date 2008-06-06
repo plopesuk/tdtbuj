@@ -86,7 +86,7 @@ module m_DriverRoutines
 
    sol%totalEnergy=eenergy+renergy+minusts+scfE
    xyz=GetUnit()
-    open(xyz,file="coords.xyz",status="unknown",action="write")
+    open(xyz,file="coords.mxz",status="unknown",action="write")
     call PrintXYZ(xyz,atomic,.false.,getUnits(genLoc))
    close(xyz)
   end subroutine SinglePoint
@@ -153,7 +153,7 @@ module m_DriverRoutines
       "-TS","Kinetic Energy",  "Total Energy"
     do istep=1,gen%nsteps
       !set global time variable
-      gen%CurrSimTime = (istep-1)*dt*k_time2SI
+      gen%CurrSimTime = istep*dt*k_time2SI
        ! calculates positions at t+dt
 !       write(io%uout,*)"timestep"
 !       call PrintCoordinates(io,atomic)
@@ -209,14 +209,16 @@ module m_DriverRoutines
       penergy = eenergy + renergy + scfE + minusts
       kenergy = KineticEnergy(atomic)
       if (gen%writeAnimation) then
+        if (gen%writeAnimation) then
 !             call BuildDensity(density)
 !             call calc_charges(rho)
 !             call calc_dipoles(density)
 !             call write_frame(xunit)
 !             call writeAnimation_frame(aniunit)
 ! !           call write_frame_rho(runit)
-        write(saux,'(a,f0.8)')"Time = ",gen%CurrSimTime
-        call PrintXYZ(io%uani,atomic,.false.,trim(saux))
+          write(saux,'(a,f0.8)')"Time = ",gen%CurrSimTime
+          call PrintXYZ(io%uani,atomic,.false.,trim(saux))
+        endif
       endif
       if (io%Verbosity >= k_HighVerbos) then
         call PrintCoordinates(io,atomic,gen)
@@ -338,7 +340,7 @@ module m_DriverRoutines
     st = cmplx(2.0_k_pr*dt,0.0_k_pr,k_pr)
     do istep=1,gen%nsteps
    !set global time variable
-      gen%CurrSimTime = (istep-1)*dt*k_time2SI
+      gen%CurrSimTime = istep*dt*k_time2SI
       call BuildDensity(atomic,sol)
 !             if (.not.gen%comp_elec) then
 !                if (gen%electrostatics==tbu_multi) call init_qvs(density)
@@ -427,16 +429,18 @@ module m_DriverRoutines
       kenergy = KineticEnergy(atomic)
 
       if (gen%writeAnimation) then
-        call CalcExcessCharges(gen,atomic,sol)
-        call CalcDipoles(gen,atomic,sol)
-!               call writeAnimation_frame(aniunit)
-!               call write_frame(xunit)
-!               call write_frame_rho(runit,rho0)
-        write(accUnit,*) gen%CurrSimTime, ChargeOnGroup(atomic%atoms%acceptor,atomic%atoms)
-        write(donUnit,*) gen%CurrSimTime, ChargeOnGroup(atomic%atoms%donor,atomic%atoms)
-        write(spacUnit,*) gen%CurrSimTime, ChargeOnGroup(atomic%atoms%spacer,atomic%atoms)
-        write(saux,'(a,f0.8)')"Time = ", gen%CurrSimTime
-        call PrintXYZ(io%uani,atomic,.false.,trim(saux))
+        if (gen%writeAnimation) then
+          call CalcExcessCharges(gen,atomic,sol)
+          call CalcDipoles(gen,atomic,sol)
+  !               call writeAnimation_frame(aniunit)
+  !               call write_frame(xunit)
+  !               call write_frame_rho(runit,rho0)
+          write(accUnit,*) gen%CurrSimTime, ChargeOnGroup(atomic%atoms%acceptor,atomic%atoms)
+          write(donUnit,*) gen%CurrSimTime, ChargeOnGroup(atomic%atoms%donor,atomic%atoms)
+          write(spacUnit,*) gen%CurrSimTime, ChargeOnGroup(atomic%atoms%spacer,atomic%atoms)
+          write(saux,'(a,f0.8)')"Time = ", gen%CurrSimTime
+          call PrintXYZ(io%uani,atomic,.false.,trim(saux))
+        endif
       endif
 !            call write_currents(h,rho)
 !            if (mod(istep,50).eq.1) call write_rho_eigenvalues(rho)
@@ -581,7 +585,7 @@ module m_DriverRoutines
       "Kinetic Energy",  "Total Energy",  "No of Electrons"
     do istep=1,gen%nsteps
    !set global time variable
-      gen%CurrSimTime = (istep-1)*dt*k_time2SI
+      gen%CurrSimTime = istep*dt*k_time2SI
       call BuildDensity(atomic,sol)
 !             if (.not.gen%comp_elec) then
 !                if (gen%electrostatics==tbu_multi) call init_qvs(density)
@@ -674,16 +678,18 @@ module m_DriverRoutines
       penergy = eenergy + renergy + scfE
       kenergy = KineticEnergy(atomic)
       if (gen%writeAnimation) then
-        call CalcExcessCharges(gen,atomic,sol)
-        call CalcDipoles(gen,atomic,sol)
-!               call write_frame_rho(runit,rho0)
-        write(dipunit,*) gen%CurrSimTime,atomic%atoms%tdipx,atomic%atoms%tdipy,atomic%atoms%tdipz,&
-                  sqrt(atomic%atoms%tdipx**2+atomic%atoms%tdipy**2+atomic%atoms%tdipz**2)
-        write(accUnit,*) gen%CurrSimTime, ChargeOnGroup(atomic%atoms%acceptor,atomic%atoms)
-        write(donUnit,*) gen%CurrSimTime, ChargeOnGroup(atomic%atoms%donor,atomic%atoms)
-        write(spacUnit,*) gen%CurrSimTime, ChargeOnGroup(atomic%atoms%spacer,atomic%atoms)
-        write(saux,'(a,f0.8)')"Time = ", gen%CurrSimTime
-        call PrintXYZ(io%uani,atomic,.false.,trim(saux))
+        if(mod(istep,gen%AnimationSteps)==0) then
+          call CalcExcessCharges(gen,atomic,sol)
+          call CalcDipoles(gen,atomic,sol)
+    !               call write_frame_rho(runit,rho0)
+          write(dipunit,*) gen%CurrSimTime,atomic%atoms%tdipx,atomic%atoms%tdipy,atomic%atoms%tdipz,&
+                    sqrt(atomic%atoms%tdipx**2+atomic%atoms%tdipy**2+atomic%atoms%tdipz**2)
+          write(accUnit,*) gen%CurrSimTime, ChargeOnGroup(atomic%atoms%acceptor,atomic%atoms)
+          write(donUnit,*) gen%CurrSimTime, ChargeOnGroup(atomic%atoms%donor,atomic%atoms)
+          write(spacUnit,*) gen%CurrSimTime, ChargeOnGroup(atomic%atoms%spacer,atomic%atoms)
+          write(saux,'(a,f0.8)')"Time = ", gen%CurrSimTime
+          call PrintXYZ(io%uani,atomic,.false.,trim(saux))
+        endif
       endif
 !            if (mod(istep,50).eq.1) call write_rho_eigenvalues(rho)
       write(eneunit,'(7f25.18)')gen%CurrSimTime,renergy,eenergy,scfE,kenergy,penergy+kenergy,real(trrho)
