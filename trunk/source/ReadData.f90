@@ -469,6 +469,13 @@ subroutine ReadGeneral(ioLoc,genLoc)
   write( ioLoc%uout,'(a,l1)')"Write animation(WriteAnimation): "&
     ,genLoc%writeAnimation
 
+  if(genLoc%writeAnimation) then
+    genLoc%AnimationSteps=GetInteger(ioLoc,"AnimationSteps",100)
+    write( ioLoc%uout,'(a,i0)')"Which steps from the animations are written (AnimationSteps): "&
+    ,genLoc%AnimationSteps
+  endif
+
+
   genLoc%deltat=GetReal(ioLoc,"DeltaT",0.001_k_pr)
   write( ioLoc%uout,'(a,ES12.4)')"Time step(DeltaT): "&
     ,genLoc%deltat

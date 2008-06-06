@@ -113,6 +113,7 @@ module m_Types
     character(len=k_mw) :: jobName !< name of the job
     real(k_pr) :: ranseed !< seed to Initialize the random number generator
     logical :: writeAnimation !< if true will write the coordinates in a file
+    integer :: AnimationSteps !< writes only steps which are multiple of it
 !   logical :: write_ene
 !   logical :: write_density
 !   logical :: read_density
