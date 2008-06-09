@@ -13,7 +13,7 @@ private
     real(k_pr) :: timestamp
     real(k_pr), allocatable, dimension(:) :: x,y,z,dx,dy,dz,q
     character(len=2), allocatable, dimension(:) :: element
-    real(k_pr) :: tdx,tdy,tdz,dipole,charge
+    real(k_pr) :: tdx,tdy,tdz,dipole,charge,projDipole
   end type frameType
 
 !> data structure that contains the info about frames and atoms

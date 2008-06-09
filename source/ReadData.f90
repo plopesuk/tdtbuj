@@ -496,15 +496,27 @@ subroutine ReadGeneral(ioLoc,genLoc)
   write( ioLoc%uout,'(a,i0)')"No of Bias Ramp Steps (BiasRampSteps): "&
     ,genLoc%BiasRampSteps
 
-  genLoc%eulerSteps=GetInteger(ioLoc,"EulerSteps",100)
-  write( ioLoc%uout,'(a,i0)')"Euler steps (EulerSteps): "&
-     ,genLoc%EulerSteps
-
-  genLoc%gamma=GetReal(ioLoc,"Gamma",0.5_k_pr)
-  write( ioLoc%uout,'(a,ES12.4)')"damping factor in Ehrenfest Equation(Gamma): "&
-     ,genLoc%gamma
-
-  if (genLoc%Runtype==k_RunFit) then
+  if (genLoc%Runtype==k_runEhrenfestDamped) then
+    genLoc%eulerSteps=GetInteger(ioLoc,"EulerSteps",100)
+    write( ioLoc%uout,'(a,i0)')"Euler steps (EulerSteps): "&
+      ,genLoc%EulerSteps
+    genLoc%gamma=GetReal(ioLoc,"Gamma",0.5_k_pr)
+    write( ioLoc%uout,'(a,ES12.4)')"damping factor in Ehrenfest Equation(Gamma): "&
+      ,genLoc%gamma
+    saux=GetString(ioLoc,"WhatDensity","SCF")
+    write(ioLoc%uout,'(a,a)') &
+        "What Density (WhatDensity) = ", trim(saux)
+    if (cstr(trim(saux),"SCF")) then
+      genLoc%wdensity=k_wrSCF
+    elseif(cstr(trim(saux),"nonSCF")) then
+      genLoc%wdensity=k_wrnSCF
+    elseif (cstr(trim(saux),"Tailored")) then
+      genLoc%wdensity=k_wrTailored
+    else
+      call error("The requested density matrix method is not implemented",name,.true.,ioLoc)
+    endif
+  endif
+  if (genLoc%Runtype==k_runFit) then
       saux=GetString(ioLoc,"FitMethod","Simplex")
       write(ioLoc%uout,'(a,a)') &
        "Fit method = ", trim(saux)

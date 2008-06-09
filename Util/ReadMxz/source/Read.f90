@@ -52,7 +52,7 @@ contains
     integer :: errno,err,i,n,j
     character(len=k_ml) :: line
     character(len=k_mw) :: saux,a,b,c
-    real(k_pr) :: x,y,z,dx,dy,dz,q
+    real(k_pr) :: x,y,z,dx,dy,dz,q,tdx,tdy,tdz,charge
     integer :: unitinp
 
     unitinp=GetUnit()
@@ -84,23 +84,32 @@ contains
       endif
     !! now compute the dipole it may seem like a waste of loops to do it here and not in previous loop but thing what mwy happen it the
     !! reading fails
-      mxz%frames(i)%tdx=0.0_k_pr
-      mxz%frames(i)%tdy=0.0_k_pr
-      mxz%frames(i)%tdz=0.0_k_pr
-      mxz%frames(i)%dipole=0.0_k_pr
-      mxz%frames(i)%charge=0.0_k_pr
+      tdx   =0.0_k_pr
+      tdy   =0.0_k_pr
+      tdz   =0.0_k_pr
+      charge=0.0_k_pr
+      !$omp  parallel  private(j)
+      !$omp do schedule(static) reduction(+ : tdx, tdy,tdz,charge)
       do j=1,mxz%natoms
-         mxz%frames(i)%tdx=mxz%frames(i)%dx(j)+mxz%frames(i)%tdx
-         mxz%frames(i)%tdy=mxz%frames(i)%dy(j)+mxz%frames(i)%tdy
-         mxz%frames(i)%tdz=mxz%frames(i)%dz(j)+mxz%frames(i)%tdz
-         mxz%frames(i)%charge=mxz%frames(i)%charge+mxz%frames(i)%q(j)
+         tdx=mxz%frames(i)%dx(j)+tdx
+         tdy=mxz%frames(i)%dy(j)+tdy
+         tdz=mxz%frames(i)%dz(j)+tdz
+         charge=charge+mxz%frames(i)%q(j)
       enddo
+      !$omp end do
+      !$omp end parallel
+      mxz%frames(i)%tdx   =tdx
+      mxz%frames(i)%tdy   =tdy
+      mxz%frames(i)%tdz   =tdz
+      mxz%frames(i)%charge=charge
       mxz%frames(i)%dipole=sqrt(mxz%frames(i)%tdx**2+mxz%frames(i)%tdy**2+mxz%frames(i)%tdz**2)
       if (abs(mxz%frames(i)%dipole)>tiny(1.0_k_pr)) then
         mxz%frames(i)%tdx=mxz%frames(i)%tdx/mxz%frames(i)%dipole
         mxz%frames(i)%tdy=mxz%frames(i)%tdy/mxz%frames(i)%dipole
         mxz%frames(i)%tdz=mxz%frames(i)%tdz/mxz%frames(i)%dipole
       endif
+      mxz%frames(i)%projDipole=mxz%frames(i)%Dipole*&
+        (mxz%frames(1)%tdx*mxz%frames(i)%tdx+mxz%frames(1)%tdy*mxz%frames(i)%tdy+mxz%frames(1)%tdz*mxz%frames(i)%tdz)
     enddo
     close(unitinp)
   end subroutine ReadFrames

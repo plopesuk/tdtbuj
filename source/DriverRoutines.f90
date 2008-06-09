@@ -484,13 +484,13 @@ module m_DriverRoutines
     type(modelType), intent(inout) :: tb
     integer :: dipunit, eneunit, popunit, xunit,runit, accUnit, donUnit, spacUnit
     real(k_pr) :: eenergy,renergy,kenergy,penergy,scfE
-    integer  :: i,istep,k
+    integer  :: i,istep,k,j
     real(k_pr) :: dt,mi
     complex(k_pr) :: ihbar,trrho,st
     type(matrixType) :: rhoold,rhodot,rhonew,rho0,deltaRho
     real(k_pr) ::biasFactor,bfa,gamma
     character(len=k_ml) :: saux
-    dipunit=GetUnit()
+
     eneunit=GetUnit()
     popunit=GetUnit()
     xunit=GetUnit()
@@ -503,7 +503,6 @@ module m_DriverRoutines
     gamma=-gen%Gamma
     if (gen%writeAnimation) then
       open(unit=xunit,file="eh_dyn.gcd",form="UNFORMATTED",status="unknown",action="write")
-      open(unit=dipunit,file="eh_dipole.dat",status="unknown",action="write")
       open(unit=accUnit,file="eacceptor.dat",status="unknown",action="write")
       open(unit=donUnit,file="edonor.dat",status="unknown",action="write")
       open(unit=spacUnit,file="espacer.dat",status="unknown",action="write")
@@ -524,29 +523,32 @@ module m_DriverRoutines
     call CreateMatrix(rho0,sol%h%dim,.true.)
     call CreateMatrix(deltaRho,sol%h%dim,.true.)
     call CopyMatrix(rho0,sol%rho,io)
-    call CreateDensityMatrixExcited(gen,atomic,sol,io)
-
-! get the starting density matrix
-!     call GetRho(sol%rho)
+    select case(gen%wdensity)
+    case(k_wrSCF)
+      gen%lIsExcited=.true.
+      call SinglePoint(io,gen,atomic,tb,sol)
+      gen%lIsExcited=.false.
+      do i=1, sol%rho%dim-1
+        do j=i+1,sol%rho%dim
+          sol%rho%a(i,j)=cmplx(0.0_k_pr,0.0_k_pr,k_pr)
+          sol%rho%a(j,i)=cmplx(0.0_k_pr,0.0_k_pr,k_pr)
+        enddo
+      enddo
+    case(k_wrnSCF)
+      call CreateDensityMatrixExcited(gen,atomic,sol,io)
+      gen%lIsExcited=.false.
+    case(k_wrTailored)
+      call GetRho(sol%rho)
+      gen%lIsExcited=.false.
+   end select
 
     if (gen%writeAnimation) then
-      call BuildDensity(atomic,sol)
       call CalcExcessCharges(gen,atomic,sol)
       call CalcDipoles(gen,atomic,sol)
-      call PrintDipoles(atomic,io)
-!      call write_frame(xunit)
-!        call write_frame_rho(runit,rho0)
-      write(dipunit,*) "0.0",atomic%atoms%tdipx,atomic%atoms%tdipy,atomic%atoms%tdipz,&
-                  sqrt(atomic%atoms%tdipx**2+atomic%atoms%tdipy**2+atomic%atoms%tdipz**2)
       write(accUnit,*) "0.0", ChargeOnGroup(atomic%atoms%acceptor,atomic%atoms)
       write(donUnit,*) "0.0", ChargeOnGroup(atomic%atoms%donor,atomic%atoms)
       write(spacUnit,*) "0.0", ChargeOnGroup(atomic%atoms%spacer,atomic%atoms)
       call PrintXYZ(io%uani,atomic,.false.,"T = 0.0")
-    else
-      call BuildDensity(atomic,sol)
-      call CalcExcessCharges(gen,atomic,sol)
-      call CalcDipoles(gen,atomic,sol)
-      call PrintDipoles(atomic,io)
     endif
 !          if (.not.gen%comp_elec) then
 !             if (gen%electrostatics==tbu_multi) call init_qvs(density)
@@ -681,9 +683,6 @@ module m_DriverRoutines
         if(mod(istep,gen%AnimationSteps)==0) then
           call CalcExcessCharges(gen,atomic,sol)
           call CalcDipoles(gen,atomic,sol)
-    !               call write_frame_rho(runit,rho0)
-          write(dipunit,*) gen%CurrSimTime,atomic%atoms%tdipx,atomic%atoms%tdipy,atomic%atoms%tdipz,&
-                    sqrt(atomic%atoms%tdipx**2+atomic%atoms%tdipy**2+atomic%atoms%tdipz**2)
           write(accUnit,*) gen%CurrSimTime, ChargeOnGroup(atomic%atoms%acceptor,atomic%atoms)
           write(donUnit,*) gen%CurrSimTime, ChargeOnGroup(atomic%atoms%donor,atomic%atoms)
           write(spacUnit,*) gen%CurrSimTime, ChargeOnGroup(atomic%atoms%spacer,atomic%atoms)
@@ -695,7 +694,6 @@ module m_DriverRoutines
       write(eneunit,'(7f25.18)')gen%CurrSimTime,renergy,eenergy,scfE,kenergy,penergy+kenergy,real(trrho)
     enddo !istep loop
     if (gen%writeAnimation) then
-      close(dipunit)
       close(xunit)
       close(runit)
       close(accUnit)

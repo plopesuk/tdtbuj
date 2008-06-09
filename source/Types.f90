@@ -133,6 +133,7 @@ module m_Types
     integer :: maxFEval
     integer :: HessianM
     integer :: geomAlg !< the geometry optimisation algorithm
+    integer :: wdensity !< what kind of density shloud be used for Eherenfest Damped
   end type generalType
 
 !> \brief data type for atoms properties

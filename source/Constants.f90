@@ -49,7 +49,6 @@ module m_Constants
   integer, parameter, public :: k_bondGSP=1
   integer, parameter, public :: k_bondHarrison=2
 !> bond type
-
   integer, parameter, public :: k_smFD=1
   integer, parameter, public :: k_smMP=2
   integer, parameter, public :: k_smCS=4
@@ -66,6 +65,10 @@ module m_Constants
   integer, parameter, public :: k_TrustRegion=4
 !> fitting methods
 
+  integer, parameter, public :: k_wrSCF=1
+  integer, parameter, public :: k_wrnSCF=2
+  integer, parameter, public :: k_wrTailored=3
+!> what type of density to be used in EhrenfestDamped
   integer, parameter, public :: k_lbfgs=0
   integer, parameter, public :: k_bfgs=1
 !> geometry optimisation algorithms

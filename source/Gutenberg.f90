@@ -1037,6 +1037,10 @@ contains
     character(len=*), intent(in),optional :: label
     integer, intent(in) :: unit
     integer :: i
+    real(k_pr) :: u2SI,u2D
+    u2SI=-k_length2SI*k_chargeSI
+    u2D=u2SI/k_debye2SI
+
     write(unit,'(i0)')atomic%atoms%natoms
     if (present(label)) then
       write(unit,'(a)')trim(label)
@@ -1044,15 +1048,15 @@ contains
       write(unit,'(a)')""
     endif
     do i=1,atomic%atoms%natoms
-    if (lIsVelocity) then
-      write(unit,'(a2,1x,10f16.8)') symbol(atomic%atoms%sp(i)),atomic%atoms%x(i),atomic%atoms%y(i),atomic%atoms%z(i),&
-        -atomic%atoms%chrg(i),atomic%atoms%dx(i),atomic%atoms%dy(i),atomic%atoms%dz(i),&
-        atomic%atoms%vx(i),atomic%atoms%vy(i),atomic%atoms%vz(i)
-    else
-      write(unit,'(a2,1x,7f16.8)')  &
-        symbol(atomic%species%z(atomic%atoms%sp(i))),atomic%atoms%x(i),atomic%atoms%y(i),atomic%atoms%z(i), -atomic%atoms%chrg(i),&
-        atomic%atoms%dx(i),atomic%atoms%dy(i),atomic%atoms%dz(i)
-    endif
+      if (lIsVelocity) then
+        write(unit,'(a2,1x,10f16.8)') symbol(atomic%atoms%sp(i)),atomic%atoms%x(i),atomic%atoms%y(i),atomic%atoms%z(i),&
+          -atomic%atoms%chrg(i),atomic%atoms%dx(i)*u2D,atomic%atoms%dy(i)*u2D,atomic%atoms%dz(i)*u2D,&
+          atomic%atoms%vx(i),atomic%atoms%vy(i),atomic%atoms%vz(i)
+      else
+        write(unit,'(a2,1x,7f16.8)')  &
+          symbol(atomic%species%z(atomic%atoms%sp(i))),atomic%atoms%x(i),atomic%atoms%y(i),atomic%atoms%z(i), -atomic%atoms%chrg(i),&
+          atomic%atoms%dx(i)*u2D,atomic%atoms%dy(i)*u2D,atomic%atoms%dz(i)*u2D
+      endif
     enddo
   end subroutine PrintXYZ
 
