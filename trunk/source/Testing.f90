@@ -253,21 +253,25 @@ contains
 
      real(k_pr) :: r
      integer :: z,y,three,i,j,k,k1,k2
+     character(len=k_mw) :: saux
 
-    z=600
+
     three = 3
     do i=1,atomic%species%nspecies
       do j=1,atomic%species%nspecies
         do k=0,tb%hopping(i,j)%l1
           do k1=0,tb%hopping(i,j)%l2
             do k2=0,min(k,k1)
+              z=GetUnit()
+              write(saux,'(a,a)')"h_",trim(ccnlm(i,j,k,k1,k2))
+              open(unit=z,file=trim(saux),status="replace",action="write")
               write(z,*)"# r ",trim(ccnlm(i,j,k,k1,k2))
               do y=50,1000
                 r=y*0.01_k_pr
-                write(z,*)r,rad(r,atomic%species%id(i),atomic%species%id(j),gen,tb,k,k1,k2)
-                write(z+1,*)r,radp(three,r,atomic%species%id(i),atomic%species%id(j),gen,tb,k,k1,k2)
+                write(z,*)r,rad(r,atomic%species%id(i),atomic%species%id(j),gen,tb,k,k1,k2),&
+                  radp(three,r,atomic%species%id(i),atomic%species%id(j),gen,tb,k,k1,k2)
               enddo
-              z=z+2
+              close(z)
             enddo
           enddo
         enddo
@@ -275,13 +279,15 @@ contains
     enddo
     do i=1,atomic%species%nspecies
       do j=1,atomic%species%nspecies
+        z=GetUnit()
+        write(saux,'(a,2i0)')"phi",i,j
+        open(unit=z,file=trim(saux),status="replace",action="write")
         write(z,'(a,i0,x,i0)')"# r ",i,j
         do y=50,1000
           r=y*0.01_k_pr
-          write(z,*)r,rep(r,atomic%species%id(i),atomic%species%id(j),tb,gen)
-          write(z+1,*)r,repp(r,atomic%species%id(i),atomic%species%id(j),tb,gen)
+          write(z,*)r,rep(r,atomic%species%id(i),atomic%species%id(j),tb,gen),repp(r,atomic%species%id(i),atomic%species%id(j),tb,gen)
         enddo
-        z=z+2
+        close(z)
       enddo
     enddo
   end subroutine testTails

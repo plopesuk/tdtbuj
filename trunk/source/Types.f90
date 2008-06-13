@@ -134,7 +134,16 @@ module m_Types
     integer :: HessianM
     integer :: geomAlg !< the geometry optimisation algorithm
     integer :: wdensity !< what kind of density shloud be used for Eherenfest Damped
+    integer :: CurrentL=-1 !< the quantum l number used to compute the current on an orbital
+    integer :: CurrentM !< the quantum m number used to compute the current on an orbital
   end type generalType
+
+!> data type that keeps the neighbours list
+type, private :: neighbourType
+  integer :: n=0 !< no of neighbours
+  integer, allocatable :: a(:) !< the list of neighbours
+  logical :: created=.false. !< was the space allocated?
+end type neighbourType
 
 !> \brief data type for atoms properties
   type, public :: atomicType
@@ -157,6 +166,7 @@ module m_Types
     real(k_pr), allocatable :: bias(:) !< bias of the atoms
     integer(k_pr), allocatable :: norbs(:) !< no of orbitals of atom
     integer,  allocatable  :: orbs(:,:) !< orbitals, first index atom, second orbital
+    type(neighbourType),allocatable :: neighbours(:) !< keeps a list ofneighbours
     real(k_pr) :: tdipx,tdipy,tdipz !< total dipole moment, cartesian components
     integer :: nacceptor !< no of atoms in acceptor
     integer :: ndonor !< no of atoms in donor
@@ -168,8 +178,9 @@ module m_Types
     integer :: nmoving !< no of moving atoms
     real(k_pr),allocatable :: MagMom(:) !< local magnetic momment
     real(k_pr) :: MagneticMoment !< total magnetic momment
+    integer :: ncurrent !< no of atoms on which to compute the current
+    integer, allocatable :: current(:) !< the atoms on which to compute the current
   end type atomicType
-
 
 !> \brief species type
   type, public :: speciesType
@@ -260,7 +271,7 @@ module m_Types
     type(matrixType) :: tmpB
     real(k_pr),allocatable  :: f(:) ,g(:)
     complex(k_pr),allocatable :: a(:,:)
-    integer, allocatable :: pos1(:), pos2(:)
+    integer, allocatable :: pos1(:), pos2(:),itmp(:)
     real(k_pr), allocatable :: nstart(:)
  end type buffersType
 
@@ -287,6 +298,11 @@ module m_Types
     real(k_pr) :: totalEnergy !< total energy of the system
     type(buffersType) :: buff
     real(k_pr),pointer, dimension(:) :: hermite => NULL() !< hermite polynomials used for Methfessel&Paxton smearing method
+    real(k_pr),allocatable :: Distances(:,:) !< euclidean distances matrix
+    real(k_pr), allocatable :: CurrentMatrix(:,:) !< bond currents matrix by orbitals
+    real(k_pr), allocatable :: CurrentMatrix2(:,:) !< bond currents matrix by atoms, the diagonal term contains the total bond current, only specified atoms entries will be computed and populated
+    type(MatrixType) :: rhodot,deltaRho,rhonew,rhoold,rho0 !< used for Ehrenfest dynamic
+
 !    type(qvs), allocatable :: delq(:), vs(:)
   end type solutionType
 end module m_Types

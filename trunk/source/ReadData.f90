@@ -169,11 +169,11 @@ character(len=*),parameter :: myname="ReadIo"
   write( ioLoc%uout,'(a,a,a,i0)')"Input file: "&
     ,trim(ioLoc%inpFile)," on unit: ",ioLoc%uinp
   write( ioLoc%uout,'(a,a,a,i0)')"Output file(OutputFile): "&
-    ,trim(ioLoc%outputFile), "on unit: ",ioLoc%uout
+    ,trim(ioLoc%outputFile), " on unit: ",ioLoc%uout
   write( ioLoc%uout,'(a,i0)')"Output Level(OutputLevel): "&
     ,ioLoc%verbosity
   write( ioLoc%uout,'(a,a,a,i0)')"Debug file(DebugFile): "&
-    ,trim(ioLoc%debugFile),"on unit: ",ioLoc%udeb
+    ,trim(ioLoc%debugFile)," on unit: ",ioLoc%udeb
   write( ioLoc%uout,'(a,i0)')"Debug Level(DebugLevel): "&
     ,ioLoc%debug
   write( ioLoc%uout,'(a,a,a,i0)')"Error file: "&
@@ -416,6 +416,12 @@ subroutine ReadGeneral(ioLoc,genLoc)
       genLoc%netcharge=GetReal(ioLoc,"NetCharge",0.0_k_pr)
       write( ioLoc%uout,'(a,ES12.4)')"Net charge(NetCharge): "&
       ,genLoc%netcharge
+    genLoc%currentL=GetInteger(ioLoc,"CurrentOnL",-1)
+    write( ioLoc%uout,'(a,i0)')"Compute bond current on orbital with l (CurrentOnL): "&
+      ,genLoc%currentL
+    genLoc%currentM=GetInteger(ioLoc,"CurrentOnM",-1)
+    write( ioLoc%uout,'(a,i0)')"Compute bond current on orbital with m (CurrentOnM): "&
+      ,genLoc%currentM
 
     saux=GetString(ioLoc,"SmearingMethod","FD")
     write( ioLoc%uout,'(a,a)')"Smearing Methos used to find Fermi level (SmearingMethod): "&
@@ -492,7 +498,7 @@ subroutine ReadGeneral(ioLoc,genLoc)
   write( ioLoc%uout,'(a,ES12.4)')"Ionic Temperature(IonicTemperature): "&
      ,genLoc%ionicTemperature
 
-  genLoc%BiasRampSteps=GetInteger(ioLoc,"BiasRampSteps",100)
+  genLoc%BiasRampSteps=GetInteger(ioLoc,"BiasRampSteps",-1)
   write( ioLoc%uout,'(a,i0)')"No of Bias Ramp Steps (BiasRampSteps): "&
     ,genLoc%BiasRampSteps
 
@@ -1250,6 +1256,7 @@ end subroutine CloseIoGeneral
     allocate(atomix%atoms%chrg0(1:atomix%atoms%natoms))
     allocate(atomix%atoms%norbs(1:atomix%atoms%natoms))
     allocate(atomix%atoms%MagMom(1:atomix%atoms%natoms))
+    allocate(atomix%atoms%neighbours(1:atomix%atoms%natoms))
 
     atomix%atoms%id(1:atomix%atoms%natoms)=0.0_k_pr
     atomix%atoms%sp(1:atomix%atoms%natoms)=0.0_k_pr
@@ -1426,6 +1433,29 @@ end subroutine CloseIoGeneral
           atomix%atoms%spacer(k)=atomix%atoms%id(i)
         endif
       enddo
+    endif
+    atomix%atoms%ncurrent=GetInteger(io,"NCurrent",0)
+    if (atomix%atoms%ncurrent/=0) then
+      allocate(atomix%atoms%current(1:atomix%atoms%ncurrent))
+      if (atomix%atoms%ncurrent  == atomix%atoms%natoms) then
+        atomix%atoms%current=atomix%atoms%id
+      else
+        atomix%atoms%current=0
+        if (GetBlock(io,'CurrentAtoms',nt)) then
+          read(nt,*,iostat=errno)(atomix%atoms%current(i),i=1,atomix%atoms%ncurrent)
+          if (errno/=0) then
+            call error("Unexpected end of CurrentAtoms block",sMyName,.true.,io)
+          endif
+          do i=1,atomix%atoms%ncurrent
+            if (.not.isInList(atomix%atoms%current(i),atomix%atoms%id)) then
+              write(saux,'(a,i0)')"Invalid atom specified for current calculations",atomix%atoms%current(i)
+              call error(trim(saux),sMyName,.true.,io)
+            endif
+          enddo
+        else
+          call error("No atoms for CurrentAtoms found",sMyName,.true.,io)
+        endif
+      endif
     endif
   end subroutine ReadAtoms
 
@@ -2339,13 +2369,19 @@ end subroutine ReadBasis
     deallocate(atomic%atoms%norbs)
     if (allocated(atomic%atoms%spacer)) deallocate(atomic%atoms%spacer)
     if (allocated(atomic%atoms%donor)) deallocate(atomic%atoms%donor)
+    if (allocated(atomic%atoms%current)) deallocate(atomic%atoms%current)
     if (allocated(atomic%atoms%acceptor)) deallocate(atomic%atoms%acceptor)
     if (allocated(atomic%atoms%scf)) deallocate(atomic%atoms%scf)
     if (allocated(atomic%atoms%moving)) deallocate(atomic%atoms%moving)
     deallocate(atomic%basis%orbitals)
     deallocate(atomic%atoms%orbs)
     deallocate(atomic%atoms%MagMom)
-
+    do i=1,atomic%atoms%natoms
+      if (atomic%atoms%neighbours(i)%created) then
+        deallocate(atomic%atoms%neighbours(i)%a)
+      endif
+    enddo
+    deallocate(atomic%atoms%neighbours)
     do i=1,atomic%species%nspecies
       do j=1,atomic%species%nspecies
         deallocate(tbMod%hopping(i,j)%a)
@@ -2399,8 +2435,19 @@ end subroutine ReadBasis
     deallocate(sol%buff%a)
     deallocate(sol%buff%nstart)
     deallocate(sol%fact)
+    deallocate(sol%Distances)
+    deallocate(sol%buff%itmp)
+    deallocate(sol%CurrentMatrix)
+    deallocate(sol%CurrentMatrix2)
     if (general%smearMethod == k_smMP) then
       deallocate(sol%hermite)
+    endif
+    if ((general%runType == k_runEhrenfestDamped).or.(general%runType == k_runEhrenfest)) then
+      call DestroyMatrix(sol%rhodot,io)
+      call DestroyMatrix(sol%deltaRho,io)
+      call DestroyMatrix(sol%rhoold,io)
+      call DestroyMatrix(sol%rhonew,io)
+      call DestroyMatrix(sol%rho0,io)
     endif
     call MKL_FreeBuffers()
   end subroutine CleanMemory

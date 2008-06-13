@@ -46,7 +46,7 @@ contains
 
   call ResetSparseMatrix(sol%h)
   if (.not. gen%spin) then
-!!$OMP PARALLEL DO DEFAULT(shared) PRIVATE(i,j,k,o,hij,rij,l,m,n)  SCHEDULE(static)
+!!!!!   !$OMP PARALLEL DO DEFAULT(shared) PRIVATE(i,j,k,o,hij,rij,l,m,n)  SCHEDULE(static)
     do i=1,atomic%atoms%natoms
       do j=1,atomic%atoms%natoms
         if (i/=j) then
@@ -73,9 +73,9 @@ contains
         endif
       enddo
     enddo
-!!$OMP END PARALLEL DO
+!!!!!   !$OMP END PARALLEL DO
   elseif( gen%collinear) then
-!$OMP PARALLEL DO DEFAULT(shared) PRIVATE(i,j,k,o,hij,rij,l,m,n,norbsi,norbsj)  SCHEDULE(static)
+!!! !$OMP PARALLEL DO DEFAULT(shared) PRIVATE(i,j,k,o,hij,rij,l,m,n,norbsi,norbsj)  SCHEDULE(static)
     do i=1,atomic%atoms%natoms
       norbsi=atomic%species%norbs(atomic%atoms%sp(i))/2
       do j=1,atomic%atoms%natoms
@@ -112,7 +112,7 @@ contains
         endif
       enddo
     enddo
-!$OMP END PARALLEL DO
+!!! !$OMP END PARALLEL DO
   else
     call error("Non-Collinear spins are not implemented yet!",myname,.true.,io)
   endif

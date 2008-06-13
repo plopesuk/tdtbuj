@@ -56,6 +56,10 @@ contains
     genLoc%lIsSCFConverged=.true.
     n=atomic%basis%norbitals
     m=(n-1)*n/2
+    ee=0.0_k_pr
+    re=0.0_k_pr
+    scfe=0.0_k_pr
+    te=0.0_k_pr
     if (genLoc%scf) then
 ! delta density matrix is stored in an array as upper triangular part followed by the diagonal
       select case(genLoc%scfType)

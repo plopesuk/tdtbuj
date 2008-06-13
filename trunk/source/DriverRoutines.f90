@@ -86,8 +86,8 @@ module m_DriverRoutines
 
    sol%totalEnergy=eenergy+renergy+minusts+scfE
    xyz=GetUnit()
-    open(xyz,file="coords.mxz",status="unknown",action="write")
-    call PrintXYZ(xyz,atomic,.false.,getUnits(genLoc))
+   open(xyz,file="coords.mxz",status="unknown",action="write")
+   call PrintXYZ(xyz,atomic,.false.,getUnits(genLoc))
    close(xyz)
   end subroutine SinglePoint
 
@@ -216,7 +216,7 @@ module m_DriverRoutines
 !             call write_frame(xunit)
 !             call writeAnimation_frame(aniunit)
 ! !           call write_frame_rho(runit)
-          write(saux,'(a,f0.8)')"Time = ",gen%CurrSimTime
+          write(saux,'(a,f0.8,a)')"Time = ",gen%CurrSimTime," fs"
           call PrintXYZ(io%uani,atomic,.false.,trim(saux))
         endif
       endif
@@ -482,31 +482,46 @@ module m_DriverRoutines
     type(atomicxType), intent(inout) :: atomic
     type(solutionType), intent(inout) :: sol
     type(modelType), intent(inout) :: tb
-    integer :: dipunit, eneunit, popunit, xunit,runit, accUnit, donUnit, spacUnit
+    integer :: dipunit, eneunit, popunit, xunit,runit, accUnit, donUnit, spacUnit,bchUnit,ochUnit
     real(k_pr) :: eenergy,renergy,kenergy,penergy,scfE
     integer  :: i,istep,k,j
-    real(k_pr) :: dt,mi
+    real(k_pr) :: dt,mi,inpn
     complex(k_pr) :: ihbar,trrho,st
-    type(matrixType) :: rhoold,rhodot,rhonew,rho0,deltaRho
-    real(k_pr) ::biasFactor,bfa,gamma
+    real(k_pr) ::biasFactor,bfa,gamma,ts
     character(len=k_ml) :: saux
+    integer :: l,m
+    logical :: OrbitalCurrent
 
+    l=gen%currentL
+    m=gen%currentM
+    if (l<0) then
+      OrbitalCurrent=.false.
+    else
+      OrbitalCurrent=.true.
+    endif
     eneunit=GetUnit()
-    popunit=GetUnit()
     xunit=GetUnit()
     runit=GetUnit()
     accUnit=GetUnit()
     donUnit=GetUnit()
     spacUnit=GetUnit()
+    bchUnit=GetUnit()
+    ochUnit=GetUnit()
     write(io%uout,'(/a/)')&
          '--Velocity Verlet Ehrenfest Dynamics Damped----------------------------'
     gamma=-gen%Gamma
+
     if (gen%writeAnimation) then
-      open(unit=xunit,file="eh_dyn.gcd",form="UNFORMATTED",status="unknown",action="write")
-      open(unit=accUnit,file="eacceptor.dat",status="unknown",action="write")
-      open(unit=donUnit,file="edonor.dat",status="unknown",action="write")
-      open(unit=spacUnit,file="espacer.dat",status="unknown",action="write")
-      open(unit=runit,file="eh_dyn.rho",form="UNFORMATTED",status="unknown",action="write")
+      open(unit=xunit,file="eh_dyn.gcd",form="UNFORMATTED",status="replace",action="write")
+      open(unit=accUnit,file="eacceptor.dat",status="replace",action="write")
+      open(unit=donUnit,file="edonor.dat",status="replace",action="write")
+      open(unit=spacUnit,file="espacer.dat",status="replace",action="write")
+      open(unit=bchUnit,file="bondCharges.cxz",status="replace",action="write")
+      if (OrbitalCurrent) then
+        write(saux,'(a,2i0,a)')"bondChargesOrbital",l,m,".cxz"
+        open(unit=ochUnit,file=trim(saux),status="replace",action="write")
+      endif
+      open(unit=runit,file="eh_dyn.rho",form="UNFORMATTED",status="replace",action="write")
     endif
     open(file='eh_dyn.ENE',unit=eneunit)
     ! prepare the electronic subsystem,
@@ -517,14 +532,17 @@ module m_DriverRoutines
     atomic%atoms%chrg0=atomic%atoms%chrg
     dt = gen%deltat
     ! initialize DM storage spaces
-    call CreateMatrix(rhoold,sol%h%dim,.true.)
-    call CreateMatrix(rhodot,sol%h%dim,.true.)
-    call CreateMatrix(rhonew,sol%h%dim,.true.)
-    call CreateMatrix(rho0,sol%h%dim,.true.)
-    call CreateMatrix(deltaRho,sol%h%dim,.true.)
-    call CopyMatrix(rho0,sol%rho,io)
+    call CopyMatrix(sol%rho0,sol%rho,io)
+
     select case(gen%wdensity)
     case(k_wrSCF)
+      gen%lIsExcited=.true.
+      call SinglePoint(io,gen,atomic,tb,sol)
+      gen%lIsExcited=.false.
+    case(k_wrnSCF)
+      call CreateDensityMatrixExcited(gen,atomic,sol,io)
+      gen%lIsExcited=.false.
+    case(k_wrTailored)
       gen%lIsExcited=.true.
       call SinglePoint(io,gen,atomic,tb,sol)
       gen%lIsExcited=.false.
@@ -534,28 +552,31 @@ module m_DriverRoutines
           sol%rho%a(j,i)=cmplx(0.0_k_pr,0.0_k_pr,k_pr)
         enddo
       enddo
-    case(k_wrnSCF)
-      call CreateDensityMatrixExcited(gen,atomic,sol,io)
-      gen%lIsExcited=.false.
-    case(k_wrTailored)
-      call GetRho(sol%rho)
-      gen%lIsExcited=.false.
+!       call GetRho(sol%rho)
+!       gen%lIsExcited=.false.
    end select
-
+   write(io%uout,'(/a/)')&
+         '--Setup ended----------------------------'
     if (gen%writeAnimation) then
       call CalcExcessCharges(gen,atomic,sol)
       call CalcDipoles(gen,atomic,sol)
-      write(accUnit,*) "0.0", ChargeOnGroup(atomic%atoms%acceptor,atomic%atoms)
-      write(donUnit,*) "0.0", ChargeOnGroup(atomic%atoms%donor,atomic%atoms)
-      write(spacUnit,*) "0.0", ChargeOnGroup(atomic%atoms%spacer,atomic%atoms)
-      call PrintXYZ(io%uani,atomic,.false.,"T = 0.0")
+!       write(accUnit,*) "0.0", ChargeOnGroup(atomic%atoms%acceptor,atomic%atoms)
+!       write(donUnit,*) "0.0", ChargeOnGroup(atomic%atoms%donor,atomic%atoms)
+!       write(spacUnit,*) "0.0", ChargeOnGroup(atomic%atoms%spacer,atomic%atoms)
+      call PrintXYZ(io%uani,atomic,.false.,"T = 0.0 fs")
+      call ComputeBondCurrents(gen,atomic,sol,io,OrbitalCurrent)
+      call PrintBondCurrents(bchUnit,atomic,sol,"T= 0.0 fs",1.0_k_pr)
+      if (OrbitalCurrent) then
+        call ComputeBondCurrentsOnOrbitals(gen,atomic,sol,io,l,m)
+        call PrintBondCurrents(ochUnit,atomic,sol,"T= 0.0 fs",1.0_k_pr)
+      endif
     endif
 !          if (.not.gen%comp_elec) then
 !             if (gen%electrostatics==tbu_multi) call init_qvs(density)
 !          endif
     ! now build a hamiltonian with no bias
     call BuildHamiltonian(io,gen,atomic,tb,sol)
-    call MatrixCeaApbB(deltaRho,sol%rho,rho0,k_cone,-k_cone,io)
+    call MatrixCeaApbB(sol%deltaRho,sol%rho,sol%rho0,k_cone,-k_cone,io)
     if (gen%BiasRampSteps>0) then
       call AddBias(1.0_k_pr,atomic,sol)
     endif
@@ -565,12 +586,12 @@ module m_DriverRoutines
 
     ihbar = cmplx(0.0_k_pr,-1.0_k_pr/k_hbar,k_pr)
     ! go back in time one step for the DM integration
-    call Commutator(rhodot,sol%h,sol%rho,io)
+    call Commutator(sol%rhodot,sol%h,sol%rho,io)
     st = cmplx(-dt,0.0_k_pr,k_pr)
-    call ScalarTMatrix(ihbar*st,rhodot,io)
-    call ScalarTMatrix(gamma*st,deltaRho,io)
-    call MatrixCeaApbB(rhoold,sol%rho,rhodot,k_cone,k_cone,io)
-    call MatrixCeaApbB(rhoold,rhoold,deltaRho,k_cone,k_cone,io)
+    call ScalarTMatrix(ihbar*st,sol%rhodot,io)
+    call ScalarTMatrix(gamma*st,sol%deltaRho,io)
+    call MatrixCeaApbB(sol%rhoold,sol%rho,sol%rhodot,k_cone,k_cone,io)
+    call MatrixCeaApbB(sol%rhoold,sol%rhoold,sol%deltaRho,k_cone,k_cone,io)
       ! calculate the forces from the prepared DM and the present H
     call CopyMatrix(sol%h,sol%hin,io)
     call ZeroForces(atomic)
@@ -593,20 +614,21 @@ module m_DriverRoutines
 !                if (gen%electrostatics==tbu_multi) call init_qvs(density)
 !             endif
       call AddH2(gen,atomic,sol,tb,io)
-      call ZeroMatrix(rhodot,io)
-      call Commutator(rhodot,sol%h,sol%rho,io)
-      call MatrixCeaApbB(deltaRho,sol%rho,rho0,k_cone,-k_cone,io)
-      if (mod(istep,gen%EulerSteps)==0) then
-        !euler step
-        call ScalarTMatrix(ihbar*cmplx(dt,0.0_k_pr,k_pr),rhodot,io)
-        call ScalarTMatrix(cmplx(gamma*dt,0.0_k_pr,k_pr),deltaRho,io)
-        call MatrixCeaApbB(rhonew,sol%rho,rhodot,k_cone,k_cone,io)
+      call ZeroMatrix(sol%rhodot,io)
+      call Commutator(sol%rhodot,sol%h,sol%rho,io)
+      call MatrixCeaApbB(sol%deltaRho,sol%rho,sol%rho0,k_cone,-k_cone,io)
+      if (mod(istep,gen%EulerSteps)==0) then !euler step
+        call ScalarTMatrix(ihbar*cmplx(dt,0.0_k_pr,k_pr),sol%rhodot,io)
+        call ScalarTMatrix(cmplx(gamma*dt,0.0_k_pr,k_pr),sol%deltaRho,io)
+        call MatrixCeaApbB(sol%rhonew,sol%rho,sol%rhodot,k_cone,k_cone,io)
+        ts=dt
       else !verlet step
-        call ScalarTMatrix(ihbar*st,rhodot,io)
-        call ScalarTMatrix(gamma*st,deltaRho,io)
-        call MatrixCeaApbB(rhonew,rhoold,rhodot,k_cone,k_cone,io)
+        call ScalarTMatrix(ihbar*st,sol%rhodot,io)
+        call ScalarTMatrix(gamma*st,sol%deltaRho,io)
+        call MatrixCeaApbB(sol%rhonew,sol%rhoold,sol%rhodot,k_cone,k_cone,io)
+        ts=2.0_k_pr*dt
       end if
-      call MatrixCeaApbB(rhonew,rhonew,deltaRho,k_cone,k_cone,io)
+      call MatrixCeaApbB(sol%rhonew,sol%rhonew,sol%deltaRho,k_cone,k_cone,io)
       ! at this point rho contains the rho at time=t
        ! propagate the positions
        ! calculates positions at t+dt
@@ -631,10 +653,14 @@ module m_DriverRoutines
         atomic%atoms%fzo(i) = atomic%atoms%fz(i)
       enddo
        ! shuffle the DMs, rho is now rho(t+dt)
-      call CopyMatrix(rhoold,sol%rho,io)
-      call CopyMatrix(sol%rho,rhonew,io)
+      call CopyMatrix(sol%rhoold,sol%rho,io)
+      call CopyMatrix(sol%rho,sol%rhonew,io)
            ! calculate forces at t+dt
-      call BuildHamiltonian(io,gen,atomic,tb,sol)
+      if (atomic%atoms%nmoving == 0) then
+        call CopyMatrix(sol%h,sol%hin,io)
+      else
+        call BuildHamiltonian(io,gen,atomic,tb,sol)
+      endif
        ! Ramp for the bias
       if ((gen%BiasRampSteps>0).and.((istep)<=gen%BiasRampSteps)) then
         bfa = real(istep,k_pr)/real(gen%BiasRampSteps,k_pr)
@@ -665,33 +691,43 @@ module m_DriverRoutines
       if (gen%scaleVelocities) then
         call ScaleVelocities(gen,atomic)
       endif
-      if (gen%spin) then
-        trrho   = MatrixTrace(sol%rho,io)
-      else
-        trrho   = 2.0_k_pr * MatrixTrace(sol%rho,io)
-      endif
-      eenergy = ElectronicEnergy(gen,sol,io)
-      renergy = RepulsiveEnergy(gen,atomic%atoms,tb)
-      if (gen%scf) then
-        scfE = ScfEnergy(gen,atomic,sol,io)
-      else
-        scfE = 0.0_k_pr
-      endif
-      penergy = eenergy + renergy + scfE
-      kenergy = KineticEnergy(atomic)
-      if (gen%writeAnimation) then
-        if(mod(istep,gen%AnimationSteps)==0) then
-          call CalcExcessCharges(gen,atomic,sol)
-          call CalcDipoles(gen,atomic,sol)
-          write(accUnit,*) gen%CurrSimTime, ChargeOnGroup(atomic%atoms%acceptor,atomic%atoms)
-          write(donUnit,*) gen%CurrSimTime, ChargeOnGroup(atomic%atoms%donor,atomic%atoms)
-          write(spacUnit,*) gen%CurrSimTime, ChargeOnGroup(atomic%atoms%spacer,atomic%atoms)
-          write(saux,'(a,f0.8)')"Time = ", gen%CurrSimTime
-          call PrintXYZ(io%uani,atomic,.false.,trim(saux))
+      if(mod(istep,gen%AnimationSteps)==0) then
+        if (gen%spin) then
+          trrho   = MatrixTrace(sol%rho,io)
+        else
+          trrho   = 2.0_k_pr * MatrixTrace(sol%rho,io)
+        endif
+        eenergy = ElectronicEnergy(gen,sol,io)
+        renergy = RepulsiveEnergy(gen,atomic%atoms,tb)
+        if (gen%scf) then
+          scfE = ScfEnergy(gen,atomic,sol,io)
+        else
+          scfE = 0.0_k_pr
+        endif
+        penergy = eenergy + renergy + scfE
+        kenergy = KineticEnergy(atomic)
+
+        if (gen%writeAnimation) then
+        call CalcExcessCharges(gen,atomic,sol)
+        call CalcDipoles(gen,atomic,sol)
+!           write(accUnit,*) gen%CurrSimTime, ChargeOnGroup(atomic%atoms%acceptor,atomic%atoms)
+!           write(donUnit,*) gen%CurrSimTime, ChargeOnGroup(atomic%atoms%donor,atomic%atoms)
+!           write(spacUnit,*) gen%CurrSimTime, ChargeOnGroup(atomic%atoms%spacer,atomic%atoms)
+        write(saux,'(a,f0.8,a)')"Time = ", gen%CurrSimTime," fs"
+        call PrintXYZ(io%uani,atomic,.false.,trim(saux))
+! decide if is necessary to update neighbours
+        if (atomic%atoms%nmoving /=0) then
+          call UpdateNeighboursList(atomic,sol,tb,io)
+        endif
+        call ComputeBondCurrents(gen,atomic,sol,io,OrbitalCurrent)
+        call PrintBondCurrents(bchUnit,atomic,sol,trim(saux),ts)
+        if (OrbitalCurrent) then
+          call ComputeBondCurrentsOnOrbitals(gen,atomic,sol,io,l,m)
+          call PrintBondCurrents(ochUnit,atomic,sol,trim(saux),ts)
         endif
       endif
-!            if (mod(istep,50).eq.1) call write_rho_eigenvalues(rho)
-      write(eneunit,'(7f25.18)')gen%CurrSimTime,renergy,eenergy,scfE,kenergy,penergy+kenergy,real(trrho)
+        write(eneunit,'(7f25.18)')gen%CurrSimTime,renergy,eenergy,scfE,kenergy,penergy+kenergy,real(trrho)
+      endif
     enddo !istep loop
     if (gen%writeAnimation) then
       close(xunit)
@@ -699,14 +735,12 @@ module m_DriverRoutines
       close(accUnit)
       close(donUnit)
       close(spacUnit)
+      close(bchUnit)
+      if (OrbitalCurrent) then
+        close(ochUnit)
+      endif
     endif
     close(eneunit)
-    call DestroyMatrix(rhoold,io)
-    call DestroyMatrix(rhodot,io)
-    call DestroyMatrix(rhonew,io)
-    call DestroyMatrix(rho0,io)
-    call DestroyMatrix(deltaRho,io)
-
     write(io%uout,'(/a/)')&
       'End Ehrenfest Damped-------------------------------------------------------------'
   end subroutine EhrenfestDynamicsDamped
