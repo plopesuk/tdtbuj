@@ -32,43 +32,20 @@ contains
 !> \param sol type(solutionType) contains information about the solution space
   subroutine CalcExcessCharges(gen,atomic,sol)
     character(len=*), parameter :: myname = 'CalcExcessCharges'
-    type(solutionType),intent(in) :: sol
+    type(solutionType),intent(inout) :: sol
     type(atomicxType), intent(inout) :: atomic
-    type(generalType), intent(in) :: gen
-    integer :: i
-    integer :: at,n
-    real(k_pr) :: aux
-    integer :: from,to
+    type(generalType), intent(inout) :: gen
 
-    n=atomic%basis%norbitals
-    if (gen%spin) then
+    integer :: at
+    real(k_pr) :: aux
+
+
     ! spin down
       do at=1,atomic%atoms%natoms
-      aux=0.0_k_pr
-        from=atomic%atoms%orbs(at,1)
-        to=-1+from+atomic%species%norbs(atomic%atoms%sp(at))/2
-        do i=from,to
-          aux=aux+sol%rho%a(i,i)
-        enddo
-      !spin up
-        from=atomic%atoms%orbs(at,1)+atomic%basis%norbitals/2
-        to=-1+from+atomic%species%norbs(atomic%atoms%sp(at))/2
-        do i=from,to
-          aux=aux+sol%rho%a(i,i)
-        enddo
+        aux=PartialTrace(atomic%atoms%id(at),atomic,sol%rho,gen%spin)
         atomic%atoms%chrg(at)=aux-atomic%species%zval(atomic%atoms%sp(at))
       enddo
-    else
-      do at=1,atomic%atoms%natoms
-        aux=0.0_k_pr
-        from=atomic%atoms%orbs(at,1)
-        to=-1+atomic%atoms%orbs(at,1)+atomic%species%norbs(atomic%atoms%sp(at))
-        do i=from,to
-          aux=aux+sol%rho%a(i,i)
-        enddo
-          atomic%atoms%chrg(at)=aux-atomic%species%zval(atomic%atoms%sp(at))
-      enddo
-    endif
+
   end subroutine CalcExcessCharges
 
 !> \brief computes the dipole moment

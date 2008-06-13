@@ -33,6 +33,8 @@ module m_Gutenberg
   public :: PrintXYZ
   public :: PrintAtomChargeAnalysis
   public :: PrintOccupationNumbers
+  public :: PrintNeighbours
+  public :: PrintBondCurrents
 contains
 
 !> \brief Prints the tail parameters
@@ -102,44 +104,53 @@ contains
     write(io%uout,'(a)')"=AtomicLists=========================================="
     if (general%scf) then
       if(atomix%atoms%nscf/=0) then
-        write(io%uout,'(a)')"SCFAtoms:"
+        write(io%uout,'(a)')"==SCFAtoms:"
         do i=1,atomix%atoms%nscf
-          write(io%uout,'(i0,a1,a,a2)',advance="no")atomix%atoms%scf(i),"(",symbol(GetZ(atomix,atomix%atoms%scf(i))),") "
+          write(io%uout,'(i0,a1,a,a2)',advance="no")atomix%atoms%scf(i),"(",trim(symbol(GetZ(atomix,atomix%atoms%scf(i)))),") "
         enddo
         write(io%uout,*)
       endif
     endif
     if(atomix%atoms%nmoving/=0) then
-      write(io%uout,'(a)')"Moving Atoms:"
+      write(io%uout,'(a)')"==Moving Atoms:"
       do i=1,atomix%atoms%nmoving
-        write(io%uout,'(i0,a,a,a)',advance="no")atomix%atoms%moving(i),"(",symbol(GetZ(atomix,atomix%atoms%moving(i))),") "
+        write(io%uout,'(i0,a,a,a)',advance="no")atomix%atoms%moving(i),"(",trim(symbol(GetZ(atomix,atomix%atoms%moving(i)))),") "
       enddo
       write(io%uout,*)
     endif
-    write(io%uout,'(a,i0)')"Atoms in Donor Group(NDonor): "&
+    write(io%uout,'(a,i0)')"==Atoms in Donor Group(NDonor): "&
         ,atomix%atoms%ndonor
     if(atomix%atoms%ndonor/=0) then
       write(io%uout,'(a)')"Donor Atoms:"
       do i=1,atomix%atoms%ndonor
-        write(io%uout,'(i0,a,a,a)',advance="no")atomix%atoms%donor(i),"(",symbol(GetZ(atomix,atomix%atoms%donor(i))),") "
+        write(io%uout,'(i0,a,a,a)',advance="no")atomix%atoms%donor(i),"(",trim(symbol(GetZ(atomix,atomix%atoms%donor(i)))),") "
       enddo
       write(io%uout,*)
     endif
-    write( io%uout,'(a,i0)')"Atoms in Acceptor Group(NAcceptor): "&
+    write( io%uout,'(a,i0)')"==Atoms in Acceptor Group(NAcceptor): "&
         ,atomix%atoms%nacceptor
     if(atomix%atoms%nacceptor/=0) then
       write(io%uout,'(a)')"Acceptor Atoms:"
       do i=1,atomix%atoms%nacceptor
-        write(io%uout,'(i0,a,a,a)',advance="no")atomix%atoms%acceptor(i),"(",symbol(GetZ(atomix,atomix%atoms%acceptor(i))),") "
+        write(io%uout,'(i0,a,a,a)',advance="no")atomix%atoms%acceptor(i),"(",trim(symbol(GetZ(atomix,atomix%atoms%acceptor(i)))),") "
       enddo
       write(io%uout,*)
     endif
-    write(io%uout,'(a,i0)')"Atoms in Spacer Group(NSpacer): "&
+    write(io%uout,'(a,i0)')"==Atoms in Spacer Group(NSpacer): "&
         ,atomix%atoms%nspacer
     if(atomix%atoms%nspacer/=0) then
       write(io%uout,'(a)')"Spacer Atoms:"
       do i=1,atomix%atoms%nspacer
-        write(io%uout,'(i0,a,a,a)',advance="no")atomix%atoms%spacer(i),"(",symbol(GetZ(atomix,atomix%atoms%spacer(i))),") "
+        write(io%uout,'(i0,a,a,a)',advance="no")atomix%atoms%spacer(i),"(",trim(symbol(GetZ(atomix,atomix%atoms%spacer(i)))),") "
+      enddo
+      write(io%uout,*)
+    endif
+    write(io%uout,'(a,i0)')"==Atoms on which we compute currents (NCurrent): "&
+        ,atomix%atoms%ncurrent
+    if(atomix%atoms%ncurrent/=0) then
+      write(io%uout,'(a)')"Current Atoms:"
+      do i=1,atomix%atoms%ncurrent
+        write(io%uout,'(i0,a,a,a)',advance="no")atomix%atoms%current(i),"(",trim(symbol(GetZ(atomix,atomix%atoms%current(i)))),") "
       enddo
       write(io%uout,*)
     endif
@@ -1050,16 +1061,46 @@ contains
     do i=1,atomic%atoms%natoms
       if (lIsVelocity) then
         write(unit,'(a2,1x,10f16.8)') symbol(atomic%atoms%sp(i)),atomic%atoms%x(i),atomic%atoms%y(i),atomic%atoms%z(i),&
-          -atomic%atoms%chrg(i),atomic%atoms%dx(i)*u2D,atomic%atoms%dy(i)*u2D,atomic%atoms%dz(i)*u2D,&
+          atomic%atoms%chrg(i),atomic%atoms%dx(i)*u2D,atomic%atoms%dy(i)*u2D,atomic%atoms%dz(i)*u2D,&
           atomic%atoms%vx(i),atomic%atoms%vy(i),atomic%atoms%vz(i)
       else
         write(unit,'(a2,1x,7f16.8)')  &
-          symbol(atomic%species%z(atomic%atoms%sp(i))),atomic%atoms%x(i),atomic%atoms%y(i),atomic%atoms%z(i), -atomic%atoms%chrg(i),&
+          symbol(atomic%species%z(atomic%atoms%sp(i))),atomic%atoms%x(i),atomic%atoms%y(i),atomic%atoms%z(i), atomic%atoms%chrg(i),&
           atomic%atoms%dx(i)*u2D,atomic%atoms%dy(i)*u2D,atomic%atoms%dz(i)*u2D
       endif
     enddo
   end subroutine PrintXYZ
 
+
+  subroutine PrintBondCurrents(unit,atomic,sol,label,dt)
+    character(len=*), parameter :: sMyName="PrintBondCurrents"
+    type(atomicxType), intent(inout) :: atomic
+    character(len=*), intent(in),optional :: label
+    type(solutionType), intent(inout) :: sol
+    integer, intent(in) :: unit
+    integer :: i,k,at
+    real(k_pr) :: dt
+
+    write(unit,'(i0)')atomic%atoms%natoms
+    if (present(label)) then
+      write(unit,'(a)')trim(label)
+    else
+      write(unit,'(a)')""
+    endif
+
+    do i=1,atomic%atoms%natoms
+      write(unit,'(a2,1x,3f16.8,5g)')  &
+          symbol(atomic%species%z(atomic%atoms%sp(i))),atomic%atoms%x(i),atomic%atoms%y(i),atomic%atoms%z(i),sol%CurrentMatrix2(i,i)/k_e,PartialTrace(atomic%atoms%id(i),atomic,sol%deltaRho,.true.)/dt
+    enddo
+    write(unit,'(i0)')atomic%atoms%ncurrent
+    do i=1,atomic%atoms%ncurrent
+       at=atomic%atoms%current(i)
+       write(unit,'(i0)')atomic%atoms%neighbours(at)%n
+       do k=1,atomic%atoms%neighbours(at)%n
+         write(unit,'(i0,x,i0,g)')at,atomic%atoms%neighbours(at)%a(k),sol%CurrentMatrix2(at,atomic%atoms%neighbours(at)%a(k))
+       enddo
+    enddo
+  end subroutine PrintBondCurrents
 
   subroutine PrintAtomChargeAnalysis(at,atomic,sol,gen,io)
     character(len=*), parameter :: myname="PrintAtomChargeAnalysis"
@@ -1109,7 +1150,7 @@ contains
         endif
       enddo
       write(io%uout,*) &
-          '------------------------------------------------------------'
+          '__________________________________________________________________'
     else
       write(io%uout,*)  "Occupation Numbers"
       do i=1,sol%rho%dim
@@ -1118,5 +1159,32 @@ contains
       enddo
     endif
   end subroutine PrintOccupationNumbers
+
+!> \brief Prints the computed neighbours list
+!> \author Alin M Elena
+!> \date 30/10/07, 13:22:04
+!> \param io type(ioType) i/o units
+!> \param atomic type(atomicxType) contains info about atoms
+  subroutine PrintNeighbours(atomic,io)
+    character(len=*), parameter :: sMyName="PrintNeighbours"
+    type(ioType), intent(inout) :: io
+    type(atomicxType), intent(in) :: atomic
+    integer :: i,j,k
+    k=0
+    write(io%uout,'(a)')  "=StartNeighboursList==========================================="
+    do i=1,atomic%atoms%natoms
+      if (atomic%atoms%neighbours(i)%n /= 0) then
+        k=k+1
+        write(io%uout,'(i0,a,i0,a,i0,a,a,a)')k,". The ",atomic%atoms%neighbours(i)%n," neighbours of ",i,"(",trim(symbol(GetZ(atomic,i))),")"
+        do j=1,atomic%atoms%neighbours(i)%n
+          write(io%uout,'(i0,a,a,a)',advance="no")atomic%atoms%neighbours(i)%a(j) ,"(",trim(symbol(GetZ(atomic,atomic%atoms%neighbours(i)%a(j)))),") "
+        enddo
+        write(io%uout,*)
+      endif
+    enddo
+    write(io%uout,'(a)')  "=EndNeigboursList============================================="
+
+  end subroutine PrintNeighbours
+
 
 end module m_Gutenberg

@@ -1,6 +1,6 @@
 PROJECT(tdtbuj Fortran)
 
-set(CMAKE_BUILD_TYPE "Debug")
+set(CMAKE_BUILD_TYPE "None")
 
 set(VERSION_MAJOR "0")
 set(VERSION_MINOR "9")

@@ -45,6 +45,8 @@ module m_Useful
   public :: MarzariS
   public :: LMax
   public :: getUnits
+  public :: getOrbitalIndex
+  public :: PartialTrace
 
   interface Swap
     module procedure SwapScalar,SwapVector
@@ -974,5 +976,56 @@ contains
         getUnits="atomic Rydberg units (Rydberg-Bohr)"
     end select
   end function getUnits
+
+
+! be sure that you pass valid l and m
+ integer function getOrbitalIndex(at,atomic,l,m)
+   character(len=*),parameter :: myName="getOrbitalIndex"
+   integer, intent(inout) :: at,l,m
+   type(atomicxType), intent(inout) :: atomic
+
+
+   getOrbitalIndex=atomic%atoms%orbs(at,1)+l*l+l+m
+
+ end function getOrbitalIndex
+
+
+  real(k_pr) function PartialTrace(at,atomic,matrix,spin)
+    character(len=*), parameter :: myname = 'PartialTrace'
+    type(atomicxType), intent(inout) :: atomic
+    integer, intent(inout) :: at
+    type(matrixType), intent(inout) :: matrix
+    logical, intent(in) :: spin
+    integer :: n,i,to,from
+    real(k_pr) :: aux
+
+    n=atomic%basis%norbitals
+    if (spin) then
+    ! spin down
+      aux=0.0_k_pr
+      from=atomic%atoms%orbs(at,1)
+      to=-1+from+atomic%species%norbs(atomic%atoms%sp(at))/2
+      do i=from,to
+        aux=aux+real(matrix%a(i,i),k_pr)
+      enddo
+    !spin up
+      from=atomic%atoms%orbs(at,1)+atomic%basis%norbitals/2
+      to=-1+from+atomic%species%norbs(atomic%atoms%sp(at))/2
+      do i=from,to
+        aux=aux+real(matrix%a(i,i),k_pr)
+      enddo
+      PartialTrace = aux
+    else
+      aux=0.0_k_pr
+      from=atomic%atoms%orbs(at,1)
+      to=-1+atomic%atoms%orbs(at,1)+atomic%species%norbs(atomic%atoms%sp(at))
+      do i=from,to
+        aux=aux+real(matrix%a(i,i),k_pr)
+      enddo
+      PartialTrace = aux
+    endif
+  end function PartialTrace
+
+
 
 end module m_Useful

@@ -27,6 +27,9 @@ module m_TightBinding
   public :: InitMagneticMoment
   public :: ComputeMagneticMoment
   public :: SetTails
+  public :: ComputeBondCurrents
+  public :: ComputeBondCurrentsOnOrbitals
+  public :: UpdateNeighboursList
 
 contains
 !> \brief Initializes the solution space
@@ -142,6 +145,8 @@ contains
       allocate(sol%buff%a(1:sol%eigenvecs%dim,1:sol%eigenvecs%dim))
       allocate(sol%buff%pos1(1:sol%rho%dim),sol%buff%pos2(1:sol%rho%dim))
       allocate(sol%buff%nstart(1:atomic%basis%norbitals))
+      allocate(sol%buff%itmp(1:atomic%atoms%natoms))
+      allocate(sol%Distances(1:atomic%atoms%natoms,1:atomic%atoms%natoms))
     endif
     call ZeroMatrix(sol%buff%tmpB,ioLoc)
     sol%buff%dins(1:l+n,1:genLoc%scfMixn)=0.0_k_pr
@@ -157,6 +162,7 @@ contains
     sol%buff%nstart(1:n)=0.0_k_pr
     sol%buff%pos1(1:n)=0
     sol%buff%pos2(1:n)=0
+    sol%buff%itmp=0
 ! allocate space for the smearing method
     if (genLoc%smearMethod == k_smMP) then
       if (.not. associated(sol%hermite)) then
@@ -165,8 +171,28 @@ contains
          sol%hermite=0.0_k_pr
       endif
     endif
-
-
+    call BuildNeighboursList(atomic,sol,tbMod,ioLoc)
+    if (.not.allocated(sol%CurrentMatrix)) then
+      allocate(sol%CurrentMatrix(1:atomic%basis%norbitals,1:atomic%basis%norbitals))
+      allocate(sol%CurrentMatrix2(1:atomic%atoms%natoms,1:atomic%atoms%natoms))
+    endif
+    sol%CurrentMatrix=0.0_k_pr
+    sol%CurrentMatrix2=0.0_k_pr
+    if ((genLoc%runType == k_runEhrenfestDamped).or.(genLoc%runType == k_runEhrenfest)) then
+     if (.not.sol%rhodot%created) then
+       call CreateMatrix(sol%rhodot,sol%h%dim,.true.)
+       call CreateMatrix(sol%deltaRho,sol%h%dim,.true.)
+       call CreateMatrix(sol%rhoold,sol%h%dim,.true.)
+       call CreateMatrix(sol%rhonew,sol%h%dim,.true.)
+       call CreateMatrix(sol%rho0,sol%h%dim,.true.)
+      else
+       call ZeroMatrix(sol%rhoDot,ioLoc)
+       call ZeroMatrix(sol%deltaRho,ioLoc)
+       call ZeroMatrix(sol%rhonew,ioLoc)
+       call ZeroMatrix(sol%rhoold,ioLoc)
+       call ZeroMatrix(sol%rho0,ioLoc)
+      endif
+    endif
   end subroutine SetSolutionSpace
 
 
@@ -904,8 +930,8 @@ end subroutine setTails
 !> \param atomic type(atomicxType) contains all info about the atoms and basis set and some parameters
 !> \param sol type(solutionType) contains information about the solution space
 !> \param io type(ioType) contains all the info about I/O files
- subroutine ComputeMagneticMoment(gen,atomic,sol,io)
-   character(len=*), parameter :: myname = 'ComputeMagneticMoment'
+  subroutine ComputeMagneticMoment(gen,atomic,sol,io)
+    character(len=*), parameter :: myname = 'ComputeMagneticMoment'
     type(generalType), intent(in) :: gen
     type(atomicxType), intent(inout) :: atomic
     type(solutionType), intent(inout) :: sol
@@ -924,4 +950,212 @@ end subroutine setTails
       atomic%atoms%MagneticMoment=0.0_k_pr
     endif
   end subroutine ComputeMagneticMoment
+
+  subroutine BuildNeighboursList(atomic,sol,tb,io)
+   character(len=*), parameter :: myname="BuildNeighboursList"
+   type(atomicxType), intent(inout) :: atomic
+   type(solutionType), intent(inout) :: sol
+   type(ioType), intent(inout) :: io
+   type(modelType), intent(inout) :: tb
+   integer :: i,k
+
+   call CountNeighbours(atomic,sol,tb,io)
+   do i=1,atomic%atoms%ncurrent
+     k=atomic%atoms%current(i)
+     atomic%atoms%neighbours(k)%n=sol%buff%itmp(k)
+     allocate(atomic%atoms%neighbours(k)%a(1:sol%buff%itmp(k)))
+     Call GetNeighbours(k,atomic,sol,tb,io)
+   enddo
+   call PrintNeighbours(atomic,io)
+  end subroutine BuildNeighboursList
+
+  subroutine CountNeighbours(atomic,sol,tb,io)
+    character(len=*), parameter :: myname="CountNeighbours"
+    type(atomicxType), intent(inout) :: atomic
+    type(solutionType), intent(inout) :: sol
+    type(ioType), intent(inout) :: io
+    type(modelType), intent(inout) :: tb
+    integer :: i,j,sp1,sp2
+
+    sol%buff%itmp=0
+    call ComputeEuclideanMatrix(atomic%atoms,io,sol%Distances)
+    if (atomic%atoms%ncurrent == atomic%atoms%natoms) then
+      do i=1,atomic%atoms%ncurrent-1
+        sp1=atomic%atoms%sp(atomic%atoms%current(i))
+        do j=i+1,atomic%atoms%natoms
+          sp2=atomic%atoms%sp(j)
+          if (sol%Distances(atomic%atoms%current(i),j)<=tb%hopping(sp1,sp2)%rcut) then
+            sol%buff%itmp(atomic%atoms%current(i))=sol%buff%itmp(atomic%atoms%current(i))+1
+            sol%buff%itmp(j)=sol%buff%itmp(j)+1
+          endif
+        enddo
+      enddo
+    else
+      do i=1,atomic%atoms%ncurrent
+        sp1=atomic%atoms%sp(atomic%atoms%current(i))
+        do j=1,atomic%atoms%natoms
+          sp2=atomic%atoms%sp(j)
+          if ((atomic%atoms%current(i)/=j).and.(sol%Distances(atomic%atoms%current(i),j)<=tb%hopping(sp1,sp2)%rcut)) then
+            sol%buff%itmp(atomic%atoms%current(i))=sol%buff%itmp(atomic%atoms%current(i))+1
+          endif
+        enddo
+      enddo
+    endif
+  end subroutine CountNeighbours
+
+  subroutine GetNeighbours(at,atomic,sol,tb,io)
+    character(len=*), parameter :: myname="GetNeighbours"
+    type(atomicxType), intent(inout) :: atomic
+    type(solutionType), intent(inout) :: sol
+    type(ioType), intent(inout) :: io
+    type(modelType), intent(inout) :: tb
+    integer, intent(inout) :: at
+    integer :: i,j,sp1,sp2,k
+
+
+    sp1=atomic%atoms%sp(at)
+    k=1
+    do j=1,atomic%atoms%natoms
+      sp2=atomic%atoms%sp(j)
+      if ((at/=j).and.&
+        (sol%Distances(at,j)<=tb%hopping(sp1,sp2)%rcut)&
+          .and. k<=atomic%atoms%neighbours(at)%n) then
+          atomic%atoms%neighbours(at)%a(k)=j
+          k=k+1
+      endif
+    enddo
+
+  end subroutine GetNeighbours
+
+  subroutine UpdateNeighboursList(atomic,sol,tb,io)
+   character(len=*), parameter :: myname="UpdateNeighboursList"
+   type(atomicxType), intent(inout) :: atomic
+   type(solutionType), intent(inout) :: sol
+   type(ioType), intent(inout) :: io
+   type(modelType), intent(inout) :: tb
+   integer :: i,k
+
+   call CountNeighbours(atomic,sol,tb,io)
+   do i=1,atomic%atoms%ncurrent
+     k=atomic%atoms%current(i)
+     if (sol%buff%itmp(k)>atomic%atoms%neighbours(k)%n) then
+       atomic%atoms%neighbours(k)%n=sol%buff%itmp(k)
+       deallocate(atomic%atoms%neighbours(k)%a)
+       allocate(atomic%atoms%neighbours(k)%a(1:sol%buff%itmp(k)))
+     else
+       atomic%atoms%neighbours(k)%n=sol%buff%itmp(k)
+     endif
+     Call GetNeighbours(k,atomic,sol,tb,io)
+   enddo
+    if (io%Verbosity >= k_highVerbos) then
+      call PrintNeighbours(atomic,io)
+    endif
+  end subroutine UpdateNeighboursList
+
+  real(k_pr) function ComputeBondCurrentsOnAtom(atp,at,gen,atomic,sol,io,lOnOrbitals)
+    character(len=*), parameter :: myname = 'ComputeBondCurrentsOnAtom'
+    type(generalType), intent(in) :: gen
+    type(atomicxType), intent(inout) :: atomic
+    type(solutionType), intent(inout) :: sol
+    type(ioType), intent(inout) :: io
+    integer, intent(in) :: at,atp
+    logical, intent(in) :: lOnOrbitals
+
+    integer :: m,n,i,j
+    real(k_pr) :: aux,aux2
+
+    aux=0.0_k_pr
+    do n=1,atomic%species%norbs(atomic%atoms%sp(atp))
+      i=atomic%atoms%orbs(atp,n)
+      do m=1,atomic%species%norbs(atomic%atoms%sp(at))
+         j=atomic%atoms%orbs(at,m)
+         aux2=real(sol%h%a(j,i))*aimag(sol%rho%a(i,j))
+         aux=aux+aux2
+         if (lOnOrbitals) then
+           sol%CurrentMatrix(i,j)=aux2
+         endif
+      enddo
+    enddo
+    ComputeBondCurrentsOnAtom = 2.0_k_pr*aux*k_e/k_hbar
+  end function ComputeBondCurrentsOnAtom
+
+
+  subroutine ComputeBondCurrents(gen,atomic,sol,io,lOnOrbitals)
+    character(len=*), parameter :: myname = 'ComputeBondCurrents'
+    type(generalType), intent(in) :: gen
+    type(atomicxType), intent(inout) :: atomic
+    type(solutionType), intent(inout) :: sol
+    type(ioType), intent(inout) :: io
+    logical, intent(in) :: lOnOrbitals
+    integer :: i,j,at,atp
+    real(k_pr) :: inpn,aux,aux2
+
+    aux2=0.0_k_pr
+    do i=1,atomic%atoms%ncurrent
+      atp=atomic%atoms%current(i)
+      aux=0.0_k_pr
+      do j=1,atomic%atoms%neighbours(atp)%n
+        at=atomic%atoms%neighbours(atp)%a(j)
+        inpn = ComputeBondCurrentsOnAtom(atp,at,gen,atomic,sol,io,lOnOrbitals)
+        sol%CurrentMatrix2(atp,at)=inpn
+        aux=aux+inpn
+      enddo
+      sol%CurrentMatrix2(atp,atp)=aux
+    enddo
+  end subroutine ComputeBondCurrents
+
+
+  real(k_pr) function ComputeBondCurrentsOnOrbital(atp,at,gen,atomic,sol,io,l,m)
+    character(len=*), parameter :: myname = 'ComputeBondCurrentsOnOrbital'
+    type(generalType), intent(in) :: gen
+    type(atomicxType), intent(inout) :: atomic
+    type(solutionType), intent(inout) :: sol
+    type(ioType), intent(inout) :: io
+    integer, intent(inout) :: at,atp
+    integer, intent(inout) :: l,m
+
+    integer :: i,j
+    real(k_pr) :: aux,aux2
+
+    if (getLMax(atomic%atoms%sp(atp),atomic%speciesBasis,atomic%species) < l) then
+      ComputeBondCurrentsOnOrbital = 0.0_k_pr
+      return
+    endif
+    if (getLMax(atomic%atoms%sp(at),atomic%speciesBasis,atomic%species) < l) then
+      ComputeBondCurrentsOnOrbital = 0.0_k_pr
+      return
+    endif
+    i=getOrbitalIndex(atp,atomic,l,m)
+    j=getOrbitalIndex(at,atomic,l,m)
+    if (gen%spin) then
+      aux=sol%CurrentMatrix(i,j)+sol%CurrentMatrix(i+atomic%basis%norbitals/2,j+atomic%basis%norbitals/2)
+    else
+      aux=sol%CurrentMatrix(i,j)
+    endif
+    ComputeBondCurrentsOnOrbital = 2.0_k_pr*aux*k_e/k_hbar
+  end function ComputeBondCurrentsOnOrbital
+
+  subroutine ComputeBondCurrentsOnOrbitals(gen,atomic,sol,io,l,m)
+    character(len=*), parameter :: myname = 'ComputeBondCurrentsOnOrbitals'
+    type(generalType), intent(in) :: gen
+    type(atomicxType), intent(inout) :: atomic
+    type(solutionType), intent(inout) :: sol
+    type(ioType), intent(inout) :: io
+    integer, intent(inout) :: l,m
+    integer :: i,j,at,atp
+    real(k_pr) :: inpn,aux,aux2
+
+    aux2=0.0_k_pr
+    do i=1,atomic%atoms%ncurrent
+      atp=atomic%atoms%current(i)
+      aux=0.0_k_pr
+      do j=1,atomic%atoms%neighbours(atp)%n
+        at=atomic%atoms%neighbours(atp)%a(j)
+        inpn = ComputeBondCurrentsOnOrbital(atp,at,gen,atomic,sol,io,l,m)
+        sol%CurrentMatrix2(atp,at)=inpn
+        aux=aux+inpn
+      enddo
+      sol%CurrentMatrix2(atp,atp)=aux
+    enddo
+  end subroutine ComputeBondCurrentsOnOrbitals
 end module m_TightBinding

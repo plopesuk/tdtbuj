@@ -87,6 +87,7 @@ module m_Constants
   real(k_pr), parameter, public ::   k_bohrToAng = 0.5291772083_k_pr !< bohr to  Angstroms conversion factor
   real(k_pr), parameter, public ::    k_efsToMicroamps = 160.2176462_k_pr
   real(k_pr),  public :: k_epsilon0 !< \f$ \epsilon_0 \f$ vacuum permiability
+  real(k_pr),  public :: k_e !< elctronic charge
   real(k_pr),  public :: k_e2 !< square of the elctronic charge
   real(k_pr),  public :: k_me !< mass of the electron
   real(k_pr), public :: k_charge2SI !< charge to SI conversion factor
@@ -127,7 +128,8 @@ contains
         k_kb = 8.61734215D-5 ! in eV / K
         k_hbar = 0.65821188926_k_pr ! in eV fs
         k_epsilon0 = 5.526349954D-3
-        k_e2=1.0_k_pr
+        k_e=1.0_k_pr
+        k_e2=k_e*k_e
         k_me=1.0_k_pr !
         k_charge2SI= 1.60217653D-19 !Cm
         k_length2SI=1.0D-10 !m
@@ -137,7 +139,8 @@ contains
         k_kb = 3.1668154D-6 !Eh/K
         k_hbar = 1.0_k_pr
         k_epsilon0 = 1/(4.0_k_pr*k_pi)
-        k_e2=1.0_k_pr
+        k_e=1.0_k_pr
+        k_e2=k_e*k_e
         k_me=1.0_k_pr
         k_charge2SI= 1.60217653D-19 !Cm
         k_length2SI=0.5291772108D-10 !m
@@ -147,7 +150,8 @@ contains
         k_kb= 1.3806505D-23 !J/K
         k_hbar = 1.05457168D-34 !J s
         k_epsilon0 = 8.854187817D-12 !F/m
-        k_e2=1.60217653D-19**2 !C^2
+        k_e=1.60217653D-19 ! C
+        k_e2=k_e*k_e
         k_me= 9.1093826D-31! kg
         k_charge2SI= 1.0_k_pr !Cm
         k_length2SI=1.0_k_pr !m
@@ -157,6 +161,7 @@ contains
         k_kb = 6.3361921D-6 !Rydberg/K
         k_hbar = 1.0_k_pr
         k_epsilon0 = 1.0_k_pr/(4.0_k_pr*k_pi)
+        k_e=sqrt(2.0_k_pr)
         k_e2=2.0_k_pr
         k_me=0.5_k_pr
         k_charge2SI= 1.60217653D-19/sqrt(2.0_k_pr)
