@@ -416,13 +416,6 @@ subroutine ReadGeneral(ioLoc,genLoc)
       genLoc%netcharge=GetReal(ioLoc,"NetCharge",0.0_k_pr)
       write( ioLoc%uout,'(a,ES12.4)')"Net charge(NetCharge): "&
       ,genLoc%netcharge
-    genLoc%currentL=GetInteger(ioLoc,"CurrentOnL",-1)
-    write( ioLoc%uout,'(a,i0)')"Compute bond current on orbital with l (CurrentOnL): "&
-      ,genLoc%currentL
-    genLoc%currentM=GetInteger(ioLoc,"CurrentOnM",-1)
-    write( ioLoc%uout,'(a,i0)')"Compute bond current on orbital with m (CurrentOnM): "&
-      ,genLoc%currentM
-
     saux=GetString(ioLoc,"SmearingMethod","FD")
     write( ioLoc%uout,'(a,a)')"Smearing Methos used to find Fermi level (SmearingMethod): "&
       ,trim(saux)
@@ -1435,6 +1428,7 @@ end subroutine CloseIoGeneral
       enddo
     endif
     atomix%atoms%ncurrent=GetInteger(io,"NCurrent",0)
+
     if (atomix%atoms%ncurrent/=0) then
       allocate(atomix%atoms%current(1:atomix%atoms%ncurrent))
       if (atomix%atoms%ncurrent  == atomix%atoms%natoms) then
@@ -1457,6 +1451,19 @@ end subroutine CloseIoGeneral
         endif
       endif
     endif
+    atomix%atoms%ncurrentOnBonds=GetInteger(io,"NCurrentOnBonds",0)
+    if (atomix%atoms%ncurrent>0) then
+    allocate(atomix%atoms%currentonBonds(1:2*atomix%atoms%ncurrentOnBonds))
+    atomix%atoms%currentOnBonds=0
+        if (GetBlock(io,'CurrentOnBonds',nt)) then
+          read(nt,*,iostat=errno)(atomix%atoms%currentOnBonds(2*i-1),atomix%atoms%currentOnBonds(2*i),i=1,atomix%atoms%ncurrentOnBonds)
+          if (errno/=0) then
+            call error("Unexpected end of CurrentOnBonds block",sMyName,.true.,io)
+          endif
+        else
+          call error("No atoms for CurrentAtoms found",sMyName,.true.,io)
+        endif
+      endif
   end subroutine ReadAtoms
 
   !> \page atoms Atoms data
@@ -2376,6 +2383,7 @@ end subroutine ReadBasis
     deallocate(atomic%basis%orbitals)
     deallocate(atomic%atoms%orbs)
     deallocate(atomic%atoms%MagMom)
+    deallocate(atomic%atoms%currentonBonds)
     do i=1,atomic%atoms%natoms
       if (atomic%atoms%neighbours(i)%created) then
         deallocate(atomic%atoms%neighbours(i)%a)

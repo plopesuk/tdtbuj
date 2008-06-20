@@ -24,6 +24,7 @@ module m_LinearAlgebra
   public :: SpmPut
   public :: DestroyMatrix
   public :: ZeroMatrix
+  public :: ZeroDiagonalMatrix
   public :: CopyMatrix
 
   public :: MatrixCeaApbB
@@ -190,6 +191,30 @@ contains
 #endif
 
   end subroutine ZeroMatrix
+
+
+  subroutine ZeroDiagonalMatrix(a,io)
+    character(len=*), parameter :: myname = 'ZeroDiagonalMatrix'
+    type(matrixType),intent(inout) :: a
+    type(ioType), intent(in) :: io
+   integer :: i
+
+    if (.not.a%created) then
+      call error("Cannot zero the diagonal of an unexistant matrix",myname,.true.,io)
+    endif
+#if OPENMP
+! !!!   !$OMP PARALLEL DO DEFAULT(shared) PRIVATE(i) SCHEDULE(static)
+    do i=1,a%dim
+        a%a(i,i) = cmplx(0.0_k_pr,0.0_k_pr,k_pr)
+    enddo
+!  !!!   !$OMP END PARALLEL DO
+#else
+    do i=1,a%dim
+        a%a(i,i) = cmplx(0.0_k_pr,0.0_k_pr,k_pr)
+    enddo
+#endif
+
+  end subroutine ZeroDiagonalMatrix
 
   !-------------------------------------------------!
   ! Diagonalize a (hermitian) matrix !

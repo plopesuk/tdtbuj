@@ -17,15 +17,15 @@ contains
 
     write(unitout,'(a1,a16)',advance="no")"#","Time "
     do i=1,cxz%natoms
-      write(unitout,'(a4,i8,a1,a2,a1)',advance="no")"Curr",i+2,"-",trim(cxz%frames(1)%element(i)),";"
+      write(unitout,'(a4,i8,a1,a2,a1)',advance="no")"Curr",i+1,"-",trim(cxz%frames(1)%element(i)),";"
     enddo
     do i=1,cxz%natoms
-      write(unitout,'(a4,i8,a1,a2,a1)',advance="no")"GCur",i+2+cxz%natoms,"-",trim(cxz%frames(1)%element(i)),";"
+      write(unitout,'(a4,i8,a1,a2,a1)',advance="no")"GCur",i+1+cxz%natoms,"-",trim(cxz%frames(1)%element(i)),";"
     enddo
     write(unitout,*)
-    write(unitout,*)"#to get the atom number for Current component substract 2 from last number after Curr"
-    write(unitout,'(a,i0,a)')"#to get the atom number for Gamma Current component substract ",2+cxz%natoms," from last number after GCur"
-    write(fmtContainer,'("(f16.8,1x,f16.8,",i0,"g,",i0,"g)")') cxz%natoms,cxz%natoms
+    write(unitout,*)"#to get the atom number for Current component substract 1 from last number after Curr"
+    write(unitout,'(a,i0,a)')"#to get the atom number for Gamma Current component substract ",1+cxz%natoms," from last number after GCur"
+    write(fmtContainer,'("(f16.8,1x,",i0,"g,",i0,"g)")') cxz%natoms,cxz%natoms
     do i=1,cxz%nframes
       write(unitout,trim(fmtContainer))cxz%frames(i)%timestamp,cxz%frames(i)%curr1,cxz%frames(i)%curr2
     enddo

@@ -491,13 +491,13 @@ module m_DriverRoutines
     character(len=k_ml) :: saux
     integer :: l,m
     logical :: OrbitalCurrent
+    integer,allocatable :: currUnit(:)
 
-    l=gen%currentL
-    m=gen%currentM
-    if (l<0) then
+    if (atomic%atoms%ncurrentOnBonds<=0) then
       OrbitalCurrent=.false.
     else
       OrbitalCurrent=.true.
+      allocate (currUnit(1:atomic%atoms%ncurrentOnBOnds))
     endif
     eneunit=GetUnit()
     xunit=GetUnit()
@@ -506,7 +506,12 @@ module m_DriverRoutines
     donUnit=GetUnit()
     spacUnit=GetUnit()
     bchUnit=GetUnit()
-    ochUnit=GetUnit()
+    if (OrbitalCurrent) then
+      do i=1,atomic%atoms%ncurrentOnBOnds
+        currUnit(i)=GetUnit()
+      enddo
+    endif
+
     write(io%uout,'(/a/)')&
          '--Velocity Verlet Ehrenfest Dynamics Damped----------------------------'
     gamma=-gen%Gamma
@@ -518,8 +523,10 @@ module m_DriverRoutines
       open(unit=spacUnit,file="espacer.dat",status="replace",action="write")
       open(unit=bchUnit,file="bondCharges.cxz",status="replace",action="write")
       if (OrbitalCurrent) then
-        write(saux,'(a,2i0,a)')"bondChargesOrbital",l,m,".cxz"
-        open(unit=ochUnit,file=trim(saux),status="replace",action="write")
+        do i=1,atomic%atoms%ncurrentOnBonds
+          write(saux,'(a,2i0,a)')"bondChargesOrbital",atomic%atoms%currentOnBonds(2*i-1),atomic%atoms%currentOnBonds(2*i),".cxz"
+          open(unit=currUnit(i),file=trim(saux),status="replace",action="write")
+        enddo
       endif
       open(unit=runit,file="eh_dyn.rho",form="UNFORMATTED",status="replace",action="write")
     endif
@@ -527,6 +534,8 @@ module m_DriverRoutines
     ! prepare the electronic subsystem,
     ! which is an eigenstate of the hamitonian
     ! with the bias
+    i=io%Verbosity
+    io%Verbosity=k_highVerbos+1
     gen%lIsExcited=.false.
     call SinglePoint(io,gen,atomic,tb,sol)
     atomic%atoms%chrg0=atomic%atoms%chrg
@@ -555,22 +564,10 @@ module m_DriverRoutines
 !       call GetRho(sol%rho)
 !       gen%lIsExcited=.false.
    end select
+   io%Verbosity=i
    write(io%uout,'(/a/)')&
          '--Setup ended----------------------------'
-    if (gen%writeAnimation) then
-      call CalcExcessCharges(gen,atomic,sol)
-      call CalcDipoles(gen,atomic,sol)
-!       write(accUnit,*) "0.0", ChargeOnGroup(atomic%atoms%acceptor,atomic%atoms)
-!       write(donUnit,*) "0.0", ChargeOnGroup(atomic%atoms%donor,atomic%atoms)
-!       write(spacUnit,*) "0.0", ChargeOnGroup(atomic%atoms%spacer,atomic%atoms)
-      call PrintXYZ(io%uani,atomic,.false.,"T = 0.0 fs")
-      call ComputeBondCurrents(gen,atomic,sol,io,OrbitalCurrent)
-      call PrintBondCurrents(bchUnit,atomic,sol,"T= 0.0 fs",1.0_k_pr)
-      if (OrbitalCurrent) then
-        call ComputeBondCurrentsOnOrbitals(gen,atomic,sol,io,l,m)
-        call PrintBondCurrents(ochUnit,atomic,sol,"T= 0.0 fs",1.0_k_pr)
-      endif
-    endif
+
 !          if (.not.gen%comp_elec) then
 !             if (gen%electrostatics==tbu_multi) call init_qvs(density)
 !          endif
@@ -582,7 +579,9 @@ module m_DriverRoutines
     endif
     call CopyMatrix(sol%hin,sol%h,io)
     call BuildDensity(atomic,sol)
-    call AddH2(gen,atomic,sol,tb,io)
+    if (gen%scf) then
+      call AddH2(gen,atomic,sol,tb,io)
+    endif
 
     ihbar = cmplx(0.0_k_pr,-1.0_k_pr/k_hbar,k_pr)
     ! go back in time one step for the DM integration
@@ -590,6 +589,8 @@ module m_DriverRoutines
     st = cmplx(-dt,0.0_k_pr,k_pr)
     call ScalarTMatrix(ihbar*st,sol%rhodot,io)
     call ScalarTMatrix(gamma*st,sol%deltaRho,io)
+!! get rid of the diagonal terms of rho
+    call ZeroDiagonalMatrix(sol%deltaRho,io)
     call MatrixCeaApbB(sol%rhoold,sol%rho,sol%rhodot,k_cone,k_cone,io)
     call MatrixCeaApbB(sol%rhoold,sol%rhoold,sol%deltaRho,k_cone,k_cone,io)
       ! calculate the forces from the prepared DM and the present H
@@ -604,16 +605,57 @@ module m_DriverRoutines
     ! we have the forces, velocities, positions
     ! and rho at time t
     st = cmplx(2.0_k_pr*dt,0.0_k_pr,k_pr)
-    write(eneunit,'(a1,a24,6a25)')"#","Time",  "Repuilsive Energy ",  "Electronic Energy",  "SCF Energy",&
+    gen%CurrSimTime=0.0_k_pr
+    if (gen%writeAnimation) then
+
+      if (gen%spin) then
+        trrho   = MatrixTrace(sol%rho,io)
+      else
+        trrho   = 2.0_k_pr * MatrixTrace(sol%rho,io)
+      endif
+      eenergy = ElectronicEnergy(gen,sol,io)
+      renergy = RepulsiveEnergy(gen,atomic%atoms,tb)
+      if (gen%scf) then
+        scfE = ScfEnergy(gen,atomic,sol,io)
+      else
+        scfE = 0.0_k_pr
+      endif
+      penergy = eenergy + renergy + scfE
+      kenergy = KineticEnergy(atomic)
+      write(eneunit,'(a1,a24,6a25)')"#","Time",  "Repuilsive Energy ",  "Electronic Energy",  "SCF Energy",&
       "Kinetic Energy",  "Total Energy",  "No of Electrons"
+      write(eneunit,'(7f25.18)')gen%CurrSimTime,renergy,eenergy,scfE,kenergy,penergy+kenergy,real(trrho)
+      call CalcExcessCharges(gen,atomic,sol)
+      call CalcDipoles(gen,atomic,sol)
+!       write(accUnit,*) "0.0", ChargeOnGroup(atomic%atoms%acceptor,atomic%atoms)
+!       write(donUnit,*) "0.0", ChargeOnGroup(atomic%atoms%donor,atomic%atoms)
+!       write(spacUnit,*) "0.0", ChargeOnGroup(atomic%atoms%spacer,atomic%atoms)
+      call PrintXYZ(io%uani,atomic,.false.,"T = 0.0 fs")
+      if (gen%scf) then
+        call AddH2(gen,atomic,sol,tb,io)
+      endif
+      call ComputeBondCurrents(gen,atomic,sol,io,OrbitalCurrent)
+      call PrintBondCurrents(bchUnit,atomic,sol,"T= 0.0 fs",1.0_k_pr)
+      if (OrbitalCurrent) then
+        do i=1,atomic%atoms%ncurrentOnBOnds
+          call ComputeBondCurrentsOnOrbitals(gen,atomic,sol,io,atomic%atoms%currentOnBonds(2*i-1),atomic%atoms%currentOnBonds(2*i))
+          call PrintBondCurrents(currUnit(i),atomic,sol,"T= 0.0 fs",1.0_k_pr)
+        enddo
+      endif
+    endif
+
+   call CopyMatrix(sol%h,sol%hin,io)
+
     do istep=1,gen%nsteps
    !set global time variable
-      gen%CurrSimTime = istep*dt*k_time2SI
+      gen%CurrSimTime = (istep+1)*dt*k_time2SI
       call BuildDensity(atomic,sol)
 !             if (.not.gen%comp_elec) then
 !                if (gen%electrostatics==tbu_multi) call init_qvs(density)
 !             endif
-      call AddH2(gen,atomic,sol,tb,io)
+      if (gen%scf) then
+        call AddH2(gen,atomic,sol,tb,io)
+      endif
       call ZeroMatrix(sol%rhodot,io)
       call Commutator(sol%rhodot,sol%h,sol%rho,io)
       call MatrixCeaApbB(sol%deltaRho,sol%rho,sol%rho0,k_cone,-k_cone,io)
@@ -628,6 +670,7 @@ module m_DriverRoutines
         call MatrixCeaApbB(sol%rhonew,sol%rhoold,sol%rhodot,k_cone,k_cone,io)
         ts=2.0_k_pr*dt
       end if
+      call ZeroDiagonalMatrix(sol%deltaRho,io)
       call MatrixCeaApbB(sol%rhonew,sol%rhonew,sol%deltaRho,k_cone,k_cone,io)
       ! at this point rho contains the rho at time=t
        ! propagate the positions
@@ -656,7 +699,7 @@ module m_DriverRoutines
       call CopyMatrix(sol%rhoold,sol%rho,io)
       call CopyMatrix(sol%rho,sol%rhonew,io)
            ! calculate forces at t+dt
-      if (atomic%atoms%nmoving == 0) then
+      if ((atomic%atoms%nmoving == 0).or.(gen%scf)) then
         call CopyMatrix(sol%h,sol%hin,io)
       else
         call BuildHamiltonian(io,gen,atomic,tb,sol)
@@ -675,7 +718,9 @@ module m_DriverRoutines
       call ZeroForces(atomic)
       call RepulsiveForces(gen,atomic%atoms,tb)
       call electronicForces(atomic,gen,tb,sol,io)
-      call ScfForces(gen,atomic,sol,io)
+      if (gen%scf) then
+        call ScfForces(gen,atomic,sol,io)
+      endif
        ! calculate velocities at t+dt
       do k=1,atomic%atoms%nmoving
         i=atomic%atoms%moving(k)
@@ -719,12 +764,25 @@ module m_DriverRoutines
         if (atomic%atoms%nmoving /=0) then
           call UpdateNeighboursList(atomic,sol,tb,io)
         endif
-        call ComputeBondCurrents(gen,atomic,sol,io,OrbitalCurrent)
-        call PrintBondCurrents(bchUnit,atomic,sol,trim(saux),ts)
-        if (OrbitalCurrent) then
-          call ComputeBondCurrentsOnOrbitals(gen,atomic,sol,io,l,m)
-          call PrintBondCurrents(ochUnit,atomic,sol,trim(saux),ts)
+        if (gen%scf) then
+          call AddH2(gen,atomic,sol,tb,io)
         endif
+        call Commutator(sol%rhodot,sol%h,sol%rho,io)
+        call ScalarTMatrix(ihbar,sol%rhodot,io)
+
+        call ComputeBondCurrents(gen,atomic,sol,io,OrbitalCurrent)
+        call PrintBondCurrents(bchUnit,atomic,sol,trim(saux),1.0_k_pr)
+        if (OrbitalCurrent) then
+          do i=1,atomic%atoms%ncurrentOnBOnds
+            call ComputeBondCurrentsOnOrbitals(gen,atomic,sol,io,atomic%atoms%currentOnBonds(2*i-1),atomic%atoms%currentOnBonds(2*i))
+            call PrintBondCurrents(currUnit(i),atomic,sol,trim(saux),1.0_k_pr)
+          enddo
+        endif
+      endif
+      if ((atomic%atoms%nmoving == 0).or.(gen%scf)) then
+        call CopyMatrix(sol%h,sol%hin,io)
+      else
+        call BuildHamiltonian(io,gen,atomic,tb,sol)
       endif
         write(eneunit,'(7f25.18)')gen%CurrSimTime,renergy,eenergy,scfE,kenergy,penergy+kenergy,real(trrho)
       endif
@@ -737,7 +795,10 @@ module m_DriverRoutines
       close(spacUnit)
       close(bchUnit)
       if (OrbitalCurrent) then
-        close(ochUnit)
+        do i=1,atomic%atoms%ncurrentOnBOnds
+          close(currUnit(i))
+        enddo
+        deallocate(currUnit)
       endif
     endif
     close(eneunit)
