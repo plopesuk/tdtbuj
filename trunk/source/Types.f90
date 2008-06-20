@@ -134,8 +134,6 @@ module m_Types
     integer :: HessianM
     integer :: geomAlg !< the geometry optimisation algorithm
     integer :: wdensity !< what kind of density shloud be used for Eherenfest Damped
-    integer :: CurrentL=-1 !< the quantum l number used to compute the current on an orbital
-    integer :: CurrentM !< the quantum m number used to compute the current on an orbital
   end type generalType
 
 !> data type that keeps the neighbours list
@@ -180,6 +178,8 @@ end type neighbourType
     real(k_pr) :: MagneticMoment !< total magnetic momment
     integer :: ncurrent !< no of atoms on which to compute the current
     integer, allocatable :: current(:) !< the atoms on which to compute the current
+    integer :: nCurrentOnBonds=0 !< number of the currents on bonds that will be computed
+    integer, allocatable :: currentOnBonds(:) !< keeps the orbitals on which we compute the current
   end type atomicType
 
 !> \brief species type

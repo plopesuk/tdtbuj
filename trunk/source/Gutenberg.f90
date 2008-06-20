@@ -1078,8 +1078,10 @@ contains
     character(len=*), intent(in),optional :: label
     type(solutionType), intent(inout) :: sol
     integer, intent(in) :: unit
+    real(k_pr),intent(in) :: dt
     integer :: i,k,at
-    real(k_pr) :: dt
+    real(k_pr) :: comm, delta,jc
+
 
     write(unit,'(i0)')atomic%atoms%natoms
     if (present(label)) then
@@ -1089,8 +1091,11 @@ contains
     endif
 
     do i=1,atomic%atoms%natoms
-      write(unit,'(a2,1x,3f16.8,5g)')  &
-          symbol(atomic%species%z(atomic%atoms%sp(i))),atomic%atoms%x(i),atomic%atoms%y(i),atomic%atoms%z(i),sol%CurrentMatrix2(i,i)/k_e,PartialTrace(atomic%atoms%id(i),atomic,sol%deltaRho,.true.)/dt
+      comm=PartialTrace(atomic%atoms%id(i),atomic,sol%rhoDot,.true.)/dt
+      delta=PartialTrace(atomic%atoms%id(i),atomic,sol%deltaRho,.true.)/dt
+      jc=sol%CurrentMatrix2(i,i)/k_e
+      write(unit,'(a2,1x,3f16.8,6g)')  &
+          symbol(atomic%species%z(atomic%atoms%sp(i))),atomic%atoms%x(i),atomic%atoms%y(i),atomic%atoms%z(i),jc,-delta,comm,delta+comm,-jc+delta,comm+jc
     enddo
     write(unit,'(i0)')atomic%atoms%ncurrent
     do i=1,atomic%atoms%ncurrent
