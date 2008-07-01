@@ -50,7 +50,7 @@ contains
     type(atomicxType), intent(inout) :: atomic
     type(modelType), intent(inout) :: tbMod
     type(solutionType), intent(inout) :: sol
-    integer :: l,n,m,z
+    integer :: l,n,m,z,info,i
     real(k_pr) :: cr
 
     call cpu_time(cr)
@@ -193,6 +193,34 @@ contains
        call ZeroMatrix(sol%rho0,ioLoc)
       endif
     endif
+
+    if((.not.genLoc%compElec).and.(genLoc%electrostatics==k_electrostaticsMultipoles)) then
+      if (.not.allocated(sol%delq)) then
+      ! this is the first time
+        allocate(sol%delq(1:atomic%atoms%natoms),sol%vs(1:atomic%atoms%natoms),stat=info)
+        if (info/=0) then
+          call error("not enough memory to precompute electrostatic, please change to ComputeMultipolesOnFly T",smyname,.true.,ioLoc)
+        endif
+        do i=1,atomic%atoms%natoms
+          z=GetLmax(atomic%atoms%sp(i),atomic%speciesBasis,atomic%species)
+          l=2*z
+          sol%delq(i)%dim=l
+          allocate(sol%delq(i)%a(1:l*l+2*l+1),stat=info)
+          if (info/=0) then
+            call error("not enough memory to precompute electrostatic, please change to ComputeMultipolesOnFly T",smyname,.true.,ioLoc)
+          endif
+          sol%delq(i)%a=0.0_k_pr
+          l=2*z+1
+          sol%delq(i)%dim=l
+          allocate(sol%vs(i)%a(1:l*l+2*l+1),stat=info)
+          if (info/=0) then
+              call error("not enough memory to precompute electrostatic, please change to ComputeMultipolesOnFly T",smyname,.true.,ioLoc)
+          endif
+          sol%vs(i)%a=0.0_k_pr
+        enddo
+      endif
+    endif
+
   end subroutine SetSolutionSpace
 
 
@@ -252,9 +280,6 @@ contains
 
     call PrintTail(atomic,tbMod,ioLoc)
 end subroutine setTails
-
-
-
 
 
 !==Gaunt coefficients====================================================
@@ -321,24 +346,6 @@ end subroutine setTails
     cgc=dl(a,b,c,sol)*gamma*sum
   end function cgc
 
-  real(k_pr) function dl(l1,l2,l3,sol)
-    integer, intent(in):: l1,l2,l3
-    type(solutionType), intent(in) :: sol
-    integer :: l
-    l=l1+l2+l3
-    dl=sqrt(sol%fact(l-2*l1)*sol%fact(l-2*l2)*sol%fact(l-2*l3)/sol%fact(l+1))
-  end function dl
-
-  integer function idx(l,m)
-    integer :: l,m
-    idx=l*l+l+1+m
-  end function idx
-
-  subroutine  ridx(k,l,m)
-    integer :: l,m, k
-    l=int(sqrt(real(k-1)))
-    m=k-1-l*l-l
-  end subroutine ridx
 
   complex(k_pr) function ulmmiu(m,miu)
     integer :: m,miu,z

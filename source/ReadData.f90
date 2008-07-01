@@ -263,6 +263,7 @@ subroutine ReadGeneral(ioLoc,genLoc)
   type(generalType), intent(inout) :: genLoc
 
   character(len=k_mw) :: saux
+  integer :: nt,errno
 
     if (.not. genLoc%firstTime) genLoc%firstTime=.not. genLoc%firstTime
 
@@ -332,7 +333,7 @@ subroutine ReadGeneral(ioLoc,genLoc)
     endif
 
 !comm_gen PrecomputeMultipoles & logical & .true. & on/off precompute multipoles\\
-    genLoc%compElec=GetLogical(ioLoc,"PrecomputeMultipoles",.true.)
+    genLoc%compElec=.not.GetLogical(ioLoc,"PrecomputeMultipoles",.true.)
     write( ioLoc%uout,'(a,l1)')"precompute multipoles(PrecomputeMultipoles): "&
       ,genLoc%compElec
 
@@ -722,6 +723,25 @@ subroutine ReadGeneral(ioLoc,genLoc)
             ,genLoc%nsteps
     end select
   endif
+
+  genLoc%hasElectricField=GetLogical(ioLoc,"hasElectricField",.false.)
+  write( ioLoc%uout,'(a,l1)')"Do we apply an external electric field(hasElectricField): "&
+    ,genLoc%hasElectricField
+
+  if (genLoc%hasElectricField) then
+    if (GetBlock(ioLoc,"ElectricField",nt)) then
+      read(nt,fmt=*,iostat=errno) genLoc%E(1),genLoc%E(2),genLoc%E(3)
+      if (errno/=0) then
+        call error("block ElectricField is not in the right format",name,.true.,ioLoc)
+      endif
+    else
+      call error("block ElectricField is missing (you try to apply an external electric field but you do not specify it)",name,.true.,ioLoc)
+    endif
+    write(ioLoc%uout,'(a,3f16.8)')"External Electric Field(block ElectricField): ",genLoc%E
+  else
+    genLoc%E=0.0_k_pr
+  endif
+
 
 end subroutine ReadGeneral
 
@@ -2273,7 +2293,11 @@ end subroutine ReadBasis
         endif
         tmpid(i)=sp
         tbMod%delta(i)%sp=sp
-        j=maxval(atomix%speciesBasis(tbMod%delta(i)%sp,1:atomix%species%norbs(tbMod%delta(i)%sp)/2)%l)
+        if (gen%spin) then
+          j=maxval(atomix%speciesBasis(tbMod%delta(i)%sp,1:atomix%species%norbs(tbMod%delta(i)%sp)/2)%l)
+        else
+          j=maxval(atomix%speciesBasis(tbMod%delta(i)%sp,1:atomix%species%norbs(tbMod%delta(i)%sp))%l)
+        endif
         tbMod%delta(i)%l=j
         allocate(tbMod%delta(i)%d(0:2*j,0:j,0:j))
         tbMod%delta(i)%d=0.0_k_pr
@@ -2383,7 +2407,7 @@ end subroutine ReadBasis
     deallocate(atomic%basis%orbitals)
     deallocate(atomic%atoms%orbs)
     deallocate(atomic%atoms%MagMom)
-    deallocate(atomic%atoms%currentonBonds)
+    if (allocated(atomic%atoms%currentonBonds)) deallocate(atomic%atoms%currentonBonds)
     do i=1,atomic%atoms%natoms
       if (atomic%atoms%neighbours(i)%created) then
         deallocate(atomic%atoms%neighbours(i)%a)
@@ -2456,6 +2480,12 @@ end subroutine ReadBasis
       call DestroyMatrix(sol%rhoold,io)
       call DestroyMatrix(sol%rhonew,io)
       call DestroyMatrix(sol%rho0,io)
+    endif
+    if((.not.general%compElec).and.(general%electrostatics==k_electrostaticsMultipoles)) then
+      do i=1,atomic%atoms%natoms
+        deallocate(sol%delq(i)%a)
+        deallocate(sol%vs(i)%a)
+      enddo
     endif
     call MKL_FreeBuffers()
   end subroutine CleanMemory

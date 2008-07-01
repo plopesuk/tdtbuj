@@ -35,6 +35,10 @@ module m_Gutenberg
   public :: PrintOccupationNumbers
   public :: PrintNeighbours
   public :: PrintBondCurrents
+  public :: PrintQlmR
+  public :: printVlmR
+  public :: printBllpR
+  public :: PrintIrregularRealSolidH
 contains
 
 !> \brief Prints the tail parameters
@@ -932,7 +936,7 @@ contains
     if (abs(ld) > epsilon(ax)) then
       write(io%uout,'(a,f9.6,1x,f9.6,1x,f9.6,a)')"dipole moment orientation (",ax/ld,ay/ld,az/ld, ") unit vector"
     endif
-    write(io%uout,'(a)')" ====================================================================="
+    write(io%uout,'(a)')" __________________________________________________________________"
   !! dipoles in local units
     write(io%uout,'(a)')"  Atom |Specie|  Dipole x    |  Dipole y   |    Dipole z     | Units |"
     do at=1, atomic%atoms%natoms
@@ -961,6 +965,7 @@ contains
       write(io%uout,'(a,f9.6,1x,f9.6,1x,f9.6,a)')"dipole moment orientation(",&
           atomic%atoms%tdipx*u2D/ld,atomic%atoms%tdipy*u2D/ld,atomic%atoms%tdipz*u2D/ld, ") unit vector"
     endif
+    write(io%uout,'(a)')" __________________________________________________________________"
   end subroutine PrintDipoles
 
 
@@ -1142,26 +1147,28 @@ contains
     type(generalType), intent(in) :: gen
     type(ioType), intent(in) :: io
     integer :: i
-    if (gen%spin) then
-      write(io%uout,*) &
-            '--Occupation Numbers-------------------------------------------'
-      do i=1,sol%rho%dim
-        if (sol%buff%pos1(i) <=sol%rho%dim/2) then
-          write(io%uout,'(i0,x,i0,2f16.8,a)') &
-            i,sol%buff%pos1(i),sol%eigenvals(sol%buff%pos1(i)),sol%buff%f(sol%buff%pos1(i))," down"
-        else
-          write(io%uout,'(i0,x,i0,2f16.8,a)') i,sol%buff%pos1(i)-sol%rho%dim/2,&
-                sol%eigenvals(sol%buff%pos1(i)),sol%buff%f(sol%buff%pos1(i))," up"
-        endif
-      enddo
-      write(io%uout,*) &
-          '__________________________________________________________________'
-    else
-      write(io%uout,*)  "Occupation Numbers"
-      do i=1,sol%rho%dim
-          write(io%uout,'(i0,1x,f16.8,1x,f16.8)') &
-            i,sol%eigenvals(i),sol%buff%f(i)
-      enddo
+    if (.not.gen%lIsExcited) then
+      if (gen%spin) then
+        write(io%uout,*) &
+              '--Occupation Numbers-------------------------------------------'
+        do i=1,sol%rho%dim
+          if (sol%buff%pos1(i) <=sol%rho%dim/2) then
+            write(io%uout,'(i0,x,i0,2f16.8,a)') &
+              i,sol%buff%pos1(i),sol%eigenvals(sol%buff%pos1(i)),sol%buff%f(sol%buff%pos1(i))," down"
+          else
+            write(io%uout,'(i0,x,i0,2f16.8,a)') i,sol%buff%pos1(i)-sol%rho%dim/2,&
+                  sol%eigenvals(sol%buff%pos1(i)),sol%buff%f(sol%buff%pos1(i))," up"
+          endif
+        enddo
+        write(io%uout,*) &
+            '__________________________________________________________________'
+      else
+        write(io%uout,*)  "Occupation Numbers"
+        do i=1,sol%rho%dim
+            write(io%uout,'(i0,1x,f16.8,1x,f16.8)') &
+              i,sol%eigenvals(i),sol%buff%f(i)
+        enddo
+      endif
     endif
   end subroutine PrintOccupationNumbers
 
@@ -1190,6 +1197,144 @@ contains
     write(io%uout,'(a)')  "=EndNeigboursList============================================="
 
   end subroutine PrintNeighbours
+
+
+   subroutine PrintQlmR(i,gen,atomic,sol,tb,io,density)
+     character(len=*), parameter :: myname = 'PrintQlmR'
+     real(k_pr):: density(:)
+     integer, intent(in) :: i
+     type(ioType), intent(inout) :: io
+     type(atomicxType), intent(inout) :: atomic
+     type(solutionType),intent(inout) :: sol
+     type(modelType), intent(inout) :: tb
+     type(generalType), intent(inout) :: gen
+     integer :: l,m,k
+
+      write(io%uout,'(a,i0,a,i0,x,a2)')"-----Atom ",i, "  specie ", atomic%atoms%sp(i), trim(symbol(GetZ(atomic,i)))
+      write(io%uout,'(a)')&
+         "---------Qlm ordered by {lm}       "
+      k=GetLmax(atomic%atoms%sp(i),atomic%speciesBasis,atomic%species)
+      do l=0,2*k
+         do m=-l,l
+            write(io%uout,'(1x,f12.8,1x)',advance="no")&
+               qlmR(i,l,m,gen,sol,atomic,tb,density)
+         enddo
+         write(io%uout,'(a)',advance="no")"|"
+      enddo
+      write(io%uout,*)
+      write(io%uout,*)'________________________________________________'
+      write(io%uout,'(a)')&
+         "----------Qlm ordered by {lm} - excess charges"
+      do l=0,2*k
+         do m=-l,l
+            write(io%uout,'(1x,f12.8,1x)',advance="no")&
+               qlmR(i,l,m,gen,sol,atomic,tb,density)*sqrt(4.0_k_pr*k_pi/(2.0_k_pr*l+1.0_k_pr))
+         enddo
+         write(io%uout,'(a)',advance="no")"|"
+      enddo
+      write(io%uout,*)
+      write(io%uout,*)'________________________________________________'
+   end subroutine printQlmR
+
+
+   subroutine printVlmR(i,gen,atomic,sol,tb,io,density)
+     character(len=*), parameter :: myname = 'printVlmR'
+     real(k_pr):: density(:)
+     integer, intent(in) :: i
+     type(ioType), intent(inout) :: io
+     type(atomicxType), intent(inout) :: atomic
+     type(solutionType),intent(inout) :: sol
+     type(modelType), intent(inout) :: tb
+     type(generalType), intent(inout) :: gen
+     integer :: l,m,k
+     write(io%uout,'(a,i0,a,i0,x,a2)')"Atom ",i, "  specie ", atomic%atoms%sp(i), trim(symbol(GetZ(atomic,i)))
+     write(io%uout,'(a)')&
+         "Vlm ordered by {lm}  "
+      k=GetLmax(atomic%atoms%sp(i),atomic%speciesBasis,atomic%species)
+      do l=0,2*k+1
+         do m=-l,l
+            write(io%uout,'(1x,f12.8,1x)',advance="no")&
+               VlmR(i,l,m,gen,sol,atomic,tb,density)
+         enddo
+         write(io%uout,'(a)',advance="no")"|"
+      enddo
+      write(io%uout,*)
+      write(io%uout,*)'________________________________________________'
+   end subroutine printVlmR
+
+  subroutine printBllpR(i,j,atomic,sol,io)
+    character(len=*), parameter :: myname = 'printBllpR'
+    integer, intent(in) :: i,j
+    type(atomicxType), intent(inout) :: atomic
+    type(solutionType),intent(inout) :: sol
+    type(ioType), intent(inout) :: io
+    integer :: l,m,lp,mp,mi,mj
+    real(k_pr) :: x,y,z,r
+    real(k_pr),allocatable :: ir(:)
+    write(io%uout,'(a)',advance="no") "Structure factors B "
+    write(io%uout,'(a,i0,a,i0,x,a2)',advance="no")"Atom ",i, "  specie ", atomic%atoms%sp(i),trim(symbol(GetZ(atomic,i)))
+    write(io%uout,'(a,i0,a,i0,x,a2)')" Atom ",j, "  specie ", atomic%atoms%sp(j),trim(symbol(GetZ(atomic,j)))
+
+    x=atomic%atoms%x(j)-atomic%atoms%x(i)
+    y=atomic%atoms%y(j)-atomic%atoms%y(i)
+    z=atomic%atoms%z(j)-atomic%atoms%z(i)
+
+    write(io%uout,'(a)')"  l m  lp mp    Bllp "
+    mi=GetLmax(atomic%atoms%sp(i),atomic%speciesBasis,atomic%species)
+    mj=GetLmax(atomic%atoms%sp(j),atomic%speciesBasis,atomic%species)
+    allocate(ir(1:(2*mi+2*mj+3)**2))
+    call solidh(x,y,z,-(2*mi+2*mj+2),ir,(2*mi+2*mj+3)**2)
+
+
+    do l=0,2*mi+1
+        do m=-l,l
+          do lp=0,2*mj+1
+              do mp=-lp,lp
+                write(io%uout,'(4i3,f12.8)')&
+                    l,m,lp,mp,blplR(l,m,lp,mp,i,j,ir,sol)
+              enddo
+          enddo
+        enddo
+    enddo
+    write(io%uout,'(a)')"________________________________________________"
+    deallocate(ir)
+  end subroutine printBllpR
+
+  subroutine PrintIrregularRealSolidH(i,j,atomic,sol,io)
+    character(len=*), parameter :: myname = 'PrintIrregularRealSolidH'
+    integer, intent(in) :: i,j
+    type(atomicxType), intent(inout) :: atomic
+    type(solutionType),intent(inout) :: sol
+    type(ioType), intent(inout) :: io
+    integer :: l,m,k
+    real(k_pr) :: x,y,z,r
+    real(k_pr),allocatable :: ir(:)
+
+    x=atomic%atoms%x(j)-atomic%atoms%x(i)
+    y=atomic%atoms%y(j)-atomic%atoms%y(i)
+    z=atomic%atoms%z(j)-atomic%atoms%z(i)
+    r=sqrt(x*x+y*y+z*z)
+    write(io%uout,'(a,3f16.8,a,f16.8,a,i0,a,i0,a)')&
+         " connecting vector: ",x,y,z, " r= ",r," atoms (",i,",",j,")  irregular real solid harmonic"
+    r=0.0_k_pr
+    k=GetLmax(atomic%atoms%sp(i),atomic%speciesBasis,atomic%species)
+
+    allocate(ir(1:(2*k+2)**2))
+    call solidh(x,y,z,-(1+2*k),ir,(2*k+2)**2)
+
+    do l=0,2*k+1
+      r=sqrt((2.0_k_pr*l+1.0_k_pr)/(4.0_k_pr*k_pi))*fact3(l,sol)/&
+            (2.0_k_pr*l+1.0_k_pr)
+      do m=-l,l
+        write(io%uout,'(f16.8)', advance="no")ir(idxy(l,m))*r
+      enddo
+        write(io%uout,'(a)', advance="no") "|"
+    enddo
+    write(io%uout,*)
+    deallocate(ir)
+
+  end subroutine PrintIrregularRealSolidH
+
 
 
 end module m_Gutenberg
