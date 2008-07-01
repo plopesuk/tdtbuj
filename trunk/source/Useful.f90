@@ -47,6 +47,12 @@ module m_Useful
   public :: getUnits
   public :: getOrbitalIndex
   public :: PartialTrace
+  public :: dl
+  public :: idx
+  public :: ridx
+  public :: solidh
+  public :: idxy
+
 
   interface Swap
     module procedure SwapScalar,SwapVector
@@ -534,8 +540,6 @@ contains
     Lmax=lm
   end function Lmax
 
-
-
 !> \brief returns the distance between two atoms
 !> \details also returns the cosine directions l,m,n
 !> \author Alin M Elena
@@ -703,6 +707,24 @@ contains
     endif
   end function aidx
 
+  real(k_pr) function dl(l1,l2,l3,sol)
+    integer, intent(in):: l1,l2,l3
+    type(solutionType), intent(in) :: sol
+    integer :: l
+    l=l1+l2+l3
+    dl=sqrt(sol%fact(l-2*l1)*sol%fact(l-2*l2)*sol%fact(l-2*l3)/sol%fact(l+1))
+  end function dl
+
+  integer function idx(l,m)
+    integer :: l,m
+    idx=l*l+l+1+m
+  end function idx
+
+  subroutine  ridx(k,l,m)
+    integer :: l,m, k
+    l=int(sqrt(real(k-1)))
+    m=k-1-l*l-l
+  end subroutine ridx
 
 
 !> computes a norm to estimate errors
@@ -1026,6 +1048,110 @@ contains
     endif
   end function PartialTrace
 
+
+  subroutine solidh (x,y,z,j,r,nmax)
+    real(k_pr), intent(in) :: x, y, z
+    integer, intent(in) :: j,nmax
+    real(k_pr), intent(out) :: r(1:nmax)
+
+
+!-----------------------------------------------------
+!     Copyright A J Stone University of Cambridge 1983
+!     Modifications and interface to Cadpac, R D Amos
+!     Version for Cadpac5 , R D Amos, June 1990
+!-----------------------------------------------------
+!  Computes regular solid harmonics r**k Ckq(theta,phi) for ranks k up
+!  to J, if J >= 0;
+!  or irregular solid harmonics r**(-k-1) Ckq(theta,phi) for ranks k up
+!  to |J|, if J < 0.
+
+!  Locations in R are used as follows:
+!        1    2    3    4    5    6    7    8    9   10   11  ...
+!  kq = 00   10   11c  11s  20   21c  21s  22c  22s  30   31c ...
+!  R(k,0) is real and is left in location k**2 + 1.
+!  R(k,mc) and r(k,ms) are sqrt(2) times the real and imaginary parts
+!  respectively of the complex solid harmonic R(k,-m)* = (-1)**m R(k,m),
+!  and are left in locations K**2 + 2m and K**2 + 2m + 1 respectively.
+
+    integer :: k, l, lk, ln, lp, m, n
+    real(k_pr) :: a2kp1, rr, rfx, rfy, rfz, s
+    real(k_pr), allocatable :: rt(:)
+
+    allocate(rt(1:4*abs(j)))
+    do k=1,4*abs(j)
+      rt(k)=sqrt(dble(k))
+    enddo
+
+    l=iabs(j)
+    rr=x**2+y**2+z**2
+    if (j >= 0) then
+!  Regular
+      r(1)=1.0_k_pr
+      r(2)=z
+      r(3)=x
+      r(4)=y
+      rfz=z
+      rfx=x
+      rfy=y
+    else
+!  Irregular
+      rr=1.0_k_pr/rr
+      rfx=x*rr
+      rfy=y*rr
+      rfz=z*rr
+      r(1)=dsqrt(rr)
+      r(2)=rfz*r(1)
+      r(3)=rfx*r(1)
+      r(4)=rfy*r(1)
+    endif
+!  Remaining values are found using recursion formulae, relating
+!  the new set N to the current set K and the previous set P.
+    k=1
+    do while (k<l)
+      n=k+1
+      ln=n*n+1
+      lk=k*k+1
+      lp=(k-1)**2+1
+      a2kp1=k+k+1
+!  Obtain R(k+1,0) from R(k,0)*R(1,0) and R(k-1,0)
+      r(ln)=(a2kp1*r(lk)*rfz-k*rr*r(lp))/(k+1)
+      m=1
+      ln=ln+1
+      lk=lk+1
+      lp=lp+1
+      if (k > 1) then
+        do while (m<k)
+!  Obtain R(k+1,m) from R(k,m)*R(1,0) and R(k-1,m)
+          r(ln)=(a2kp1*r(lk)*rfz-rt(k+m)*rt(k-m)*rr*r(lp))/(rt(n+m)*rt(n-m))
+          r(ln+1)=(a2kp1*r(lk+1)*rfz-rt(k+m)*rt(k-m)*rr*r(lp+1))/(rt(n+m)*rt(n-m))
+          m=m+1
+          ln=ln+2
+          lk=lk+2
+          lp=lp+2
+        end do
+      end if
+!  Obtain R(k+1,k) from R(k,k)*R(1,0)
+      r(ln)=rt(n+k)*r(lk)*rfz
+      r(ln+1)=rt(n+k)*r(lk+1)*rfz
+      ln=ln+2
+!  Obtain R(k+1,k+1) from R(k,k)*R(1,1)
+      s=rt(n+k)/rt(n+n)
+      r(ln)=s*(rfx*r(lk)-rfy*r(lk+1))
+      r(ln+1)=s*(rfx*r(lk+1)+rfy*r(lk))
+      k=k+1
+    end do
+    deallocate(rt)
+  end subroutine solidh
+
+
+  integer function idxy(l,m)
+    integer :: l,m
+    if (m>0) then
+      idxy=l*l+m+m
+    else
+      idxy=l*l-m-m+1
+    endif
+  end function idxy
 
 
 end module m_Useful

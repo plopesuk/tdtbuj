@@ -62,7 +62,7 @@ module m_DriverRoutines
     call PrintAtoms(ioLoc,genLoc,atomic)
     call PrintCharges(genLoc,atomic,ioLoc)
     call PrintDipoles(atomic,ioLoc)
-    call PrintMagneticMoment(atomic,sol,.false.,ioLoc)
+    if (genLoc%spin) call PrintMagneticMoment(atomic,sol,.false.,ioLoc)
     write(ioLoc%uout,"(/a,f16.8,/a,f16.8)")&
           "Electronic energy = ",eenergy, &
        "Repulsive energy  = ",renergy
@@ -70,7 +70,7 @@ module m_DriverRoutines
 !  make it to print more information
       aux=ioLoc%verbosity
       ioLoc%verbosity=k_HighVerbos
-      scfE = ScfEnergy(genLoc,atomic,sol,ioLoc)
+      scfE = ScfEnergy(genLoc,atomic,sol,tbMod,ioLoc)
       ioLoc%verbosity=aux
     else
       scfE = 0.0_k_pr
@@ -136,7 +136,7 @@ module m_DriverRoutines
     renergy = RepulsiveEnergy(gen,atomic%atoms,tb)
     minusts = sol%electronicEntropy
     if (gen%scf) then
-      scfE = ScfEnergy(gen,atomic,sol,io)
+      scfE = ScfEnergy(gen,atomic,sol,tb,io)
     else
       scfE = 0.0_k_pr
     endif
@@ -202,7 +202,7 @@ module m_DriverRoutines
       renergy = RepulsiveEnergy(gen,atomic%atoms,tb)
       minusts = sol%electronicEntropy
       if (gen%scf) then
-        scfE = ScfEnergy(gen,atomic,sol,io)
+        scfE = ScfEnergy(gen,atomic,sol,tb,io)
       else
         scfE = 0.0_k_pr
       endif
@@ -300,7 +300,7 @@ module m_DriverRoutines
     if (gen%writeAnimation) then
       call BuildDensity(atomic,sol)
       call CalcExcessCharges(gen,atomic,sol)
-      call CalcDipoles(gen,atomic,sol)
+      call CalcDipoles(gen,atomic,sol,tb)
       call PrintXYZ(io%uani,atomic,.false.,"T=0.0")
       write(accUnit,*) "0.0", ChargeOnGroup(atomic%atoms%acceptor,atomic%atoms)
       write(donUnit,*) "0.0", ChargeOnGroup(atomic%atoms%donor,atomic%atoms)
@@ -315,6 +315,9 @@ module m_DriverRoutines
     endif
     call CopyMatrix(sol%hin,sol%h,io)
     call BuildDensity(atomic,sol)
+    if((.not.gen%compElec).and.(gen%electrostatics==k_electrostaticsMultipoles)) then
+      call initQvs(atomic,gen,sol,tb,sol%density)
+    endif
 !          if (.not.gen%comp_elec) then
 !             if (gen%electrostatics==tbu_multi) call init_qvs(density)
 !          endif
@@ -342,6 +345,9 @@ module m_DriverRoutines
    !set global time variable
       gen%CurrSimTime = istep*dt*k_time2SI
       call BuildDensity(atomic,sol)
+      if((.not.gen%compElec).and.(gen%electrostatics==k_electrostaticsMultipoles)) then
+        call initQvs(atomic,gen,sol,tb,sol%density)
+      endif
 !             if (.not.gen%comp_elec) then
 !                if (gen%electrostatics==tbu_multi) call init_qvs(density)
 !             endif
@@ -387,6 +393,9 @@ module m_DriverRoutines
       endif
 
       call BuildDensity(atomic,sol)
+      if((.not.gen%compElec).and.(gen%electrostatics==k_electrostaticsMultipoles)) then
+        call initQvs(atomic,gen,sol,tb,sol%density)
+      endif
 !             if (.not.gen%comp_elec) then
 !                if (gen%electrostatics==tbu_multi) call init_qvs(density)
 !             endif
@@ -394,7 +403,7 @@ module m_DriverRoutines
       call ZeroForces(atomic)
       call RepulsiveForces(gen,atomic%atoms,tb)
       call electronicForces(atomic,gen,tb,sol,io)
-      call ScfForces(gen,atomic,sol,io)
+      call ScfForces(gen,atomic,sol,tb,io)
        ! calculate velocities at t+dt
       do k=1,atomic%atoms%nmoving
         i=atomic%atoms%moving(k)
@@ -420,7 +429,7 @@ module m_DriverRoutines
       eenergy = ElectronicEnergy(gen,sol,io)
       renergy = RepulsiveEnergy(gen,atomic%atoms,tb)
       if (gen%scf) then
-        scfE = ScfEnergy(gen,atomic,sol,io)
+        scfE = ScfEnergy(gen,atomic,sol,tb,io)
       else
         scfE = 0.0_k_pr
       endif
@@ -431,7 +440,7 @@ module m_DriverRoutines
       if (gen%writeAnimation) then
         if (gen%writeAnimation) then
           call CalcExcessCharges(gen,atomic,sol)
-          call CalcDipoles(gen,atomic,sol)
+          call CalcDipoles(gen,atomic,sol,tb)
   !               call writeAnimation_frame(aniunit)
   !               call write_frame(xunit)
   !               call write_frame_rho(runit,rho0)
@@ -568,6 +577,9 @@ module m_DriverRoutines
    write(io%uout,'(/a/)')&
          '--Setup ended----------------------------'
 
+    if((.not.gen%compElec).and.(gen%electrostatics==k_electrostaticsMultipoles)) then
+      call initQvs(atomic,gen,sol,tb,sol%density)
+    endif
 !          if (.not.gen%comp_elec) then
 !             if (gen%electrostatics==tbu_multi) call init_qvs(density)
 !          endif
@@ -616,7 +628,7 @@ module m_DriverRoutines
       eenergy = ElectronicEnergy(gen,sol,io)
       renergy = RepulsiveEnergy(gen,atomic%atoms,tb)
       if (gen%scf) then
-        scfE = ScfEnergy(gen,atomic,sol,io)
+        scfE = ScfEnergy(gen,atomic,sol,tb,io)
       else
         scfE = 0.0_k_pr
       endif
@@ -626,7 +638,7 @@ module m_DriverRoutines
       "Kinetic Energy",  "Total Energy",  "No of Electrons"
       write(eneunit,'(7f25.18)')gen%CurrSimTime,renergy,eenergy,scfE,kenergy,penergy+kenergy,real(trrho)
       call CalcExcessCharges(gen,atomic,sol)
-      call CalcDipoles(gen,atomic,sol)
+      call CalcDipoles(gen,atomic,sol,tb)
 !       write(accUnit,*) "0.0", ChargeOnGroup(atomic%atoms%acceptor,atomic%atoms)
 !       write(donUnit,*) "0.0", ChargeOnGroup(atomic%atoms%donor,atomic%atoms)
 !       write(spacUnit,*) "0.0", ChargeOnGroup(atomic%atoms%spacer,atomic%atoms)
@@ -650,6 +662,9 @@ module m_DriverRoutines
    !set global time variable
       gen%CurrSimTime = (istep+1)*dt*k_time2SI
       call BuildDensity(atomic,sol)
+      if((.not.gen%compElec).and.(gen%electrostatics==k_electrostaticsMultipoles)) then
+        call initQvs(atomic,gen,sol,tb,sol%density)
+       endif
 !             if (.not.gen%comp_elec) then
 !                if (gen%electrostatics==tbu_multi) call init_qvs(density)
 !             endif
@@ -712,6 +727,9 @@ module m_DriverRoutines
       endif
 
       call BuildDensity(atomic,sol)
+      if((.not.gen%compElec).and.(gen%electrostatics==k_electrostaticsMultipoles)) then
+        call initQvs(atomic,gen,sol,tb,sol%density)
+      endif
 !             if (.not.gen%comp_elec) then
 !                if (gen%electrostatics==tbu_multi) call init_qvs(density)
 !             endif
@@ -719,7 +737,7 @@ module m_DriverRoutines
       call RepulsiveForces(gen,atomic%atoms,tb)
       call electronicForces(atomic,gen,tb,sol,io)
       if (gen%scf) then
-        call ScfForces(gen,atomic,sol,io)
+        call ScfForces(gen,atomic,sol,tb,io)
       endif
        ! calculate velocities at t+dt
       do k=1,atomic%atoms%nmoving
@@ -745,7 +763,7 @@ module m_DriverRoutines
         eenergy = ElectronicEnergy(gen,sol,io)
         renergy = RepulsiveEnergy(gen,atomic%atoms,tb)
         if (gen%scf) then
-          scfE = ScfEnergy(gen,atomic,sol,io)
+          scfE = ScfEnergy(gen,atomic,sol,tb,io)
         else
           scfE = 0.0_k_pr
         endif
@@ -754,7 +772,7 @@ module m_DriverRoutines
 
         if (gen%writeAnimation) then
         call CalcExcessCharges(gen,atomic,sol)
-        call CalcDipoles(gen,atomic,sol)
+        call CalcDipoles(gen,atomic,sol,tb)
 !           write(accUnit,*) gen%CurrSimTime, ChargeOnGroup(atomic%atoms%acceptor,atomic%atoms)
 !           write(donUnit,*) gen%CurrSimTime, ChargeOnGroup(atomic%atoms%donor,atomic%atoms)
 !           write(spacUnit,*) gen%CurrSimTime, ChargeOnGroup(atomic%atoms%spacer,atomic%atoms)

@@ -64,9 +64,7 @@ contains
 ! delta density matrix is stored in an array as upper triangular part followed by the diagonal
       select case(genLoc%scfType)
         case (k_scfTbuj,k_scfTBu, k_scfTBUO,k_scfTBujo)
-!           if((.not.genLoc%compElec).and.(genLoc%k_electrostatics==k_electrostaticsMultipoles)) then
-!             call allocate_qvs
-!           endif
+
           sol%buff%dins=0.0_k_pr
           sol%buff%douts=0.0_k_pr
           sol%buff%res=0.0_k_pr
@@ -81,9 +79,6 @@ contains
           call DiagHamiltonian(ioLoc,genLoc,atomic,sol)
           if (ioLoc%Verbosity >= k_highVerbos) then
             write(ioLoc%uout,'(a)') "Before entering the SCF LOOP"
-!               if (.not.genLoc%compElec) then
-!                   if (genLoc%k_electrostatics==tbu_multi)call init_qvs(densityin)
-!               endif
             if (genLoc%spin) then
               labels(1)="Hin: Spin DD"
               labels(2)="Hin: Spin UU"
@@ -114,58 +109,50 @@ contains
             write(saux,'(a,"(",f0.4,1x,f0.4,"i)")') "Density matrix, Trace= ",trace
             call PrintMatrix(sol%rho,trim(saux),ioLoc)
           endif
-!           if (genLoc%alter_dm) then
-!             call create_dm_spin_altered(eigenvec,eigenval)
-!           endif
-!           ! this one in fact builds the initial guess for density matrix
-!           call BuildDensity(atomic,sol,genLoc,.true.)
+
           call BuildDensity(atomic,sol)
           sol%buff%densityin=sol%density
+          if((.not.genLoc%compElec).and.(genLoc%electrostatics==k_electrostaticsMultipoles)) then
+            call initQvs(atomic,genLoc,sol,tbMod,sol%buff%densityin)
+          endif
 
 !           scfe=ScfEnergy(genLoc,atomic,sol,ioLoc)
           call CalcExcessCharges(genLoc,atomic,sol)
-          call CalcDipoles(genLoc,atomic,sol)
+          call CalcDipoles(genLoc,atomic,sol,tbMod)
           call ComputeMagneticMoment(genLoc,atomic,sol,ioLoc)
-          if (ioLoc%Verbosity >= k_highVerbos) then!
-!               if (.not.genLoc%compElec) then
-!                   if (genLoc%k_electrostatics==tbu_multi)call init_qvs(densityin)
-!               endif
+          if (ioLoc%Verbosity >= k_highVerbos) then
             do i=1,atomic%atoms%natoms
-!                   if (genLoc%k_electrostatics==tbu_multi) then
-!                     call Print_QlmR(i,densityin)
-!                     call Print_VlmR(i,densityin)
-!                   endif
-!                   call Print_atom_rho(i,"density in ")
-!                   call Print_atom_density(i,densityin,"density in ")
-!
-!                   if (genLoc%k_electrostatics==tbu_multi) then
-!                     do j=1,atomic%natoms
-!                         if (i/=j) then
-!                           call Print_irregular_solid(i,j)
-!                           call Print_BllpR(i,j)
-!                         endif
-!                     enddo
-!                   endif
+              if (genLoc%electrostatics==k_electrostaticsMultipoles) then
+                 call PrintQlmR(i,genLoc,atomic,sol,tbMod,ioLoc,sol%buff%densityin)
+                 call PrintVlmR(i,genLoc,atomic,sol,tbMod,ioLoc,sol%buff%densityin)
+                 do j=1,atomic%atoms%natoms
+                   if (i/=j) then
+                     call PrintIrregularRealSolidH(i,j,atomic,sol,ioLoc)
+                     call PrintBllpR(i,j,atomic,sol,ioLoc)
+                   endif
+                  enddo
+                endif
                 call PrintAtomChargeAnalysis(i,atomic,sol,genLoc,ioLoc)
                 call PrintAtomMatrix(i,atomic,sol%hin,"Hin",ioLoc,.false.)
                 call PrintAtomMatrix(i,atomic,sol%rho,"Density",ioLoc,.false.)
               enddo
               call PrintCharges(genLoc,atomic,ioLoc)
               call PrintDipoles(atomic,ioLoc)
-              call PrintMagneticMoment(atomic,sol,.false.,ioLoc)
+              if (genLoc%spin) call PrintMagneticMoment(atomic,sol,.false.,ioLoc)
             endif
 !
 
-              write(ioLoc%uout,'(a)') "SCF"
-              write(ioLoc%uout,'(a)') "SCFReport   nit          energy             res           drmax         Tr[rho]             mu"
+            write(ioLoc%uout,'(a)') "SCF"
+            write(ioLoc%uout,'(a)') "SCFReport   nit          energy             res           drmax         Tr[rho]             mu"
 
             do nit=1,genLoc%maxscf
               if (ioLoc%Verbosity >=k_highVerbos)  then
                    write(ioLoc%uout,'(a,i0)') "SCF LOOP iteration: ",nit
               endif
-!               if (.not.genLoc%compElec) then
-!                   if (genLoc%k_electrostatics==tbu_multi) call init_qvs(densityin)
-!               endif
+              if((.not.genLoc%compElec).and.(genLoc%electrostatics==k_electrostaticsMultipoles)) then
+                call initQvs(atomic,genLoc,sol,tbMod,sol%buff%densityin)
+              endif
+
               call AddH2(genLoc,atomic,sol,tbMod,ioLoc)
               call DiagHamiltonian(ioLoc,genLoc,atomic,sol)
 !               if (genLoc%alter_dm) then
@@ -175,12 +162,13 @@ contains
 
               sol%buff%densityout=sol%density
               call CalcExcessCharges(genLoc,atomic,sol)
-              call CalcDipoles(genLoc,atomic,sol)
+              call CalcDipoles(genLoc,atomic,sol,tbMod)
               call ComputeMagneticMoment(genLoc,atomic,sol,ioLoc)
               if (ioLoc%Verbosity >= k_highVerbos) then
-!                 if (.not.genLoc%compElec) then
-!                   if (genLoc%k_electrostatics==tbu_multi) call init_qvs(densityout)
-!                 endif
+                if((.not.genLoc%compElec).and.(genLoc%electrostatics==k_electrostaticsMultipoles)) then
+                  call initQvs(atomic,genLoc,sol,tbMod,sol%buff%densityout)
+                endif
+
                 call MatrixCeaApbB(sol%h2,sol%h,sol%hin,k_cOne,-k_cOne,ioLoc)
                 if (genLoc%spin) then
                   call PrintMatrixBlocks(sol%h,labels,ioLoc,.false.,.not.genLoc%collinear)
@@ -193,10 +181,10 @@ contains
                 write(ioLoc%uout,"(a,f16.8)") "chemical potential: ",genLoc%electronicMu
                 write(ioLoc%uout,'(a,f16.8)')"Entropy term: ",sol%electronicEntropy
                 do i=1,atomic%atoms%natoms
-!                     if (genLoc%k_electrostatics==tbu_multi) then
-!                       call Print_QlmR(i,densityout)
-!                       call Print_VlmR(i,densityout)
-!                     endif
+                  if (genLoc%electrostatics==k_electrostaticsMultipoles) then
+                    call PrintQlmR(i,genLoc,atomic,sol,tbMod,ioLoc,sol%buff%densityin)
+                    call PrintVlmR(i,genLoc,atomic,sol,tbMod,ioLoc,sol%buff%densityin)
+                  endif
                   call PrintAtomChargeAnalysis(i,atomic,sol,genLoc,ioLoc)
                   call PrintAtomMatrix(i,atomic,sol%h,"H",ioLoc,.false.)
                   call PrintAtomMatrix(i,atomic,sol%hin,"Hin",ioLoc,.false.)
@@ -205,7 +193,7 @@ contains
                 enddo
                 call PrintCharges(genLoc,atomic,ioLoc)
                 call PrintDipoles(atomic,ioLoc)
-                call PrintMagneticMoment(atomic,sol,.true.,ioLoc)
+                if (genLoc%spin) call PrintMagneticMoment(atomic,sol,.true.,ioLoc)
               endif
 !
               ierr=-1
@@ -235,7 +223,7 @@ contains
                 call ZeroForces(atomic)
                 call RepulsiveForces(genLoc,atomic%atoms,tbMod)
                 call electronicForces(atomic,genLoc,tbMod,sol,ioLoc)
-                call ScfForces(genLoc,atomic,sol,ioLoc)
+                call ScfForces(genLoc,atomic,sol,tbMod,ioLoc)
                 sol%density=sol%buff%densitynext
                 call PrintForces(atomic%atoms,ioLoc)
                 ee = ElectronicEnergy(genLoc,sol,ioLoc)
@@ -243,7 +231,7 @@ contains
                 write(ioLoc%uout,'(a)')"Energy"
                 write(ioLoc%uout,'(a,f16.8)')"Electronic: ",ee
                 write(ioLoc%uout,'(a,f16.8)')" Repulsive: ",re
-                scfe = ScfEnergy(genLoc,atomic,sol,ioLoc)
+                scfe = ScfEnergy(genLoc,atomic,sol,tbMod,ioLoc)
                 sol%density=sol%buff%densitynext
                 write(ioLoc%uout,'(a,f16.8)')"       -TS: ",sol%electronicEntropy
                 write(ioLoc%uout,'(a,f16.8)')"       SCF: ",scfe
@@ -271,17 +259,17 @@ contains
 
 
 !           ! calculate the forces
-!             if (.not.genLoc%compElec) then
-!               if (genLoc%k_electrostatics==tbu_multi) call init_qvs(densityin)
-!             endif
+          if((.not.genLoc%compElec).and.(genLoc%electrostatics==k_electrostaticsMultipoles)) then
+            call initQvs(atomic,genLoc,sol,tbMod,sol%buff%densityin)
+          endif
 
           call CalcExcessCharges(genLoc,atomic,sol)
-          call CalcDipoles(genLoc,atomic,sol)
+          call CalcDipoles(genLoc,atomic,sol,tbMod)
           call ComputeMagneticMoment(genLoc,atomic,sol,ioLoc)
           call ZeroForces(atomic)
           call RepulsiveForces(genLoc,atomic%atoms,tbMod)
           call ElectronicForces(atomic,genLoc,tbMod,sol,ioLoc)
-          call ScfForces(genLoc,atomic,sol,ioLoc)
+          call ScfForces(genLoc,atomic,sol,tbMod,ioLoc)
 !             call Print_eigens(eigenval,eigenvec,555,.false.)
 !             call write_density_matrix("rho.bin",rho%a,rho%dim)
           if (ioLoc%verbosity >= k_mediumVerbos) then
@@ -307,7 +295,7 @@ contains
         call RepulsiveForces(genLoc,atomic%atoms,tbMod)
         call electronicForces(atomic,genLoc,tbMod,sol,ioLoc)
         call CalcExcessCharges(genLoc,atomic,sol)
-        call CalcDipoles(genLoc,atomic,sol)
+        call CalcDipoles(genLoc,atomic,sol,tbMod)
         call ComputeMagneticMoment(genLoc,atomic,sol,ioLoc)
 !         call Print_eigens(eigenval,eigenvec,555,.false.)
       end if
@@ -331,10 +319,10 @@ contains
     type(modelType), intent(inout) :: tb
 
     integer :: i,k,j
-    integer ::l1,l2,l3,l4,m1,m2,m3,m4,o1,o2,o3,o4,sp,shift
+    integer ::l1,l2,l1u,l2u,m1,m2,m1u,m2u,o1,o2,o1u,o2u,sp,shift,o3
     real(k_pr) :: rAddAcc,rTmp,hij,hijf,hijd
     integer :: m,n
-    real(k_pr) :: q0,q0up,q0down,aux,udq,uuq,elec
+    real(k_pr) :: q0,q0up,q0down,aux,udq,uuq,elec,auxu
 
     n=sol%h%dim
     m=n*(n-1)/2
@@ -476,45 +464,60 @@ contains
           enddo
         enddo
       case(k_electrostaticsMultipoles)
-!             aux=0.0_k_pr
-!              write(ioLoc%uout,"(a)")"Multipoles increments"
-!             do k=1,atomic%nscf
-!                i=atomic%isscf(k)
-!                sp=atomic%sp(i)
-!        ! spin down
-!                do o1=1,species%norbs(sp)/2
-!                   l1=atomic%basis%orbitals(atomic%orbs(i,o1))%l
-!                   m1=atomic%basis%orbitals(atomic%orbs(i,o1))%m
-!                   do o2=1,species%norbs(sp)/2
-!                      l2=atomic%basis%orbitals(atomic%orbs(i,o2))%l
-!                      m2=atomic%basis%orbitals(atomic%orbs(i,o2))%m
-!                      aux=hiujv(i,l1,m1,l2,m2,density)
-!                       if (ioLoc%Verbosity >= k_highVerbos) then
-!                       if (abs(aux)>epsilon(aux)) &
-!                       write(ioLoc%uout,"(a,i0,x,i0,x,i0,f12.8)")"d: ",i,o1,o2,aux
-!                       endif
-!                      hij=h%a(atomic%orbs(i,o1),atomic%orbs(i,o2))+aux
-!                      call spm_put(h,atomic%orbs(i,o1),atomic%orbs(i,o2),cmplx(hij,0.0_k_pr,dp))
-! !           f%a(atomic%orbs(i,o1),atomic%orbs(i,o2))=f%a(atomic%orbs(i,o1),atomic%orbs(i,o2))+cmplx(aux,0.0_k_pr,dp)
-!                   enddo
-!                enddo
-! !              spin up
-!                do o1=1+species%norbs(sp)/2,species%norbs(sp)
-!                   l1=atomic%basis%orbitals(atomic%orbs(i,o1))%l
-!                   m1=atomic%basis%orbitals(atomic%orbs(i,o1))%m
-!                   do o2=1+species%norbs(sp)/2,species%norbs(sp)
-!                      l2=atomic%basis%orbitals(atomic%orbs(i,o2))%l
-!                      m2=atomic%basis%orbitals(atomic%orbs(i,o2))%m
-!                      aux=hiujv(i,l1,m1,l2,m2,density)
-!                      if (ioLoc%Verbosity >= k_highVerbos) then
-!                      if (abs(aux)>epsilon(aux)) &
-!                       write(ioLoc%uout,"(a,i0,x,i0,x,i0,f12.8)")"u: ",i,o1,o2,aux
-!                       endif
-!                      hij=h%a(atomic%orbs(i,o1),atomic%orbs(i,o2))+aux
-!                      call spm_put(h,atomic%orbs(i,o1),atomic%orbs(i,o2),cmplx(hij,0.0_k_pr,dp))
-!                   enddo
-!                enddo
+        if (gen%spin) then
+          aux=0.0_k_pr
+          write(io%uout,"(a)")"Multipoles increments"
+          do k=1,atomic%atoms%nscf
+            i=atomic%atoms%scf(k)
+            sp=atomic%atoms%sp(i)
+    ! spin down
+          do o1=1,atomic%species%norbs(sp)/2
+            o1u=o1+atomic%species%norbs(sp)/2
+            l1=atomic%basis%orbitals(atomic%atoms%orbs(i,o1))%l
+            m1=atomic%basis%orbitals(atomic%atoms%orbs(i,o1))%m
+            l1u=atomic%basis%orbitals(atomic%atoms%orbs(i,o1u))%l
+            m1u=atomic%basis%orbitals(atomic%atoms%orbs(i,o1u))%m
+            do o2=1,atomic%species%norbs(sp)/2
+              o2u=o2+atomic%species%norbs(sp)/2
+              l2=atomic%basis%orbitals(atomic%atoms%orbs(i,o2))%l
+              m2=atomic%basis%orbitals(atomic%atoms%orbs(i,o2))%m
+              l2u=atomic%basis%orbitals(atomic%atoms%orbs(i,o2u))%l
+              m2u=atomic%basis%orbitals(atomic%atoms%orbs(i,o2u))%m
+              aux=hiujv(i,l1,m1,l2,m2,gen,sol,atomic,tb,sol%density)
+              auxu=hiujv(i,l1u,m1u,l2u,m2u,gen,sol,atomic,tb,sol%density)
+              if (io%Verbosity >= k_highVerbos) then
+                if (abs(aux)>epsilon(aux)) &
+                  write(io%uout,"(a,i0,x,i0,x,i0,f12.8)")"d: ",i,o1,o2,aux
+                  write(io%uout,"(a,i0,x,i0,x,i0,f12.8)")"d: ",i,o1u,o2u,auxu
+              endif
+              hij=sol%h%a(atomic%atoms%orbs(i,o1),atomic%atoms%orbs(i,o2))+aux
+              call SpmPut(sol%h,atomic%atoms%orbs(i,o1),atomic%atoms%orbs(i,o2),cmplx(hij,0.0_k_pr,k_pr))
+              hij=sol%h%a(atomic%atoms%orbs(i,o1u),atomic%atoms%orbs(i,o2u))+auxu
+              call SpmPut(sol%h,atomic%atoms%orbs(i,o1u),atomic%atoms%orbs(i,o2u),cmplx(hij,0.0_k_pr,k_pr))
+            enddo
+          enddo
+          enddo
+
+!           spin up
+!           do o1=1+atomic%species%norbs(sp)/2,atomic%species%norbs(sp)
+!             l1=atomic%basis%orbitals(atomic%atoms%orbs(i,o1))%l
+!             m1=atomic%basis%orbitals(atomic%atoms%orbs(i,o1))%m
+!             do o2=1+atomic%species%norbs(sp)/2,atomic%species%norbs(sp)
+!               l2=atomic%basis%orbitals(atomic%atoms%orbs(i,o2))%l
+!               m2=atomic%basis%orbitals(atomic%atoms%orbs(i,o2))%m
+!               aux=hiujv(i,l1,m1,l2,m2,gen,sol,atomic,tb,sol%density)
+!               if (io%Verbosity >= k_highVerbos) then
+!                 if (abs(aux)>epsilon(aux)) &
+!                   write(io%uout,"(a,i0,x,i0,x,i0,f12.8)")"u: ",i,o1,o2,aux
+!               endif
+!               hij=sol%h%a(atomic%atoms%orbs(i,o1),atomic%atoms%orbs(i,o2))+aux
+!               call spmPut(sol%h,atomic%atoms%orbs(i,o1),atomic%atoms%orbs(i,o2),cmplx(hij,0.0_k_pr,k_pr))
 !             enddo
+!           enddo
+!         enddo
+        else
+
+        endif
     end select
   end subroutine AddH2
 
@@ -647,12 +650,13 @@ contains
 !> \param gen type(generalType) contains the info needed by the program to run
 !> \param atomic type(atomicxType) contains all info about the atoms and basis set and some parameters
 !> \param sol type(solutionType) contains information about the solution space
-  real(k_pr) function ScfEnergy(gen,atomic,sol,io)
+  real(k_pr) function ScfEnergy(gen,atomic,sol,tb,io)
     character(len=*), parameter :: myname = 'ScfEnergy'
     type(ioType), intent(inout) :: io
     type(generalType), intent(inout) :: gen
     type(atomicxType), intent(inout) :: atomic
     type(solutionType), intent(inout) :: sol
+    type(modelType),intent(inout) :: tb
     integer       :: i,k,mp,j
     real(k_pr)      :: scfe,scfx!,el_en
 ! +U variables
@@ -737,21 +741,22 @@ contains
     select case(gen%electrostatics)
       case (k_electrostaticsPoint)
       call BuildPotential(gen,atomic,sol)
-        do k=1,atomic%atoms%nscf
-          i=atomic%atoms%scf(k)
-          elecEn=elecEn+0.5_k_pr*charge(i,gen,atomic,sol)*sol%potential(i)
-        enddo
+      do k=1,atomic%atoms%nscf
+        i=atomic%atoms%scf(k)
+        elecEn=elecEn+0.5_k_pr*charge(i,gen,atomic,sol)*sol%potential(i)
+      enddo
       case(k_electrostaticsMultipoles)
-!             do k=1,atomic%nscf
-!                i=atomic%isscf(k)
-!                aux=0.0_k_pr
-!                do l1=0,2*get_lmax(i)
-!                   do m1=-l1,l1
-!                      aux=aux+qlmR(i,l1,m1,density)*vlmR(i,l1,m1,density)
-!                   enddo
-!                enddo
-!                elecEn=elecEn+0.5_k_pr*aux*e2/(4.0_k_pr*pi*epsilon0)
-!             end do
+      do k=1,atomic%atoms%nscf
+        i=atomic%atoms%scf(k)
+        aux=0.0_k_pr
+        do l1=0,2*GetLmax(atomic%atoms%sp(i),atomic%speciesBasis,atomic%species)
+          do m1=-l1,l1
+            aux=aux+qlmR(i,l1,m1,gen,sol,atomic,tb,sol%density)*&
+              vlmR(i,l1,m1,gen,sol,atomic,tb,sol%density)
+          enddo
+        enddo
+        elecEn=elecEn+0.5_k_pr*aux*k_e2/(4.0_k_pr*k_pi*k_epsilon0)
+      end do
     end select
     if (io%verbosity >= k_highVerbos) then
       write(io%uout,'(a,f16.8)')"SCF Electrostatics: ", elecEn
@@ -765,12 +770,13 @@ contains
 !> \param gen type(generalType) contains the info needed by the program to run
 !> \param atomic type(atomicxType) contains all info about the atoms and basis set and some parameters
 !> \param sol type(solutionType) contains information about the solution space
-  subroutine ScfForces(gen,atomic,sol,io)
+  subroutine ScfForces(gen,atomic,sol,tb,io)
     character(len=*), parameter :: myname = 'ScfForces'
     type(ioType), intent(inout) :: io
     type(generalType), intent(inout) :: gen
     type(atomicxType), intent(inout) :: atomic
     type(solutionType), intent(inout) :: sol
+    type(modelType), intent(inout) :: tb
     integer       :: i,m,n,li,j,mi!,j,mpp,l,m
     real(k_pr) :: q
     integer :: lm,k
@@ -789,33 +795,35 @@ contains
           atomic%atoms%fz(i) = atomic%atoms%fz(i)+q*sol%field(i,3)
         end do
       case(k_electrostaticsMultipoles)
-!         n=basis_var%norbital
-!         m=n*(n-1)/2
-!         allocate(density(m+n))
-!         call build_u_density(density)
-!         do k=1,atomic%nmoving
-!           i=atomic%moving(k)
+        n=atomic%basis%norbitals
+        m=n*(n-1)/2
+        call BuildDensity(atomic,sol)
+        do k=1,atomic%atoms%nmoving
+          i=atomic%atoms%moving(k)
 !           if (control_var%output_level > ol_verbose) &
 !               write(control_var%output_file,'(a,i0)')"electrostatic forces contribution by l atom ",i
-!           do li=0,2*get_lmax(i)
-!               aux=(2.0_dp*li+3.0_dp)*sqrt(4.0_dp*pi/3.0_dp)*e2/(4.0_dp*pi*epsilon0)
-!               sx=0.0_dp
-!               sy=0.0_dp
-!               sz=0.0_dp
-!               do mi=-li,li
-!                 sx=sx+fip(i,li,mi,1,density)*qlmR(i,li,mi,density)
-!                 sy=sy+fip(i,li,mi,-1,density)*qlmR(i,li,mi,density)
-!                 sz=sz+fip(i,li,mi,0,density)*qlmR(i,li,mi,density)
-!               end do
-!               atomic%fx(i) = atomic%fx(i)-sx*aux
-!               atomic%fy(i) = atomic%fy(i)-sy*aux
-!               atomic%fz(i) = atomic%fz(i)-sz*aux
+          do li=0,2*GetLmax(atomic%atoms%sp(i),atomic%speciesBasis,atomic%species)
+            aux=(2.0_k_pr*li+3.0_k_pr)*sqrt(4.0_k_pr*k_pi/3.0_k_pr)*k_e2/(4.0_k_pr*k_pi*k_epsilon0)
+            sx=0.0_k_pr
+            sy=0.0_k_pr
+            sz=0.0_k_pr
+            do mi=-li,li
+              sx=sx+fip(i,li,mi,1,gen,sol,atomic,tb,sol%density)*&
+                qlmR(i,li,mi,gen,sol,atomic,tb,sol%density)
+              sy=sy+fip(i,li,mi,-1,gen,sol,atomic,tb,sol%density)*&
+                qlmR(i,li,mi,gen,sol,atomic,tb,sol%density)
+              sz=sz+fip(i,li,mi,0,gen,sol,atomic,tb,sol%density)*&
+                qlmR(i,li,mi,gen,sol,atomic,tb,sol%density)
+            end do
+            atomic%atoms%fx(i) = atomic%atoms%fx(i)-sx*aux
+            atomic%atoms%fy(i) = atomic%atoms%fy(i)-sy*aux
+            atomic%atoms%fz(i) = atomic%atoms%fz(i)-sz*aux
 !               if (control_var%output_level > ol_verbose) then
 !                 write(control_var%output_file,'(i0,a,3f16.8,a)')&
 !                     li," (",-sx*aux,-sy*aux,-sz*aux,")"
 !               endif
-!           end do
-!         end do
+          end do
+        end do
     end select
   end subroutine ScfForces
 

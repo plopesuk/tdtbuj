@@ -134,6 +134,8 @@ module m_Types
     integer :: HessianM
     integer :: geomAlg !< the geometry optimisation algorithm
     integer :: wdensity !< what kind of density shloud be used for Eherenfest Damped
+    logical :: hasElectricField !< do we apply an external electric field?
+    real(k_pr) :: E(1:3)  !< the components of the electric field
   end type generalType
 
 !> data type that keeps the neighbours list
@@ -302,7 +304,6 @@ end type neighbourType
     real(k_pr), allocatable :: CurrentMatrix(:,:) !< bond currents matrix by orbitals
     real(k_pr), allocatable :: CurrentMatrix2(:,:) !< bond currents matrix by atoms, the diagonal term contains the total bond current, only specified atoms entries will be computed and populated
     type(MatrixType) :: rhodot,deltaRho,rhonew,rhoold,rho0 !< used for Ehrenfest dynamic
-
-!    type(qvs), allocatable :: delq(:), vs(:)
+    type(qvs), allocatable :: delq(:), vs(:)
   end type solutionType
 end module m_Types

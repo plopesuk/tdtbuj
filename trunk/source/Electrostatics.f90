@@ -15,6 +15,13 @@ module m_Electrostatics
   public :: ChargeOnGroup
   public :: BuildField
   public :: ChargeOnL
+  public :: initQvs
+  public :: qlmr
+  public :: vlmr
+  public :: BlplR
+  public :: hiujv
+  public :: fip
+  public :: fact3
 
   interface ChargeOnL
     module procedure ChargeOnLSpin, ChargeOnLNoSpin
@@ -38,13 +45,11 @@ contains
 
     integer :: at
     real(k_pr) :: aux
-
-
     ! spin down
-      do at=1,atomic%atoms%natoms
-        aux=PartialTrace(atomic%atoms%id(at),atomic,sol%rho,gen%spin)
-        atomic%atoms%chrg(at)=aux-atomic%species%zval(atomic%atoms%sp(at))
-      enddo
+    do at=1,atomic%atoms%natoms
+      aux=PartialTrace(atomic%atoms%id(at),atomic,sol%rho,gen%spin)
+      atomic%atoms%chrg(at)=aux-atomic%species%zval(atomic%atoms%sp(at))
+    enddo
 
   end subroutine CalcExcessCharges
 
@@ -54,11 +59,12 @@ contains
 !> \param gen type(generalType) contains the info needed by the program to k_run
 !> \param atomic type(atomicxType) contains all info about the atoms and basis set and some parameters
 !> \param sol type(solutionType) contains information about the solution space
-  subroutine CalcDipoles(gen,atomic,sol)
+  subroutine CalcDipoles(gen,atomic,sol,tb)
     character(len=*), parameter :: myname = 'CalcDipoles'
-    type(solutionType),intent(in) :: sol
+    type(solutionType),intent(inout) :: sol
     type(atomicxType), intent(inout) :: atomic
-    type(generalType), intent(in) :: gen
+    type(generalType), intent(inout) :: gen
+    type(modelType), intent(inout) :: tb
     integer :: i
 
     select case(gen%electrostatics)
@@ -70,15 +76,15 @@ contains
         enddo
       case(k_electrostaticsMultipoles)
         do i=1,atomic%atoms%natoms
-            if (GetLmax(atomic%atoms%sp(i),atomic%speciesBasis,atomic%species)>0) then
-  !              atomic%dx(i)= atomic%x(i)*atomic%chrg(i)+qlmr(i,1,1,density)
-  !              atomic%dy(i)= atomic%y(i)*atomic%chrg(i)+qlmr(i,1,-1,density)
-  !              atomic%dz(i)= atomic%z(i)*atomic%chrg(i)+qlmr(i,1,0,density)
-            else
-              atomic%atoms%dx(i)= atomic%atoms%x(i)*atomic%atoms%chrg(i)
-              atomic%atoms%dy(i)= atomic%atoms%y(i)*atomic%atoms%chrg(i)
-              atomic%atoms%dz(i)= atomic%atoms%z(i)*atomic%atoms%chrg(i)
-            endif
+          if (GetLmax(atomic%atoms%sp(i),atomic%speciesBasis,atomic%species)>0) then
+            atomic%atoms%dx(i)= atomic%atoms%x(i)*atomic%atoms%chrg(i)+qlmr(i,1,1,gen,sol,atomic,tb,sol%density)*sqrt(4*k_pi/3.0_k_pr)
+            atomic%atoms%dy(i)= atomic%atoms%y(i)*atomic%atoms%chrg(i)+qlmr(i,1,-1,gen,sol,atomic,tb,sol%density)*sqrt(4*k_pi/3.0_k_pr)
+            atomic%atoms%dz(i)= atomic%atoms%z(i)*atomic%atoms%chrg(i)+qlmr(i,1,0,gen,sol,atomic,tb,sol%density)*sqrt(4*k_pi/3.0_k_pr)
+          else
+            atomic%atoms%dx(i)= atomic%atoms%x(i)*atomic%atoms%chrg(i)
+            atomic%atoms%dy(i)= atomic%atoms%y(i)*atomic%atoms%chrg(i)
+            atomic%atoms%dz(i)= atomic%atoms%z(i)*atomic%atoms%chrg(i)
+          endif
         enddo
     end select
     atomic%atoms%tdipx=0.0_k_pr
@@ -306,5 +312,253 @@ contains
     enddo
     ChargeOnGroup=sacc
   end function ChargeOnGroup
+
+   subroutine initQvs(atomic,gen,sol,tb,density)
+     character(len=*), parameter :: myname = 'initQvs'
+     type(atomicxType), intent(inout) :: atomic
+     type(solutionType),intent(inout) :: sol
+     type(modelType), intent(inout) :: tb
+     real(k_pr), intent(inout) :: density(:)
+     type(generalType),intent(inout) :: gen
+
+     integer :: i,l,m,k
+
+
+     do i=1,atomic%atoms%natoms
+       k=GetLmax(atomic%atoms%sp(i),atomic%speciesBasis,atomic%species)
+       do l=0,2*k
+          do m=-l,l
+            sol%delq(i)%a(idx(l,m))=compQlmR(i,l,m,sol,atomic,tb,density)
+          enddo
+       enddo
+     enddo
+
+     do i=1,atomic%atoms%natoms
+       k=GetLmax(atomic%atoms%sp(i),atomic%speciesBasis,atomic%species)
+       do l=0,2*k+1
+         do m=-l,l
+           sol%vs(i)%a(idx(l,m))=compVlmR(i,l,m,gen,sol,atomic,tb,density)
+         enddo
+       enddo
+    enddo
+   end subroutine initQvs
+
+   real(k_pr) function compQlmR(at,l,m,sol,atomic,tb,density)
+     character(len=*), parameter :: myname = 'compQlmR'
+     integer, intent(in) :: l,m,at
+     real(k_pr), intent(in) :: density(:)
+     type(atomicxType), intent(inout) :: atomic
+     type(solutionType),intent(inout) :: sol
+     type(modelType), intent(inout) :: tb
+
+      real(k_pr) :: sum
+      integer :: k1,k2,n,l1,l2,m1,m2
+
+      n=atomic%basis%norbitals
+      sum=0.0_k_pr
+      do k1=1,atomic%species%norbs(atomic%atoms%sp(at))
+         l1 = atomic%basis%orbitals(atomic%atoms%orbs(at,k1))%l
+         m1 = atomic%basis%orbitals(atomic%atoms%orbs(at,k1))%m
+         do k2=1,atomic%species%norbs(atomic%atoms%sp(at))
+           l2 = atomic%basis%orbitals(atomic%atoms%orbs(at,k2))%l
+           m2 = atomic%basis%orbitals(atomic%atoms%orbs(at,k2))%m
+           sum=sum+density(aidx(atomic%atoms%orbs(at,k1),atomic%atoms%orbs(at,k2),n))*&
+               tb%delta(atomic%atoms%sp(at))%d(l,l1,l2)*sol%rgc(idx(l1,m1),idx(l2,m2),idx(l,m))
+         enddo
+      enddo
+      compQlmR=sum
+
+   end function compQlmR
+
+  real(k_pr) function compVlmR(i,l,m,gen,sol,atomic,tb,density)
+    character(len=*), parameter :: myname = 'compVlmR'
+
+    integer, intent(in) :: i,l,m
+    real(k_pr), intent(in) :: density(:)
+    type(atomicxType), intent(inout) :: atomic
+    type(solutionType),intent(inout) :: sol
+    type(modelType), intent(inout) :: tb
+    type(generalType), intent(inout) :: gen
+    integer :: j,lp,mp,lm
+    real(k_pr) :: sum,x,y,z
+    real(k_pr), allocatable :: ir(:)
+    sum=0.0_k_pr
+    do j=1,atomic%atoms%natoms
+      if (j/=i) then
+        lm=GetLmax(atomic%atoms%sp(j),atomic%speciesBasis,atomic%species)
+        allocate(ir(1:(l+2*lm+2)**2))
+        x=atomic%atoms%x(j)-atomic%atoms%x(i)
+        y=atomic%atoms%y(j)-atomic%atoms%y(i)
+        z=atomic%atoms%z(j)-atomic%atoms%z(i)
+        call solidh(x,y,z,-(l+2*lm+1),ir,(l+2*lm+2)**2)
+        do lp=0,2*lm
+          do mp=-lp,lp
+            sum=sum+qlmR(j,lp,mp,gen,sol,atomic,tb,density)*blplR(l,m,lp,mp,i,j,ir,sol)
+!
+          enddo
+        enddo
+        deallocate(ir)
+      endif
+    enddo
+    compVlmR=sum
+   end function compVlmR
+
+   real(k_pr) function qlmR(at,l,m,gen,sol,atomic,tb,density)
+     character(len=*), parameter :: myname = 'qlmR'
+     integer, intent(in) :: l,m,at
+     real(k_pr), intent(in) :: density(:)
+     type(atomicxType), intent(inout) :: atomic
+     type(solutionType),intent(inout) :: sol
+     type(modelType), intent(inout) :: tb
+     type(generalType), intent(inout) :: gen
+
+      if (gen%compElec) then
+! we compute them on the fly
+         qlmR=compQlmR(at,l,m,sol,atomic,tb,density)
+      else
+! they were precomputed somewhere else
+         qlmR=sol%delq(at)%a(idx(l,m))
+      endif
+   end function qlmR
+
+
+
+!****f*   scf/bllpR()
+! NAME
+! bllpR
+! SYNOPSIS
+! bllpR(l,m,lp,mp,at1,at2)
+! INPUTS
+! integer l,m,lp,lp,at1,at2
+! l,m and lp, mp represent the quantum numbers l and m for
+! atom at1 and at2, respectively.
+! DESCRIPTION
+!    returns the structure factor for atom at1 and at2
+!    |latex \begin{equation}
+!    |latex B_{ll^{\prime}} = \frac{(4\pi)^2(-1)^{l^{\prime}}}{(2l+1)!!(2l^{\prime}+1)!!}
+!    |latex  \sum_{m^{\prime\prime}=-l-l\prime}^{l+l\prime}\mathcal{G}_{lml^\prime m^\prime}^{l^{\prime\prime}m^{\prime\prime}}
+!    |latex  \frac{X_{l^{\prime\prime}m^{\prime\prime}}(\hat{r_{12}})}{r_{12}^{l^{\prime\prime}+1}}\frac{(2l^{\prime\prime}+1)!!}{2l^{\prime\prime}+1}
+!    |latex \end{equation}
+!   with
+! |latex $l^{\prime\prime}=l+l^{\prime}$
+! USES
+! AUTHOR
+! Alin M. Elena (Belfast)
+! CREATION DATE
+! April 2006
+! HISTORY
+!*****
+
+   real(k_pr) function blplR(l,m,lp,mp,at1,at2,ir,sol)
+     character(len=*), parameter :: myname = 'blplR'
+     integer,intent(in) :: l,m,lp,mp,at1,at2
+     integer :: p,i,lpp
+     real(k_pr),intent(inout) :: ir(:)
+     type(solutionType),intent(inout) :: sol
+     real(k_pr) :: sum,x,y,z,r
+
+      lpp=l+lp
+      r=sqrt(real(2*lpp+1,k_pr)/(4.0_k_pr*k_pi))*fact3(lpp,sol)/&
+         (2.0_k_pr*lpp+1.0_k_pr)
+!     r=sqrt(x*x+y*y+z*z)**(lpp+1)
+      sum=0.0_k_pr
+      do p=-lpp,lpp
+         sum=sum+sol%rgc(idx(l,m),idx(lp,mp),idx(lpp,p))*&
+            ir(idxy(lpp,p))*r
+      enddo
+      blplR=sum*(4.0_k_pr*k_pi)**2*(-1)**lp/(fact3(l,sol)*fact3(lp,sol))
+   end function blplR
+
+
+
+  real(k_pr) function vlmR(at,l,m,gen,sol,atomic,tb,density)
+     character(len=*), parameter :: myname = 'vlmR'
+     integer, intent(in) :: l,m,at
+     real(k_pr), intent(inout) :: density(:)
+     type(atomicxType), intent(inout) :: atomic
+     type(solutionType),intent(inout) :: sol
+     type(modelType), intent(inout) :: tb
+     type(generalType), intent(inout) :: gen
+
+      if (gen%compElec) then
+! we compute them on the fly
+         vlmR=compVlmR(at,l,m,gen,sol,atomic,tb,density)
+      else
+! they were precomputed somewhere else
+         vlmR=sol%vs(at)%a(idx(l,m))
+      endif
+   end function vlmR
+
+!****f*   tb_sppna/fact3()
+! NAME
+! fact3
+! SYNOPSIS
+! fact3(n)
+! INPUTS
+! integer n
+!
+! DESCRIPTION
+!    returns (2n+1)!! where
+!    |latex \begin{equation}
+!    |latex  (2n+1)!!=1\cdot 3 \cdot  ...       \cdot (2n+1)=\frac{(2n+1)!}{n!2^n}
+!    |latex \end{equation}
+! USES
+! AUTHOR
+! Alin M. Elena (Belfast)
+! CREATION DATE
+! 1st of May 2006
+! HISTORY
+!*****
+  real(k_pr) function fact3(n,sol)
+    character(len=*), parameter :: myname = 'fact3'
+    integer, intent(in) :: n
+    type(solutionType), intent(in) :: sol
+
+    fact3 = sol%fact(2*n+1)/(sol%fact(n)*2.0_k_pr**n)
+  end function fact3
+
+  real(k_pr) function hiujv(at,lu,mu,lv,mv,gen,sol,atomic,tb,density)
+    character(len=*), parameter :: myname = 'hiujv'
+    integer, intent(in) :: at,lu,mu,lv,mv
+    real(k_pr), intent(inout) :: density(:)
+    type(atomicxType), intent(inout) :: atomic
+     type(solutionType),intent(inout) :: sol
+     type(modelType), intent(inout) :: tb
+     type(generalType), intent(inout) :: gen
+    integer :: l,m,i
+    real(k_pr) :: sum
+
+    sum=0.0_k_pr
+    do l=0,2*GetLmax(atomic%atoms%sp(at),atomic%speciesBasis,atomic%species)
+        do m=-l,l
+          sum=sum+sol%rgc(idx(lu,mu),idx(lv,mv),idx(l,m))*&
+              tb%delta(atomic%atoms%sp(at))%d(l,lu,lv)*&
+              vlmR(at,l,m,gen,sol,atomic,tb,density)!*sqrt(4.0_k_pr*pi/(2.0_k_pr*l+1.0_k_pr))
+        enddo
+    enddo
+
+    hiujv=sum*k_e2/(4.0_k_pr*k_pi*k_epsilon0)
+
+   end function hiujv
+
+  real(k_pr) function fip(at,li,mi,p,gen,sol,atomic,tb,density)
+    character(len=*), parameter :: myname = 'fip'
+    integer, intent(in) :: at,li,p,mi
+    real(k_pr), intent(inout) :: density(:)
+    type(atomicxType), intent(inout) :: atomic
+    type(solutionType),intent(inout) :: sol
+    type(modelType), intent(inout) :: tb
+    type(generalType), intent(inout) :: gen
+    integer :: i,lp,mp
+    real(k_pr) :: sum
+
+    sum=0.0_k_pr
+    lp=li+1
+    do mp=-lp,lp
+        sum=sum+sol%rgc(idx(1,p),idx(li,mi),idx(lp,mp))*&
+          vlmR(at,lp,mp,gen,sol,atomic,tb,density)
+    enddo
+    fip=sum
+   end function fip
 
 end module m_Electrostatics
