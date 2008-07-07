@@ -47,72 +47,41 @@ contains
   call ResetSparseMatrix(sol%h)
   if (.not. gen%spin) then
 !!!!!   !$OMP PARALLEL DO DEFAULT(shared) PRIVATE(i,j,k,o,hij,rij,l,m,n)  SCHEDULE(static)
-    do i=1,atomic%atoms%natoms
-      do j=1,atomic%atoms%natoms
-        if (i/=j) then
+    do i=1,atomic%atoms%natoms-1
+      do j=i+1,atomic%atoms%natoms
   ! Offsite terms
-          call AtomDistance(atomic%atoms,j,i,rij,l,m,n)
-          do k=1,atomic%species%norbs(atomic%atoms%sp(i))
-            do o=1,atomic%species%norbs(atomic%atoms%sp(j))
-              hij = hmn(rij,l,m,n,atomic%basis%orbitals(atomic%atoms%orbs(i,k)),&
-                    atomic%basis%orbitals(atomic%atoms%orbs(j,o)),gen,tbMod,sol)
-              if (abs(hij)>=gen%hElementThreshold) then
-                call SpmPut(sol%h,atomic%atoms%orbs(i,k),atomic%atoms%orbs(j,o),cmplx(hij,0.0_k_pr,k_pr))
-              endif
-            enddo
-          enddo
-        else
-!            Onsite terms
-          do k=1,atomic%species%norbs(atomic%atoms%sp(i))
-            do o=1,atomic%species%norbs(atomic%atoms%sp(j))
-              hij = Onsite(atomic%basis%orbitals(atomic%atoms%orbs(i,k)),&
-                          atomic%basis%orbitals(atomic%atoms%orbs(i,o)),tbMod)
+        call AtomDistance(atomic%atoms,j,i,rij,l,m,n)
+        do k=1,atomic%species%norbs(atomic%atoms%sp(i))
+          do o=1,atomic%species%norbs(atomic%atoms%sp(j))
+            hij = hmn(rij,l,m,n,atomic%basis%orbitals(atomic%atoms%orbs(i,k)),&
+                  atomic%basis%orbitals(atomic%atoms%orbs(j,o)),gen,tbMod,sol)
+            if (abs(hij)>=gen%hElementThreshold) then
               call SpmPut(sol%h,atomic%atoms%orbs(i,k),atomic%atoms%orbs(j,o),cmplx(hij,0.0_k_pr,k_pr))
-            enddo
+              call SpmPut(sol%h,atomic%atoms%orbs(j,o),atomic%atoms%orbs(i,k),cmplx(hij,0.0_k_pr,k_pr))
+            endif
           enddo
-        endif
+        enddo
+      enddo
+!            Onsite terms
+      do k=1,atomic%species%norbs(atomic%atoms%sp(i))
+        do o=1,atomic%species%norbs(atomic%atoms%sp(i))
+          hij = Onsite(atomic%basis%orbitals(atomic%atoms%orbs(i,k)),&
+                      atomic%basis%orbitals(atomic%atoms%orbs(i,o)),tbMod)
+          call SpmPut(sol%h,atomic%atoms%orbs(i,k),atomic%atoms%orbs(i,o),cmplx(hij,0.0_k_pr,k_pr))
+        enddo
+      enddo
+    enddo
+! this may look silly but the standard does not specify the value of i at the end of the loop
+    i=atomic%atoms%natoms
+    do k=1,atomic%species%norbs(atomic%atoms%sp(i))
+      do o=1,atomic%species%norbs(atomic%atoms%sp(i))
+        hij = Onsite(atomic%basis%orbitals(atomic%atoms%orbs(i,k)),&
+                    atomic%basis%orbitals(atomic%atoms%orbs(i,o)),tbMod)
+        call SpmPut(sol%h,atomic%atoms%orbs(i,k),atomic%atoms%orbs(i,o),cmplx(hij,0.0_k_pr,k_pr))
       enddo
     enddo
 !!!!!   !$OMP END PARALLEL DO
   elseif( gen%collinear) then
-
-!     do i=1,atomic%atoms%natoms
-!       norbsi=atomic%species%norbs(atomic%atoms%sp(i))/2
-!       do j=1,atomic%atoms%natoms
-!         if (i/=j) then
-!           norbsj=atomic%species%norbs(atomic%atoms%sp(j))/2
-! ! Offsite terms
-!           call AtomDistance(atomic%atoms,j,i,rij,l,m,n)
-!           do k=1,norbsi
-!             do o=1,norbsj
-!               hij = hmn(rij,l,m,n,atomic%basis%orbitals(atomic%atoms%orbs(i,k)),&
-!                     atomic%basis%orbitals(atomic%atoms%orbs(j,o)),gen,tbMod,sol)
-!               if (abs(hij)>=gen%hElementThreshold) then
-!                 call SpmPut(sol%h,atomic%atoms%orbs(i,k),atomic%atoms%orbs(j,o),cmplx(hij,0.0_k_pr,k_pr))
-!               endif
-!               hij = hmn(rij,l,m,n,atomic%basis%orbitals(atomic%atoms%orbs(i,k+norbsi)),&
-!                     atomic%basis%orbitals(atomic%atoms%orbs(j,o+norbsj)),gen,tbMod,sol)
-!               if (abs(hij)>=gen%hElementThreshold) then
-!                 call SpmPut(sol%h,atomic%atoms%orbs(i,k+norbsi),atomic%atoms%orbs(j,o+norbsj),cmplx(hij,0.0_k_pr,k_pr))
-!               endif
-!             enddo
-!           enddo
-!         else
-! !            Onsite terms
-!           do k=1,norbsi
-!             do o=1,norbsi
-!               hij = Onsite(atomic%basis%orbitals(atomic%atoms%orbs(i,k)),&
-!                             atomic%basis%orbitals(atomic%atoms%orbs(i,o)),tbMod)
-!               call SpmPut(sol%h,atomic%atoms%orbs(i,k),atomic%atoms%orbs(i,o),cmplx(hij,0.0_k_pr,k_pr))
-!               hij = Onsite(atomic%basis%orbitals(atomic%atoms%orbs(i,k+norbsi)),&
-!                             atomic%basis%orbitals(atomic%atoms%orbs(i,o+norbsi)),tbMod)
-!               call SpmPut(sol%h,atomic%atoms%orbs(i,k+norbsi),atomic%atoms%orbs(i,o+norbsi),cmplx(hij,0.0_k_pr,k_pr))
-!             enddo
-!           enddo
-!         endif
-!       enddo
-!     enddo
-
     do i=1,atomic%atoms%natoms-1
       norbsi=atomic%species%norbs(atomic%atoms%sp(i))/2
       do j=i+1,atomic%atoms%natoms

@@ -394,12 +394,19 @@ contains
         do lp=0,2*lm
           do mp=-lp,lp
             sum=sum+qlmR(j,lp,mp,gen,sol,atomic,tb,density)*blplR(l,m,lp,mp,i,j,ir,sol)
-!
           enddo
         enddo
         deallocate(ir)
       endif
     enddo
+    if (gen%hasElectricField) then
+      if (l==0) then
+        sum= sum*k_e2/(4.0_k_pr*k_pi*k_epsilon0) + (atomic%atoms%x(i)*gen%E(1)+atomic%atoms%y(i)*gen%E(2)+atomic%atoms%z(i)*gen%E(3))*qlmR(i,l,m,gen,sol,atomic,tb,density)*k_e*2.0_k_pr*sqrt(k_pi)
+        write(28,*)"inner ",sum,atomic%atoms%chrg(i),qlmR(i,l,m,gen,sol,atomic,tb,density)*2.0_k_pr*sqrt(k_pi)
+      endif
+    else
+      sum=sum*k_e2/(4.0_k_pr*k_pi*k_epsilon0)
+    endif
     compVlmR=sum
    end function compVlmR
 
@@ -412,13 +419,13 @@ contains
      type(modelType), intent(inout) :: tb
      type(generalType), intent(inout) :: gen
 
-      if (gen%compElec) then
+     if (gen%compElec) then
 ! we compute them on the fly
-         qlmR=compQlmR(at,l,m,sol,atomic,tb,density)
-      else
+       qlmR=compQlmR(at,l,m,sol,atomic,tb,density)
+     else
 ! they were precomputed somewhere else
-         qlmR=sol%delq(at)%a(idx(l,m))
-      endif
+       qlmR=sol%delq(at)%a(idx(l,m))
+     endif
    end function qlmR
 
 
@@ -472,22 +479,22 @@ contains
 
 
   real(k_pr) function vlmR(at,l,m,gen,sol,atomic,tb,density)
-     character(len=*), parameter :: myname = 'vlmR'
-     integer, intent(in) :: l,m,at
-     real(k_pr), intent(inout) :: density(:)
-     type(atomicxType), intent(inout) :: atomic
-     type(solutionType),intent(inout) :: sol
-     type(modelType), intent(inout) :: tb
-     type(generalType), intent(inout) :: gen
+    character(len=*), parameter :: myname = 'vlmR'
+    integer, intent(in) :: l,m,at
+    real(k_pr), intent(inout) :: density(:)
+    type(atomicxType), intent(inout) :: atomic
+    type(solutionType),intent(inout) :: sol
+    type(modelType), intent(inout) :: tb
+    type(generalType), intent(inout) :: gen
 
-      if (gen%compElec) then
+    if (gen%compElec) then
 ! we compute them on the fly
-         vlmR=compVlmR(at,l,m,gen,sol,atomic,tb,density)
-      else
+      vlmR=compVlmR(at,l,m,gen,sol,atomic,tb,density)
+    else
 ! they were precomputed somewhere else
-         vlmR=sol%vs(at)%a(idx(l,m))
-      endif
-   end function vlmR
+      vlmR=sol%vs(at)%a(idx(l,m))
+    endif
+  end function vlmR
 
 !****f*   tb_sppna/fact3()
 ! NAME
@@ -522,26 +529,25 @@ contains
     integer, intent(in) :: at,lu,mu,lv,mv
     real(k_pr), intent(inout) :: density(:)
     type(atomicxType), intent(inout) :: atomic
-     type(solutionType),intent(inout) :: sol
-     type(modelType), intent(inout) :: tb
-     type(generalType), intent(inout) :: gen
+    type(solutionType),intent(inout) :: sol
+    type(modelType), intent(inout) :: tb
+    type(generalType), intent(inout) :: gen
     integer :: l,m,i
     real(k_pr) :: sum
 
     sum=0.0_k_pr
     do l=0,2*GetLmax(atomic%atoms%sp(at),atomic%speciesBasis,atomic%species)
-        do m=-l,l
-          sum=sum+sol%rgc(idx(lu,mu),idx(lv,mv),idx(l,m))*&
-              tb%delta(atomic%atoms%sp(at))%d(l,lu,lv)*&
-              vlmR(at,l,m,gen,sol,atomic,tb,density)!*sqrt(4.0_k_pr*pi/(2.0_k_pr*l+1.0_k_pr))
-        enddo
+      do m=-l,l
+        sum=sum+sol%rgc(idx(lu,mu),idx(lv,mv),idx(l,m))*&
+            tb%delta(atomic%atoms%sp(at))%d(l,lu,lv)*&
+            vlmR(at,l,m,gen,sol,atomic,tb,density)
+      enddo
     enddo
+!     hiujv=sum*k_e2/(4.0_k_pr*k_pi*k_epsilon0)
+    hiujv=sum
+  end function hiujv
 
-    hiujv=sum*k_e2/(4.0_k_pr*k_pi*k_epsilon0)
-
-   end function hiujv
-
-  real(k_pr) function fip(at,li,mi,p,gen,sol,atomic,tb,density)
+   real(k_pr) function fip(at,li,mi,p,gen,sol,atomic,tb,density)
     character(len=*), parameter :: myname = 'fip'
     integer, intent(in) :: at,li,p,mi
     real(k_pr), intent(inout) :: density(:)
@@ -555,7 +561,7 @@ contains
     sum=0.0_k_pr
     lp=li+1
     do mp=-lp,lp
-        sum=sum+sol%rgc(idx(1,p),idx(li,mi),idx(lp,mp))*&
+      sum=sum+sol%rgc(idx(1,p),idx(li,mi),idx(lp,mp))*&
           vlmR(at,lp,mp,gen,sol,atomic,tb,density)
     enddo
     fip=sum

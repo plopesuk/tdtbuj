@@ -940,7 +940,7 @@ contains
   !! dipoles in local units
     write(io%uout,'(a)')"  Atom |Specie|  Dipole x    |  Dipole y   |    Dipole z     | Units |"
     do at=1, atomic%atoms%natoms
-      write(io%uout,'(2i7,3g16.8,a)')at,atomic%atoms%sp(at),atomic%atoms%dx(at),atomic%atoms%dy(at),atomic%atoms%dz(at)
+      write(io%uout,'(2i7,3g16.8)')at,atomic%atoms%sp(at),atomic%atoms%dx(at),atomic%atoms%dy(at),atomic%atoms%dz(at)
     enddo
     write(io%uout,'(a,3g16.8)')"dipole moment ",atomic%atoms%tdipx,atomic%atoms%tdipy,atomic%atoms%tdipz
   !! dipoles in SI units

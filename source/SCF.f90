@@ -90,10 +90,10 @@ contains
               labels(3)="Eigenvectors: Spin DU"
               labels(4)="Eigenvectors: Spin UD"
               call PrintMatrixBlocks(sol%eigenvecs,labels,ioLoc,.false.,.not.genLoc%collinear)
-              labels(1)="Hin: Spin DD"
-              labels(2)="Hin: Spin UU"
-              labels(3)="Hin: Spin DU"
-              labels(4)="Hin: Spin UD"
+              labels(1)="H: Spin DD"
+              labels(2)="H: Spin UU"
+              labels(3)="H: Spin DU"
+              labels(4)="H: Spin UD"
               labelsH2(1)="H2: Spin DD"
               labelsH2(2)="H2: Spin UU"
               labelsH2(3)="H2: Spin DU"
@@ -152,14 +152,12 @@ contains
               if((.not.genLoc%compElec).and.(genLoc%electrostatics==k_electrostaticsMultipoles)) then
                 call initQvs(atomic,genLoc,sol,tbMod,sol%buff%densityin)
               endif
-
               call AddH2(genLoc,atomic,sol,tbMod,ioLoc)
               call DiagHamiltonian(ioLoc,genLoc,atomic,sol)
 !               if (genLoc%alter_dm) then
 !                   call create_dm_spin_altered(eigenvec,eigenval)
 !               endif
               call BuildDensity(atomic,sol)
-
               sol%buff%densityout=sol%density
               call CalcExcessCharges(genLoc,atomic,sol)
               call CalcDipoles(genLoc,atomic,sol,tbMod)
@@ -174,7 +172,7 @@ contains
                   call PrintMatrixBlocks(sol%h,labels,ioLoc,.false.,.not.genLoc%collinear)
                   call PrintMatrixBlocks(sol%h2,labelsH2,ioLoc,.false.,.not.genLoc%collinear)
                 else
-                  call PrintMatrix(sol%H,"Hin: ",ioLoc)
+                  call PrintMatrix(sol%H,"H: ",ioLoc)
                   call PrintMatrix(sol%eigenvecs,"Eigenvectors: ",ioLoc)
                 endif
                 call PrintOccupationNumbers(genLoc,sol,ioLoc)
@@ -260,7 +258,7 @@ contains
 
 !           ! calculate the forces
           if((.not.genLoc%compElec).and.(genLoc%electrostatics==k_electrostaticsMultipoles)) then
-            call initQvs(atomic,genLoc,sol,tbMod,sol%buff%densityin)
+            call initQvs(atomic,genLoc,sol,tbMod,sol%density)
           endif
 
           call CalcExcessCharges(genLoc,atomic,sol)
@@ -318,207 +316,87 @@ contains
     type(solutionType), intent(inout) :: sol
     type(modelType), intent(inout) :: tb
 
-    integer :: i,k,j
-    integer ::l1,l2,l1u,l2u,m1,m2,m1u,m2u,o1,o2,o1u,o2u,sp,shift,o3
-    real(k_pr) :: rAddAcc,rTmp,hij,hijf,hijd
-    integer :: m,n
-    real(k_pr) :: q0,q0up,q0down,aux,udq,uuq,elec,auxu
+    integer :: i,k
 
-    n=sol%h%dim
-    m=n*(n-1)/2
-    shift=n/2
-    q0=0.0_k_pr
-    q0up=0.0_k_pr
-    q0down=0.0_k_pr
-    elec=k_e2/(4.0_k_pr*k_pi*k_epsilon0)
-    rTmp=0.0_k_pr
-    rAddAcc=0.0_k_pr
     select case(gen%scfType)
-      case(k_scfTbuj)
-        do k=1,atomic%atoms%nscf
-          i=atomic%atoms%scf(k)
-          call ScfChargeNumbers(i,q0,q0up,q0down,atomic,sol)
-!! ! spin down
-          udq=atomic%species%ulocal(atomic%atoms%sp(i),1)*q0
-          rAddAcc=-atomic%species%jlocal(atomic%atoms%sp(i),1)*q0down! spin up
-          rTmp=-atomic%species%jlocal(atomic%atoms%sp(i),1)*q0up
-          if (io%Verbosity >= k_highVerbos) then
-            write(io%uout,'(a,i5,a,i5,a,a2)')" Atom: ", i,"  specie ",atomic%atoms%sp(i),&
-                " element ",symbol(atomic%species%z(atomic%atoms%sp(i)))
-            write(io%uout,'(a,f16.8)')" U*dQ: ", udq
-            write(io%uout,'(a,f16.8,a,f16.8)')"J*dNd: ", rAddAcc, "  J*dNu",rTmp
-          endif
-          do o1=1,atomic%species%norbs(atomic%atoms%sp(i))/2
-            o2=atomic%atoms%orbs(i,o1)
-            o3=o2+shift
-!! !spin down
-            hij=sol%h%a(o2,o2)+rAddAcc+udq
-	    if (abs(hij)>=gen%hElementThreshold) then
-        call SpmPut(sol%h,o2,o2,cmplx(hij,0.0_k_pr,k_pr))
-	    endif
-!! !spin up
-             hij=sol%h%a(o3,o3)+rTmp+udq
-	     if (abs(hij)>=gen%hElementThreshold) then
-                call SpmPut(sol%h,o3,o3,cmplx(hij,0.0_k_pr,k_pr))
-	     endif
-          enddo
-        enddo
-    case(k_scfTbu)
-      do k=1,atomic%atoms%nscf
-          i=atomic%atoms%scf(k)
-          call ScfChargeNumbers(i,q0,atomic,sol)
-          udq=atomic%species%ulocal(atomic%atoms%sp(i),1)*q0
-          if (io%Verbosity >= k_highVerbos) then
-            write(io%uout,'(a,i5,a,i5,a,a2)')" Atom: ", i,"  specie ",atomic%atoms%sp(i),&
-                " element ",symbol(atomic%species%z(atomic%atoms%sp(i)))
-            write(io%uout,'(a,f16.8)')" U*dQ: ", udq
-          endif
-          do o1=1,atomic%species%norbs(atomic%atoms%sp(i))
-            o2=atomic%atoms%orbs(i,o1)
-            hij=sol%h%a(o2,o2)+udq
-	          if (abs(hij)>=gen%hElementThreshold) then
-             call SpmPut(sol%h,o2,o2,cmplx(hij,0.0_k_pr,k_pr))
-	          endif
-          enddo
-        enddo
-    case (k_scftbuo)
-      rTmp=0.0_k_pr
-      rAddAcc=0.0_k_pr
-      do k=1,atomic%atoms%nscf
-        i=atomic%atoms%scf(k)
-        if (io%Verbosity >= k_highVerbos) then
-          write(io%uout,'(a,i5,a,i5,a,a2)')" Atom: ", i,"  specie ",atomic%atoms%sp(i),&
-              " element ",symbol(atomic%species%z(atomic%atoms%sp(i)))
-        endif
-        do j=1,atomic%species%ulocal(atomic%atoms%sp(i),0)
-          call ScfChargeNumbers(i,j-1,q0,atomic,sol)
-          udq=atomic%species%ulocal(atomic%atoms%sp(i),j)*q0
-          if (io%Verbosity >= k_highVerbos) then
-            write(io%uout,'(a,i0,a,f16.8,a1,f16.8,a1,f16.8,a1)')"l=",j-1," U*dQ: ",&
-              udq,"(",atomic%species%ulocal(atomic%atoms%sp(i),j),"*",q0,")"
-          endif
-          m1=atomic%atoms%orbs(i,1)+(j-1)*(j-1)
-          m2=m1+2*j-2
-          do o1=m1,m2
-            hij=sol%h%a(o1,o1)+udq
-            if (abs(hij)>=gen%hElementThreshold) then
-               call SpmPut(sol%h,o1,o1,cmplx(hij,0.0_k_pr,k_pr))
-            endif
-          enddo
-        enddo
-      enddo
-    case (k_scftbujo)
-      aux=atomic%basis%norbitals/2
-      do k=1,atomic%atoms%nscf
-        i=atomic%atoms%scf(k)
-        shift=atomic%species%ulocal(atomic%atoms%sp(i),0)
-        if (io%Verbosity >= k_highVerbos) then
-          write(io%uout,'(a,i5,a,i5,a,a2)')" Atom: ", i,"  specie ",atomic%atoms%sp(i),&
-              " element ",symbol(atomic%species%z(atomic%atoms%sp(i)))
-        endif
-        do j=1,atomic%species%ulocal(atomic%atoms%sp(i),0)
-          call ScfChargeNumbers(i,j-1,q0,q0down,q0up,atomic,sol)
-          udq=atomic%species%ulocal(atomic%atoms%sp(i),j)*q0down
-          uuq=atomic%species%ulocal(atomic%atoms%sp(i),j+shift)*q0up
-          rAddAcc=-atomic%species%jlocal(atomic%atoms%sp(i),j+shift)*q0down! spin up
-          rTmp=-atomic%species%jlocal(atomic%atoms%sp(i),j)*q0up
-          if (io%Verbosity >= k_highVerbos) then
-            write(io%uout,'(a,i0,a,f16.8,a1,f16.8,a1,f16.8,a1)')"l=",j-1," U*dQ (spin down): ",&
-              udq,"(",atomic%species%ulocal(atomic%atoms%sp(i),j),"*",q0down,")"
-            write(io%uout,'(a,i0,a,f16.8,a1,f16.8,a1,f16.8,a1)')"l=",j-1," U*dQ (spin up): ",&
-              uuq,"(",atomic%species%ulocal(atomic%atoms%sp(i),j+shift),"*",q0up,")"
-            write(io%uout,'(a,i0,a,f16.8,a1,f16.8,a1,f16.8,a1)')"l=",j-1," J*dQup (spin down): ",&
-              rtmp,"(",atomic%species%jlocal(atomic%atoms%sp(i),j),"*",q0up,")"
-            write(io%uout,'(a,i0,a,f16.8,a1,f16.8,a1,f16.8,a1)')"l=",j-1," J*dQdown (spin up): ",&
-              rAddAcc,"(",atomic%species%jlocal(atomic%atoms%sp(i),j+shift),"*",q0down,")"
-          endif
-          m1=atomic%atoms%orbs(i,1)+(j-1)*(j-1)
-          m2=m1+2*j-2
-          do o1=m1,m2
-            hij=sol%h%a(o1,o1)+udq+rTmp
-            if (abs(hij)>=gen%hElementThreshold) then
-               call SpmPut(sol%h,o1,o1,cmplx(hij,0.0_k_pr,k_pr))
-            endif
-            o2=o1+aux
-            hij=sol%h%a(o2,o2)+uuq+rAddAcc
-            if (abs(hij)>=gen%hElementThreshold) then
-               call SpmPut(sol%h,o2,o2,cmplx(hij,0.0_k_pr,k_pr))
-            endif
-          enddo
-        enddo
-      enddo
-    end select
-    select case(gen%electrostatics)
-      case (k_electrostaticsPoint)
+     case(k_scfTbuj)
+      select case(gen%electrostatics)
+       case (k_electrostaticsPoint)
         call BuildPotential(gen,atomic,sol)
         do k=1,atomic%atoms%nscf
           i=atomic%atoms%scf(k)
-          if (io%Verbosity >= k_highVerbos) then
-            write(io%uout,'(a,i5,a,i5,a,a2)')" Atom: ", i,"  specie ",atomic%atoms%sp(i),&
-             " element ",symbol(atomic%species%z(atomic%atoms%sp(i)))
-            write(io%uout,'(a,f16.8)')" Vrr': ", sol%potential(i)
-          endif
-          do o1=1,atomic%species%norbs(atomic%atoms%sp(i))
-            hij=sol%h%a(atomic%atoms%orbs(i,o1),atomic%atoms%orbs(i,o1))+sol%potential(i)
-            call SpmPut(sol%h,atomic%atoms%orbs(i,o1),atomic%atoms%orbs(i,o1),cmplx(hij,0.0_k_pr,k_pr))
-          enddo
+          call AddUJ(i,gen,atomic,sol,tb,io)
+          call AddElectrostaticsPoints(i,gen,atomic,sol,tb,io)
         enddo
-      case(k_electrostaticsMultipoles)
-        if (gen%spin) then
-          aux=0.0_k_pr
+       case(k_electrostaticsMultipoles)
+        if (io%Verbosity >= k_highVerbos) then
           write(io%uout,"(a)")"Multipoles increments"
-          do k=1,atomic%atoms%nscf
-            i=atomic%atoms%scf(k)
-            sp=atomic%atoms%sp(i)
-    ! spin down
-          do o1=1,atomic%species%norbs(sp)/2
-            o1u=o1+atomic%species%norbs(sp)/2
-            l1=atomic%basis%orbitals(atomic%atoms%orbs(i,o1))%l
-            m1=atomic%basis%orbitals(atomic%atoms%orbs(i,o1))%m
-            l1u=atomic%basis%orbitals(atomic%atoms%orbs(i,o1u))%l
-            m1u=atomic%basis%orbitals(atomic%atoms%orbs(i,o1u))%m
-            do o2=1,atomic%species%norbs(sp)/2
-              o2u=o2+atomic%species%norbs(sp)/2
-              l2=atomic%basis%orbitals(atomic%atoms%orbs(i,o2))%l
-              m2=atomic%basis%orbitals(atomic%atoms%orbs(i,o2))%m
-              l2u=atomic%basis%orbitals(atomic%atoms%orbs(i,o2u))%l
-              m2u=atomic%basis%orbitals(atomic%atoms%orbs(i,o2u))%m
-              aux=hiujv(i,l1,m1,l2,m2,gen,sol,atomic,tb,sol%density)
-              auxu=hiujv(i,l1u,m1u,l2u,m2u,gen,sol,atomic,tb,sol%density)
-              if (io%Verbosity >= k_highVerbos) then
-                if (abs(aux)>epsilon(aux)) &
-                  write(io%uout,"(a,i0,x,i0,x,i0,f12.8)")"d: ",i,o1,o2,aux
-                  write(io%uout,"(a,i0,x,i0,x,i0,f12.8)")"d: ",i,o1u,o2u,auxu
-              endif
-              hij=sol%h%a(atomic%atoms%orbs(i,o1),atomic%atoms%orbs(i,o2))+aux
-              call SpmPut(sol%h,atomic%atoms%orbs(i,o1),atomic%atoms%orbs(i,o2),cmplx(hij,0.0_k_pr,k_pr))
-              hij=sol%h%a(atomic%atoms%orbs(i,o1u),atomic%atoms%orbs(i,o2u))+auxu
-              call SpmPut(sol%h,atomic%atoms%orbs(i,o1u),atomic%atoms%orbs(i,o2u),cmplx(hij,0.0_k_pr,k_pr))
-            enddo
-          enddo
-          enddo
-
-!           spin up
-!           do o1=1+atomic%species%norbs(sp)/2,atomic%species%norbs(sp)
-!             l1=atomic%basis%orbitals(atomic%atoms%orbs(i,o1))%l
-!             m1=atomic%basis%orbitals(atomic%atoms%orbs(i,o1))%m
-!             do o2=1+atomic%species%norbs(sp)/2,atomic%species%norbs(sp)
-!               l2=atomic%basis%orbitals(atomic%atoms%orbs(i,o2))%l
-!               m2=atomic%basis%orbitals(atomic%atoms%orbs(i,o2))%m
-!               aux=hiujv(i,l1,m1,l2,m2,gen,sol,atomic,tb,sol%density)
-!               if (io%Verbosity >= k_highVerbos) then
-!                 if (abs(aux)>epsilon(aux)) &
-!                   write(io%uout,"(a,i0,x,i0,x,i0,f12.8)")"u: ",i,o1,o2,aux
-!               endif
-!               hij=sol%h%a(atomic%atoms%orbs(i,o1),atomic%atoms%orbs(i,o2))+aux
-!               call spmPut(sol%h,atomic%atoms%orbs(i,o1),atomic%atoms%orbs(i,o2),cmplx(hij,0.0_k_pr,k_pr))
-!             enddo
-!           enddo
-!         enddo
-        else
-
         endif
+        do k=1,atomic%atoms%nscf
+          i=atomic%atoms%scf(k)
+          call AddUJ(i,gen,atomic,sol,tb,io)
+          call AddElectrostaticsMultipolesSpin(i,gen,atomic,sol,tb,io)
+        enddo
+      end select
+     case(k_scfTbu)
+      select case(gen%electrostatics)
+       case (k_electrostaticsPoint)
+        call BuildPotential(gen,atomic,sol)
+        do k=1,atomic%atoms%nscf
+          i=atomic%atoms%scf(k)
+          call AddU(i,gen,atomic,sol,tb,io)
+          call AddElectrostaticsPoints(i,gen,atomic,sol,tb,io)
+        enddo
+       case(k_electrostaticsMultipoles)
+        if (io%Verbosity >= k_highVerbos) then
+          write(io%uout,"(a)")"Multipoles increments"
+        endif
+        do k=1,atomic%atoms%nscf
+          i=atomic%atoms%scf(k)
+          call AddU(i,gen,atomic,sol,tb,io)
+          call AddElectrostaticsMultipolesSpin(i,gen,atomic,sol,tb,io)
+        enddo
+      end select
+     case (k_scftbuo)
+      select case(gen%electrostatics)
+       case (k_electrostaticsPoint)
+        call BuildPotential(gen,atomic,sol)
+        do k=1,atomic%atoms%nscf
+          i=atomic%atoms%scf(k)
+          call AddUO(i,gen,atomic,sol,tb,io)
+          call AddElectrostaticsPoints(i,gen,atomic,sol,tb,io)
+        enddo
+       case(k_electrostaticsMultipoles)
+        if (io%Verbosity >= k_highVerbos) then
+          write(io%uout,"(a)")"Multipoles increments"
+        endif
+        do k=1,atomic%atoms%nscf
+          i=atomic%atoms%scf(k)
+          call AddUO(i,gen,atomic,sol,tb,io)
+          call AddElectrostaticsMultipolesSpin(i,gen,atomic,sol,tb,io)
+        enddo
+      end select
+     case (k_scftbujo)
+      select case(gen%electrostatics)
+       case (k_electrostaticsPoint)
+        call BuildPotential(gen,atomic,sol)
+        do k=1,atomic%atoms%nscf
+          i=atomic%atoms%scf(k)
+          call AddUJO(i,gen,atomic,sol,tb,io)
+          call AddElectrostaticsPoints(i,gen,atomic,sol,tb,io)
+        enddo
+       case(k_electrostaticsMultipoles)
+        if (io%Verbosity >= k_highVerbos) then
+          write(io%uout,"(a)")"Multipoles increments"
+        endif
+        do k=1,atomic%atoms%nscf
+          i=atomic%atoms%scf(k)
+          call AddUJO(i,gen,atomic,sol,tb,io)
+          call AddElectrostaticsMultipolesSpin(i,gen,atomic,sol,tb,io)
+        enddo
+      end select
     end select
+
   end subroutine AddH2
 
 !> \brief computes the electron numbers for an atom
@@ -542,7 +420,6 @@ contains
       q0up=0.0_k_pr
       q0down=0.0_k_pr
 ! spin down
-
       m=atomic%basis%norbitals*(atomic%basis%norbitals-1)/2
       from=m+atomic%atoms%orbs(at,1)
       to=-1+from+atomic%species%norbs(atomic%atoms%sp(at))/2
@@ -755,7 +632,7 @@ contains
               vlmR(i,l1,m1,gen,sol,atomic,tb,sol%density)
           enddo
         enddo
-        elecEn=elecEn+0.5_k_pr*aux*k_e2/(4.0_k_pr*k_pi*k_epsilon0)
+        elecEn=elecEn+0.5_k_pr*aux!*k_e2/(4.0_k_pr*k_pi*k_epsilon0)
       end do
     end select
     if (io%verbosity >= k_highVerbos) then
@@ -800,10 +677,8 @@ contains
         call BuildDensity(atomic,sol)
         do k=1,atomic%atoms%nmoving
           i=atomic%atoms%moving(k)
-!           if (control_var%output_level > ol_verbose) &
-!               write(control_var%output_file,'(a,i0)')"electrostatic forces contribution by l atom ",i
           do li=0,2*GetLmax(atomic%atoms%sp(i),atomic%speciesBasis,atomic%species)
-            aux=(2.0_k_pr*li+3.0_k_pr)*sqrt(4.0_k_pr*k_pi/3.0_k_pr)*k_e2/(4.0_k_pr*k_pi*k_epsilon0)
+            aux=(2.0_k_pr*li+3.0_k_pr)*sqrt(4.0_k_pr*k_pi/3.0_k_pr)!*k_e2/(4.0_k_pr*k_pi*k_epsilon0)
             sx=0.0_k_pr
             sy=0.0_k_pr
             sz=0.0_k_pr
@@ -818,14 +693,301 @@ contains
             atomic%atoms%fx(i) = atomic%atoms%fx(i)-sx*aux
             atomic%atoms%fy(i) = atomic%atoms%fy(i)-sy*aux
             atomic%atoms%fz(i) = atomic%atoms%fz(i)-sz*aux
-!               if (control_var%output_level > ol_verbose) then
-!                 write(control_var%output_file,'(i0,a,3f16.8,a)')&
-!                     li," (",-sx*aux,-sy*aux,-sz*aux,")"
-!               endif
           end do
         end do
     end select
   end subroutine ScfForces
+
+
+  subroutine AddUJ(i,gen,atomic,sol,tb,io)
+    character(len=*), parameter :: myname = 'AddUJ'
+    type(ioType), intent(inout) :: io
+    type(generalType), intent(inout) :: gen
+    type(atomicxType), intent(inout) :: atomic
+    type(solutionType), intent(inout) :: sol
+    type(modelType), intent(inout) :: tb
+    integer, intent(inout) :: i
+
+    real(k_pr) :: rAddAcc,rTmp,hij,hijf,hijd
+    integer :: m,n,o2,o3,o1,shift
+    real(k_pr) :: q0,q0up,q0down,aux,udq,uuq,elec,auxu
+
+
+    n=sol%h%dim
+    m=n*(n-1)/2
+    shift=n/2
+    q0=0.0_k_pr
+    q0up=0.0_k_pr
+    q0down=0.0_k_pr
+    rTmp=0.0_k_pr
+    rAddAcc=0.0_k_pr
+
+    call ScfChargeNumbers(i,q0,q0up,q0down,atomic,sol)
+!! ! spin down
+    udq=atomic%species%ulocal(atomic%atoms%sp(i),1)*q0
+    rAddAcc=-atomic%species%jlocal(atomic%atoms%sp(i),1)*q0down! spin up
+    rTmp=-atomic%species%jlocal(atomic%atoms%sp(i),1)*q0up
+    if (io%Verbosity >= k_highVerbos) then
+      write(io%uout,'(a,i5,a,i5,a,a2)')" Atom: ", i,"  specie ",atomic%atoms%sp(i),&
+          " element ",symbol(atomic%species%z(atomic%atoms%sp(i)))
+      write(io%uout,'(a,f16.8)')" U*dQ: ", udq
+      write(io%uout,'(a,f16.8,a,f16.8)')"J*dNd: ", rAddAcc, "  J*dNu",rTmp
+    endif
+    do o1=1,atomic%species%norbs(atomic%atoms%sp(i))/2
+      o2=atomic%atoms%orbs(i,o1)
+      o3=o2+shift
+!! !spin down
+      hij=sol%h%a(o2,o2)+rAddAcc+udq
+      if (abs(hij)>=gen%hElementThreshold) then
+        call SpmPut(sol%h,o2,o2,cmplx(hij,0.0_k_pr,k_pr))
+      endif
+!! !spin up
+      hij=sol%h%a(o3,o3)+rTmp+udq
+      if (abs(hij)>=gen%hElementThreshold) then
+        call SpmPut(sol%h,o3,o3,cmplx(hij,0.0_k_pr,k_pr))
+      endif
+    enddo
+  end subroutine AddUJ
+
+  subroutine AddU(i,gen,atomic,sol,tb,io)
+    character(len=*), parameter :: myname = 'AddU'
+    type(ioType), intent(inout) :: io
+    type(generalType), intent(inout) :: gen
+    type(atomicxType), intent(inout) :: atomic
+    type(solutionType), intent(inout) :: sol
+    type(modelType), intent(inout) :: tb
+    integer, intent(inout) :: i
+
+    real(k_pr) :: hij,udq,q0
+    integer :: o1,o2
+
+    call ScfChargeNumbers(i,q0,atomic,sol)
+    udq=atomic%species%ulocal(atomic%atoms%sp(i),1)*q0
+    if (io%Verbosity >= k_highVerbos) then
+      write(io%uout,'(a,i5,a,i5,a,a2)')" Atom: ", i,"  specie ",atomic%atoms%sp(i),&
+          " element ",symbol(atomic%species%z(atomic%atoms%sp(i)))
+      write(io%uout,'(a,f16.8)')" U*dQ: ", udq
+    endif
+    do o1=1,atomic%species%norbs(atomic%atoms%sp(i))
+      o2=atomic%atoms%orbs(i,o1)
+      hij=sol%h%a(o2,o2)+udq
+      if (abs(hij)>=gen%hElementThreshold) then
+        call SpmPut(sol%h,o2,o2,cmplx(hij,0.0_k_pr,k_pr))
+      endif
+    enddo
+
+  end subroutine AddU
+
+  subroutine AddUJO(i,gen,atomic,sol,tb,io)
+    character(len=*), parameter :: myname = 'AddUJO'
+    type(ioType), intent(inout) :: io
+    type(generalType), intent(inout) :: gen
+    type(atomicxType), intent(inout) :: atomic
+    type(solutionType), intent(inout) :: sol
+    type(modelType), intent(inout) :: tb
+    integer, intent(inout) :: i
+
+    real(k_pr) :: rAddAcc,rTmp,hij,hijf,hijd
+    integer :: m,n,o2,o3,o1,shift,j,m1,m2
+    real(k_pr) :: q0,q0up,q0down,aux,udq,uuq,elec,auxu
+
+
+    n=sol%h%dim
+    m=n*(n-1)/2
+    aux=n/2
+    q0=0.0_k_pr
+    q0up=0.0_k_pr
+    q0down=0.0_k_pr
+    rTmp=0.0_k_pr
+    rAddAcc=0.0_k_pr
+
+    shift=atomic%species%ulocal(atomic%atoms%sp(i),0)
+    if (io%Verbosity >= k_highVerbos) then
+      write(io%uout,'(a,i5,a,i5,a,a2)')" Atom: ", i,"  specie ",atomic%atoms%sp(i),&
+          " element ",symbol(atomic%species%z(atomic%atoms%sp(i)))
+    endif
+    do j=1,atomic%species%ulocal(atomic%atoms%sp(i),0)
+      call ScfChargeNumbers(i,j-1,q0,q0down,q0up,atomic,sol)
+      udq=atomic%species%ulocal(atomic%atoms%sp(i),j)*q0down
+      uuq=atomic%species%ulocal(atomic%atoms%sp(i),j+shift)*q0up
+      rAddAcc=-atomic%species%jlocal(atomic%atoms%sp(i),j+shift)*q0down! spin up
+      rTmp=-atomic%species%jlocal(atomic%atoms%sp(i),j)*q0up
+      if (io%Verbosity >= k_highVerbos) then
+        write(io%uout,'(a,i0,a,f16.8,a1,f16.8,a1,f16.8,a1)')"l=",j-1," U*dQ (spin down): ",&
+          udq,"(",atomic%species%ulocal(atomic%atoms%sp(i),j),"*",q0down,")"
+        write(io%uout,'(a,i0,a,f16.8,a1,f16.8,a1,f16.8,a1)')"l=",j-1," U*dQ (spin up): ",&
+          uuq,"(",atomic%species%ulocal(atomic%atoms%sp(i),j+shift),"*",q0up,")"
+        write(io%uout,'(a,i0,a,f16.8,a1,f16.8,a1,f16.8,a1)')"l=",j-1," J*dQup (spin down): ",&
+          rtmp,"(",atomic%species%jlocal(atomic%atoms%sp(i),j),"*",q0up,")"
+        write(io%uout,'(a,i0,a,f16.8,a1,f16.8,a1,f16.8,a1)')"l=",j-1," J*dQdown (spin up): ",&
+          rAddAcc,"(",atomic%species%jlocal(atomic%atoms%sp(i),j+shift),"*",q0down,")"
+      endif
+      m1=atomic%atoms%orbs(i,1)+(j-1)*(j-1)
+      m2=m1+2*j-2
+      do o1=m1,m2
+        hij=sol%h%a(o1,o1)+udq+rTmp
+        if (abs(hij)>=gen%hElementThreshold) then
+            call SpmPut(sol%h,o1,o1,cmplx(hij,0.0_k_pr,k_pr))
+        endif
+        o2=o1+aux
+        hij=sol%h%a(o2,o2)+uuq+rAddAcc
+        if (abs(hij)>=gen%hElementThreshold) then
+            call SpmPut(sol%h,o2,o2,cmplx(hij,0.0_k_pr,k_pr))
+        endif
+      enddo
+    enddo
+  end subroutine AddUJO
+
+  subroutine AddUO(i,gen,atomic,sol,tb,io)
+    character(len=*), parameter :: myname = 'AddUO'
+    type(ioType), intent(inout) :: io
+    type(generalType), intent(inout) :: gen
+    type(atomicxType), intent(inout) :: atomic
+    type(solutionType), intent(inout) :: sol
+    type(modelType), intent(inout) :: tb
+    integer, intent(inout) :: i
+
+    real(k_pr) :: hij,udq,q0
+    integer :: o1,j,m1,m2
+
+    if (io%Verbosity >= k_highVerbos) then
+      write(io%uout,'(a,i5,a,i5,a,a2)')" Atom: ", i,"  specie ",atomic%atoms%sp(i),&
+          " element ",symbol(atomic%species%z(atomic%atoms%sp(i)))
+    endif
+    do j=1,atomic%species%ulocal(atomic%atoms%sp(i),0)
+      call ScfChargeNumbers(i,j-1,q0,atomic,sol)
+      udq=atomic%species%ulocal(atomic%atoms%sp(i),j)*q0
+      if (io%Verbosity >= k_highVerbos) then
+        write(io%uout,'(a,i0,a,f16.8,a1,f16.8,a1,f16.8,a1)')"l=",j-1," U*dQ: ",&
+          udq,"(",atomic%species%ulocal(atomic%atoms%sp(i),j),"*",q0,")"
+      endif
+      m1=atomic%atoms%orbs(i,1)+(j-1)*(j-1)
+      m2=m1+2*j-2
+      do o1=m1,m2
+        hij=sol%h%a(o1,o1)+udq
+        if (abs(hij)>=gen%hElementThreshold) then
+          call SpmPut(sol%h,o1,o1,cmplx(hij,0.0_k_pr,k_pr))
+        endif
+      enddo
+    enddo
+
+  end subroutine AddUO
+
+
+  subroutine AddElectrostaticsPoints(i,gen,atomic,sol,tb,io)
+    character(len=*), parameter :: myname = 'AddElectrostaticsPoints'
+    type(ioType), intent(inout) :: io
+    type(generalType), intent(inout) :: gen
+    type(atomicxType), intent(inout) :: atomic
+    type(solutionType), intent(inout) :: sol
+    type(modelType), intent(inout) :: tb
+    integer, intent(inout) :: i
+
+    integer :: o1
+    real(k_pr) :: hij
+
+    if (io%Verbosity >= k_highVerbos) then
+      write(io%uout,'(a,i5,a,i5,a,a2)')" Atom: ", i,"  specie ",atomic%atoms%sp(i),&
+        " element ",symbol(atomic%species%z(atomic%atoms%sp(i)))
+      write(io%uout,'(a,f16.8)')" Vrr': ", sol%potential(i)
+    endif
+    do o1=1,atomic%species%norbs(atomic%atoms%sp(i))
+      hij=sol%h%a(atomic%atoms%orbs(i,o1),atomic%atoms%orbs(i,o1))+sol%potential(i)
+      call SpmPut(sol%h,atomic%atoms%orbs(i,o1),atomic%atoms%orbs(i,o1),cmplx(hij,0.0_k_pr,k_pr))
+    enddo
+
+  end subroutine AddElectrostaticsPoints
+
+  subroutine AddElectrostaticsMultipolesSpin(i,gen,atomic,sol,tb,io)
+    character(len=*), parameter :: myname = 'AddElectrostaticsMultipolesSpin'
+    type(ioType), intent(inout) :: io
+    type(generalType), intent(inout) :: gen
+    type(atomicxType), intent(inout) :: atomic
+    type(solutionType), intent(inout) :: sol
+    type(modelType), intent(inout) :: tb
+    integer, intent(inout) :: i
+
+    integer :: sp,o1,o2,l1,m1,l2,m2
+    integer :: o1u,o2u,l1u,m1u,l2u,m2u
+    real(k_pr) :: aux,auxu,hij
+
+    sp=atomic%atoms%sp(i)
+    do o1=1,atomic%species%norbs(sp)/2
+      o1u=o1+atomic%species%norbs(sp)/2
+      l1=atomic%basis%orbitals(atomic%atoms%orbs(i,o1))%l
+      m1=atomic%basis%orbitals(atomic%atoms%orbs(i,o1))%m
+      l1u=atomic%basis%orbitals(atomic%atoms%orbs(i,o1u))%l
+      m1u=atomic%basis%orbitals(atomic%atoms%orbs(i,o1u))%m
+      do o2=1,atomic%species%norbs(sp)/2
+        o2u=o2+atomic%species%norbs(sp)/2
+        l2=atomic%basis%orbitals(atomic%atoms%orbs(i,o2))%l
+        m2=atomic%basis%orbitals(atomic%atoms%orbs(i,o2))%m
+        l2u=atomic%basis%orbitals(atomic%atoms%orbs(i,o2u))%l
+        m2u=atomic%basis%orbitals(atomic%atoms%orbs(i,o2u))%m
+        aux=hiujv(i,l1,m1,l2,m2,gen,sol,atomic,tb,sol%density)
+        auxu=hiujv(i,l1u,m1u,l2u,m2u,gen,sol,atomic,tb,sol%density)
+        if (io%Verbosity >= k_highVerbos) then
+          if (abs(aux)>epsilon(aux)) &
+            write(io%uout,"(a,i0,x,i0,x,i0,f12.8)")"d: ",i,o1,o2,aux
+            write(io%uout,"(a,i0,x,i0,x,i0,f12.8)")"d: ",i,o1u,o2u,auxu
+        endif
+        hij=sol%h%a(atomic%atoms%orbs(i,o1),atomic%atoms%orbs(i,o2))+aux
+        call SpmPut(sol%h,atomic%atoms%orbs(i,o1),atomic%atoms%orbs(i,o2),cmplx(hij,0.0_k_pr,k_pr))
+        hij=sol%h%a(atomic%atoms%orbs(i,o1u),atomic%atoms%orbs(i,o2u))+auxu
+        call SpmPut(sol%h,atomic%atoms%orbs(i,o1u),atomic%atoms%orbs(i,o2u),cmplx(hij,0.0_k_pr,k_pr))
+      enddo
+!       if (gen%hasElectricField) then
+!         if (io%Verbosity >= k_highVerbos) then
+!           if (abs(aux)>epsilon(aux)) &
+!             write(io%uout,"(a,i0,x,i0,x,f12.8)")"u: ",i,o1,aux
+!         endif
+!         aux=2.0_k_pr*atomic%atoms%chrg(i)*(atomic%atoms%x(i)*gen%E(1)+atomic%atoms%y(i)*gen%E(2)+atomic%atoms%z(i)*gen%E(3))
+!         hij=sol%h%a(atomic%atoms%orbs(i,o1),atomic%atoms%orbs(i,o1))+aux
+!         call spmPut(sol%h,atomic%atoms%orbs(i,o1),atomic%atoms%orbs(i,o1),cmplx(hij,0.0_k_pr,k_pr))
+!         hij=sol%h%a(atomic%atoms%orbs(i,o1u),atomic%atoms%orbs(i,o1u))+aux
+!         call SpmPut(sol%h,atomic%atoms%orbs(i,o1u),atomic%atoms%orbs(i,o1u),cmplx(hij,0.0_k_pr,k_pr))
+!       endif
+    enddo
+  end subroutine AddElectrostaticsMultipolesSpin
+
+  subroutine AddElectrostaticsMultipolesSpinLess(i,gen,atomic,sol,tb,io)
+    character(len=*), parameter :: myname = 'AddElectrostaticsMultipolesSpinLess'
+    type(ioType), intent(inout) :: io
+    type(generalType), intent(inout) :: gen
+    type(atomicxType), intent(inout) :: atomic
+    type(solutionType), intent(inout) :: sol
+    type(modelType), intent(inout) :: tb
+    integer, intent(inout) :: i
+
+    integer :: sp,o1,o2,l1,m1,l2,m2
+    real(k_pr) :: aux,hij
+
+    sp=atomic%atoms%sp(i)
+    do o1=1,atomic%species%norbs(sp)
+      l1=atomic%basis%orbitals(atomic%atoms%orbs(i,o1))%l
+      m1=atomic%basis%orbitals(atomic%atoms%orbs(i,o1))%m
+      do o2=1,atomic%species%norbs(sp)
+        l2=atomic%basis%orbitals(atomic%atoms%orbs(i,o2))%l
+        m2=atomic%basis%orbitals(atomic%atoms%orbs(i,o2))%m
+        aux=hiujv(i,l1,m1,l2,m2,gen,sol,atomic,tb,sol%density)
+        if (io%Verbosity >= k_highVerbos) then
+          if (abs(aux)>epsilon(aux)) &
+            write(io%uout,"(a,i0,x,i0,x,i0,f12.8)")"u: ",i,o1,o2,aux
+        endif
+        hij=sol%h%a(atomic%atoms%orbs(i,o1),atomic%atoms%orbs(i,o2))+aux
+        call spmPut(sol%h,atomic%atoms%orbs(i,o1),atomic%atoms%orbs(i,o2),cmplx(hij,0.0_k_pr,k_pr))
+      enddo
+!       if (gen%hasElectricField) then
+!         if (io%Verbosity >= k_highVerbos) then
+!           if (abs(aux)>epsilon(aux)) &
+!             write(io%uout,"(a,i0,x,i0,x,f12.8)")"u: ",i,o1,aux
+!         endif
+!         aux=2.0_k_pr*atomic%atoms%chrg(i)*(atomic%atoms%x(i)*gen%E(1)+atomic%atoms%y(i)*gen%E(2)+atomic%atoms%z(i)*gen%E(3))
+!         hij=sol%h%a(atomic%atoms%orbs(i,o1),atomic%atoms%orbs(i,o1))+aux
+!         call spmPut(sol%h,atomic%atoms%orbs(i,o1),atomic%atoms%orbs(i,o1),cmplx(hij,0.0_k_pr,k_pr))
+!       endif
+    enddo
+  end subroutine AddElectrostaticsMultipolesSpinLess
 
 end module m_SCF
 
