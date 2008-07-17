@@ -80,12 +80,6 @@ set(BLAS_LINKER_FLAGS)
 set(BLAS_LIBRARIES)
 set(BLAS95_LIBRARIES)
 
-if(BLAS_FIND_QUIETLY OR NOT BLAS_FIND_REQUIRED)
-  find_package(Threads)
-else(BLAS_FIND_QUIETLY OR NOT BLAS_FIND_REQUIRED)
-  find_package(Threads REQUIRED)
-endif(BLAS_FIND_QUIETLY OR NOT BLAS_FIND_REQUIRED)
-set(THREADS_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
 
 if(NOT BLAS_LIBRARIES)
   # BLAS in ATLAS library? (http://math-atlas.sourceforge.net/)
@@ -179,9 +173,6 @@ if(NOT BLAS_LIBRARIES)
   )
 endif(NOT BLAS_LIBRARIES)
 
-
-
-
 #BLAS in intel mkl 10 library? (em64t 64bit)
 if(NOT BLAS_LIBRARIES)
 check_fortran_libraries(
@@ -190,7 +181,6 @@ BLAS
 sgemm
 ""
 "mkl_intel_lp64;mkl_intel_thread;mkl_core;guide"
-"${THREADS_LIBRARIES}"
 )
 endif(NOT BLAS_LIBRARIES)
 if(NOT BLAS95_LIBRARIES)
@@ -200,7 +190,6 @@ BLAS
 sgemm
 ""
 "mkl_blas95;mkl_intel_lp64;mkl_intel_thread;mkl_core;guide"
-"${THREADS_LIBRARIES}"
 )
 endif(NOT BLAS95_LIBRARIES)
 
@@ -235,7 +224,6 @@ BLAS
 sgemm
 ""
 "mkl_blas95;mkl_intel;mkl_intel_thread;mkl_core;guide"
-"${THREADS_LIBRARIES}"
 )
 endif(NOT BLAS95_LIBRARIES)
 
@@ -250,7 +238,6 @@ if(NOT BLAS_LIBRARIES)
   sgemm
   ""
   "mkl;guide"
-  "${THREADS_LIBRARIES}"
   )
 endif(NOT BLAS_LIBRARIES)
 
@@ -263,7 +250,6 @@ BLAS
 sgemm
 ""
 "mkl_ia32;guide"
-"${THREADS_LIBRARIES}"
 )
 endif(NOT BLAS_LIBRARIES)
 
@@ -275,7 +261,6 @@ BLAS
 sgemm
 ""
 "mkl_em64t;guide"
-"${THREADS_LIBRARIES}"
 )
 endif(NOT BLAS_LIBRARIES)
 
