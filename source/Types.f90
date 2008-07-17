@@ -270,7 +270,7 @@ end type neighbourType
     real(k_pr), allocatable:: douts(:,:)
     real(k_pr), allocatable::  res(:,:)
     real(k_pr),allocatable :: tmpA(:)
-    type(matrixType) :: tmpB
+    type(matrixType) :: tmpB, h
     real(k_pr),allocatable  :: f(:) ,g(:)
     complex(k_pr),allocatable :: a(:,:)
     integer, allocatable :: pos1(:), pos2(:),itmp(:)

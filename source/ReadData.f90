@@ -2471,6 +2471,7 @@ end subroutine ReadBasis
     deallocate(sol%buff%itmp)
     deallocate(sol%CurrentMatrix)
     deallocate(sol%CurrentMatrix2)
+    call DestroyMatrix(sol%buff%h,io)
     if (general%smearMethod == k_smMP) then
       deallocate(sol%hermite)
     endif
