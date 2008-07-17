@@ -12,7 +12,7 @@ module m_LinearAlgebra
    use m_Constants
    use m_Useful
    use m_Types
-   use mkl95_LAPACK, only : heev
+   use mkl95_LAPACK, only : heevr
    use mkl95_blas, only : gemm, herk
 
    implicit none
@@ -223,17 +223,18 @@ contains
     character(len=*), parameter :: myname = 'DiagonalizeMatrix'
     type(matrixType),intent(inout) :: a,c
     real(kind=k_pr),intent(inout) :: lambda(:)
+    type(matrixType) :: h
     type(ioType), intent(in) :: io
     integer :: info
 
     if (.not.a%created) then
       call error("Cannot diagonalize unexistant matrix",myname,.true.,io)
     endif
-    call CopyMatrix(c,a,io)
-    call heev(c%a,lambda,'V','U',info)
+    call heevr(a%a,lambda,uplo='U',z=c%a,info=info)
     if(info/=0) then
       call error("Diagonalization failed",myname,.true.,io)
     endif
+
   end subroutine DiagonalizeMatrix
   !-------------------------------------------------!
   ! Deallocates memory in the matrix a !

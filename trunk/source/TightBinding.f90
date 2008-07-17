@@ -194,6 +194,17 @@ contains
       endif
     endif
 
+    if (.not.sol%buff%h%created) then
+      if (genLoc%spin) then
+        call CreateMatrix(sol%buff%h,sol%h%dim/2,.true.)
+      else
+        call CreateMatrix(sol%buff%h,sol%h%dim,.true.)
+      endif
+    else
+      call ZeroMatrix(sol%buff%h,ioLoc)
+    endif
+
+
     if((.not.genLoc%compElec).and.(genLoc%electrostatics==k_electrostaticsMultipoles)) then
       if (.not.allocated(sol%delq)) then
       ! this is the first time

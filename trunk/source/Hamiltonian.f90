@@ -184,21 +184,23 @@ contains
       do i=1,ns
          do j=1,ns
              sol%hdown%a(i,j)=sol%h%a(i,j)
+             sol%buff%h%a(i,j)=sol%h%a(i,j)
          enddo
       enddo
       sol%buff%tmpA=0.0_k_pr
       call ZeroMatrix(sol%buff%tmpB,io)
-      call DiagonalizeMatrix(sol%hdown,sol%buff%tmpB,sol%buff%tmpA,io)
+      call DiagonalizeMatrix(sol%buff%h,sol%buff%tmpB,sol%buff%tmpA,io)
       sol%eigenvals(1:ns)=sol%buff%tmpA(1:ns)
       do i=1,ns
          do j=1,ns
-             sol%eigenvecs%a(i,j)=sol%buff%tmpB%a(i,j)
+            sol%eigenvecs%a(i,j)=sol%buff%tmpB%a(i,j)
             sol%hup%a(i,j)=sol%h%a(i+ns,j+ns)
+            sol%buff%h%a(i,j)=sol%h%a(i+ns,j+ns)
           enddo
       enddo
       sol%buff%tmpA=0.0_k_pr
       call ZeroMatrix(sol%buff%tmpB,io)
-      call DiagonalizeMatrix(sol%hup,sol%buff%tmpB,sol%buff%tmpA,io)
+      call DiagonalizeMatrix(sol%buff%h,sol%buff%tmpB,sol%buff%tmpA,io)
       sol%eigenvals(1+ns:n)=sol%buff%tmpA(1:ns)
       do i=1,ns
          do j=1,ns
@@ -214,6 +216,7 @@ contains
     else
       sol%eigenvals=0.0_k_pr
       call ZeroMatrix(sol%eigenvecs,io)
+      call CopyMatrix(sol%buff%h,sol%h,io)
       call DiagonalizeMatrix(sol%h,sol%eigenvecs,sol%eigenvals,io)
       call CreateDensityMatrixNoSpin(gen,atomic,sol,io)
     endif

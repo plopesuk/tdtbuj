@@ -1,4 +1,5 @@
 PROJECT(tdtbuj Fortran)
+enable_language(C)
 
 set(CMAKE_BUILD_TYPE "None")
 
@@ -33,6 +34,11 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/Util")
 
 ##########################
 ## external libs
+if (UNIX)
+ set(CMAKE_FIND_LIBRARY_SUFFIXES ".a;.so")
+endif(UNIX)
+find_package(Threads)
+message("Using this linkage for threads ${CMAKE_THREAD_LIBS_INIT}")
 FIND_PACKAGE(BLAS)
 MESSAGE("Using this version of blas95 ${BLAS95_LIBRARIES} with flags
 ${BLAS_LINKER_FLAGS}")
@@ -40,10 +46,11 @@ ${BLAS_LINKER_FLAGS}")
 FIND_PACKAGE(LAPACK)
 MESSAGE("Using this version of lapack95 ${LAPACK95_LIBRARIES} with flags
 ${LAPACK_LINKER_FLAGS}")
-
 find_package(MKLSOLVER)
+
 message("Using this version of solver: ${MKLSOLVER_LIBRARIES} with flags  ${MKLSOLVER_LINKER_FLAGS} ")
-set(LIBS ${MKLSOLVER_LINKER_FLAGS} ${LAPACK95_LIBRARIES} ${MKLSOLVER_LIBRARIES} ${BLAS95_LIBRARIES} )
+
+set(LIBS "-Wl,--start-group" ${MKLSOLVER_LINKER_FLAGS} ${LAPACK95_LIBRARIES} ${MKLSOLVER_LIBRARIES} ${BLAS95_LIBRARIES} "-Wl,--end-group" ${CMAKE_THREAD_LIBS_INIT})
 ##########################
 
 
