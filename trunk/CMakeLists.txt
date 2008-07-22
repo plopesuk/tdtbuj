@@ -34,23 +34,18 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/Util")
 
 ##########################
 ## external libs
-if (UNIX)
- set(CMAKE_FIND_LIBRARY_SUFFIXES ".a;.so")
-endif(UNIX)
+set(BLA_STATIC ON)
+set(BLA_VENDOR "Intel10_64lp")
+set(BLA_F95 ON)
 find_package(Threads)
 message("Using this linkage for threads ${CMAKE_THREAD_LIBS_INIT}")
-FIND_PACKAGE(BLAS)
-MESSAGE("Using this version of blas95 ${BLAS95_LIBRARIES} with flags
-${BLAS_LINKER_FLAGS}")
-
-FIND_PACKAGE(LAPACK)
-MESSAGE("Using this version of lapack95 ${LAPACK95_LIBRARIES} with flags
-${LAPACK_LINKER_FLAGS}")
-find_package(MKLSOLVER)
-
-message("Using this version of solver: ${MKLSOLVER_LIBRARIES} with flags  ${MKLSOLVER_LINKER_FLAGS} ")
-
-set(LIBS "-Wl,--start-group" ${MKLSOLVER_LINKER_FLAGS} ${LAPACK95_LIBRARIES} ${MKLSOLVER_LIBRARIES} ${BLAS95_LIBRARIES} "-Wl,--end-group" ${CMAKE_THREAD_LIBS_INIT})
+find_package(MKLSOLVER REQUIRED)
+message("Using this linkage for mkl: ${MKLSOLVER95_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} with flags  ${MKLSOLVER_LINKER_FLAGS} ")
+if (UNIX AND BLA_STATIC)
+ set(LIBS "-Wl,--start-group" ${MKLSOLVER_LINKER_FLAGS} ${MKLSOLVER95_LIBRARIES} "-Wl,--end-group" ${CMAKE_THREAD_LIBS_INIT})
+else(UNIX AND BLA_STATIC)
+ set(LIBS ${MKLSOLVER_LINKER_FLAGS} ${MKLSOLVER95_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+endif(UNIX AND BLA_STATIC)
 ##########################
 
 
