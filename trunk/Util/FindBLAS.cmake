@@ -74,7 +74,6 @@ foreach(_library ${_list})
     NAMES ${_library}
     PATHS /usr/local/lib /usr/lib /usr/local/lib64 /usr/lib64 ENV DYLD_LIBRARY_PATH
     )
-
    else ( APPLE )
     if(BLA_STATIC)
       set(CMAKE_FIND_LIBRARY_SUFFIXES ".a;.so")
@@ -286,6 +285,7 @@ endif (BLA_VENDOR STREQUAL "Generic" OR BLA_VENDOR STREQUAL "All")
 
 #BLAS in intel mkl 10 library? (em64t 64bit)
 if (BLA_VENDOR MATCHES "Intel*" OR BLA_VENDOR STREQUAL "All")
+ include(CheckMKL)
  if (_LANGUAGES_ MATCHES C OR _LANGUAGES_ MATCHES CXX)
   if(BLAS_FIND_QUIETLY OR NOT BLAS_FIND_REQUIRED)
     find_package(Threads)
@@ -293,31 +293,6 @@ if (BLA_VENDOR MATCHES "Intel*" OR BLA_VENDOR STREQUAL "All")
     find_package(Threads REQUIRED)
   endif(BLAS_FIND_QUIETLY OR NOT BLAS_FIND_REQUIRED)
   if (WIN32)
-  if(BLA_F95)
-    if(NOT BLAS95_LIBRARIES)
-    check_fortran_libraries(
-    BLAS95_LIBRARIES
-    BLAS
-    sgemm
-    ""
-    "mkl_blas95;mkl_intel_c;mkl_intel_thread;mkl_core;libguide40"
-    ""
-    )
-    endif(NOT BLAS95_LIBRARIES)
-  else(BLA_F95)
-    if(NOT BLAS_LIBRARIES)
-    check_fortran_libraries(
-    BLAS_LIBRARIES
-    BLAS
-    SGEMM
-    ""
-    "mkl_c_dll;mkl_intel_thread_dll;mkl_core_dll;libguide40"
-    ""
-    )
-    endif(NOT BLAS_LIBRARIES)
-  endif(BLA_F95)
-  else(WIN32)
-  if (BLA_VENDOR STREQUAL "Intel10_32" OR BLA_VENDOR STREQUAL "All")
     if(BLA_F95)
       if(NOT BLAS95_LIBRARIES)
       check_fortran_libraries(
@@ -325,48 +300,83 @@ if (BLA_VENDOR MATCHES "Intel*" OR BLA_VENDOR STREQUAL "All")
       BLAS
       sgemm
       ""
-      "mkl_blas95;mkl_intel;mkl_intel_thread;mkl_core;guide"
-      "${CMAKE_THREAD_LIBS_INIT}"
+      "mkl_blas95;mkl_intel_c;mkl_intel_thread;mkl_core;libguide40"
+      ""
       )
       endif(NOT BLAS95_LIBRARIES)
     else(BLA_F95)
-    if(NOT BLAS_LIBRARIES)
+      if(NOT BLAS_LIBRARIES)
       check_fortran_libraries(
       BLAS_LIBRARIES
       BLAS
-      sgemm
+      SGEMM
       ""
-      "mkl_intel;mkl_intel_thread;mkl_core;guide"
-      "${CMAKE_THREAD_LIBS_INIT}"
+      "mkl_c_dll;mkl_intel_thread_dll;mkl_core_dll;libguide40"
+      ""
       )
       endif(NOT BLAS_LIBRARIES)
     endif(BLA_F95)
-  endif (BLA_VENDOR STREQUAL "Intel10_32" OR BLA_VENDOR STREQUAL "All")
-  if (BLA_VENDOR STREQUAL "Intel10_64lp" OR BLA_VENDOR STREQUAL "All")
-   if(BLA_F95)
-    if(NOT BLAS95_LIBRARIES)
-      check_fortran_libraries(
-      BLAS95_LIBRARIES
-      BLAS
-      sgemm
-      ""
-      "mkl_blas95;mkl_intel_lp64;mkl_intel_thread;mkl_core;guide"
-      "${CMAKE_THREAD_LIBS_INIT}"
-      )
-    endif(NOT BLAS95_LIBRARIES)
-   else(BLA_F95)
-     if(NOT BLAS_LIBRARIES)
-      check_fortran_libraries(
-      BLAS_LIBRARIES
-      BLAS
-      sgemm
-      ""
-      "mkl_intel_lp64;mkl_intel_thread;mkl_core;guide"
-      "${CMAKE_THREAD_LIBS_INIT}"
-      )
-     endif(NOT BLAS_LIBRARIES)
-   endif(BLA_F95)
-  endif (BLA_VENDOR STREQUAL "Intel10_64lp" OR BLA_VENDOR STREQUAL "All")
+  else(WIN32)
+    if (BLA_VENDOR STREQUAL "Intel10_32" OR BLA_VENDOR STREQUAL "All")
+      if(BLA_F95)
+        if(NOT BLAS95_LIBRARIES)
+        check_fortran_libraries(
+        BLAS95_LIBRARIES
+        BLAS
+        sgemm
+        ""
+        "mkl_blas95;mkl_intel;mkl_intel_thread;mkl_core;guide"
+        "${CMAKE_THREAD_LIBS_INIT}"
+        )
+        endif(NOT BLAS95_LIBRARIES)
+      else(BLA_F95)
+      if(NOT BLAS_LIBRARIES)
+        check_fortran_libraries(
+        BLAS_LIBRARIES
+        BLAS
+        sgemm
+        ""
+        "mkl_intel;mkl_intel_thread;mkl_core;guide"
+        "${CMAKE_THREAD_LIBS_INIT}"
+        )
+        endif(NOT BLAS_LIBRARIES)
+      endif(BLA_F95)
+    endif (BLA_VENDOR STREQUAL "Intel10_32" OR BLA_VENDOR STREQUAL "All")
+    if (BLA_VENDOR STREQUAL "Intel10_64lp" OR BLA_VENDOR STREQUAL "All")
+    if(BLA_F95)
+      if(NOT BLAS95_LIBRARIES)
+        check_mkl_libraries(
+        BLAS95_LIBRARIES
+        BLAS
+        sgemm
+        ""
+        "mkl_blas95"
+        "mkl_intel_lp64"
+        "mkl_intel_thread"
+        "mkl_core"
+        "guide"
+        "${CMAKE_THREAD_LIBS_INIT}"
+        ""
+        )
+      endif(NOT BLAS95_LIBRARIES)
+    else(BLA_F95)
+      if(NOT BLAS_LIBRARIES)
+        check_mkl_libraries(
+        BLAS95_LIBRARIES
+        BLAS
+        sgemm
+        ""
+        ""
+        "mkl_intel_lp64"
+        "mkl_intel_thread"
+        "mkl_core"
+        "guide"
+        "${CMAKE_THREAD_LIBS_INIT}"
+        ""
+        )
+      endif(NOT BLAS_LIBRARIES)
+    endif(BLA_F95)
+    endif (BLA_VENDOR STREQUAL "Intel10_64lp" OR BLA_VENDOR STREQUAL "All")
   endif (WIN32)
   #older vesions of intel mkl libs
   # BLAS in intel mkl library? (shared)

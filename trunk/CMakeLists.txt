@@ -34,18 +34,24 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/Util")
 
 ##########################
 ## external libs
-set(BLA_STATIC ON)
-set(BLA_VENDOR "Intel10_64lp")
+set(BLA_STATIC OFF)
+if (UNIX)
+  set(BLA_VENDOR "Intel10_64lp")
+endif(UNIX)
+if (WIN32)
+  set(BLA_VENDOR "Intel10_32")
+endif(WIN32)
+
 set(BLA_F95 ON)
 find_package(Threads)
 message("Using this linkage for threads ${CMAKE_THREAD_LIBS_INIT}")
 find_package(MKLSOLVER REQUIRED)
 message("Using this linkage for mkl: ${MKLSOLVER95_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} with flags  ${MKLSOLVER_LINKER_FLAGS} ")
-if (UNIX AND BLA_STATIC)
- set(LIBS "-Wl,--start-group" ${MKLSOLVER_LINKER_FLAGS} ${MKLSOLVER95_LIBRARIES} "-Wl,--end-group" ${CMAKE_THREAD_LIBS_INIT})
-else(UNIX AND BLA_STATIC)
+
  set(LIBS ${MKLSOLVER_LINKER_FLAGS} ${MKLSOLVER95_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-endif(UNIX AND BLA_STATIC)
+
+
+
 ##########################
 
 
