@@ -401,8 +401,9 @@ contains
     enddo
     if (gen%hasElectricField) then
       if (l==0) then
-        sum= sum*k_e2/(4.0_k_pr*k_pi*k_epsilon0) + (atomic%atoms%x(i)*gen%E(1)+atomic%atoms%y(i)*gen%E(2)+atomic%atoms%z(i)*gen%E(3))*qlmR(i,l,m,gen,sol,atomic,tb,density)*k_e*2.0_k_pr*sqrt(k_pi)
-        write(28,*)"inner ",sum,atomic%atoms%chrg(i),qlmR(i,l,m,gen,sol,atomic,tb,density)*2.0_k_pr*sqrt(k_pi)
+        sum= sum*k_e2/(4.0_k_pr*k_pi*k_epsilon0) + (atomic%atoms%x(i)*gen%E(1)+atomic%atoms%y(i)*gen%E(2)+atomic%atoms%z(i)*gen%E(3))*k_e*2.0_k_pr*sqrt(k_pi)
+      elseif(l==1) then
+        sum= sum*k_e2/(4.0_k_pr*k_pi*k_epsilon0) + gen%E(mod(2+m,3)+1)*k_e*sqrt(4.0_k_pr*k_pi/3.0_k_pr)
       endif
     else
       sum=sum*k_e2/(4.0_k_pr*k_pi*k_epsilon0)
@@ -430,15 +431,6 @@ contains
 
 
 
-!****f*   scf/bllpR()
-! NAME
-! bllpR
-! SYNOPSIS
-! bllpR(l,m,lp,mp,at1,at2)
-! INPUTS
-! integer l,m,lp,lp,at1,at2
-! l,m and lp, mp represent the quantum numbers l and m for
-! atom at1 and at2, respectively.
 ! DESCRIPTION
 !    returns the structure factor for atom at1 and at2
 !    |latex \begin{equation}
