@@ -1,0 +1,124 @@
+# Modified XYZ coordinates files
+# Last modified: 27/11/07.
+importmodel
+	name "Modified XYZ Coordinates"
+	nickname cxz
+	extension cxz
+	glob *.cxz
+	id 2
+
+	# Variable declaration
+	integer natoms,n,neighbours,k,currents,i,j,sign
+	character e
+	double rx,ry,rz,q,scale,lcurr,len,nscale,minus
+
+	# Read data
+	readline "$natoms"
+	readline "$title%100"
+	newmodel $title
+  let $minus = -1
+  let $scale = 100000.0
+  $nscale = "$minus*$scale"
+	for $n,1,$natoms
+		readline "$e $rx $ry $rz $q"
+		newatom $e
+		setcoords $rx $ry $rz
+		setcharge $q
+	end
+  readline "$currents"
+  for $k,1,$currents
+    readline "$neighbours"
+    for $n,1,$neighbours
+      readline "$i $j $lcurr"
+      if $lcurr < 0
+        $len = "$lcurr*$nscale"
+        let $sign = -1
+      else
+        $len = "$lcurr*$scale"
+        let $sign = 1
+      end
+      if $len = 0.0
+      else
+        newglyph svector
+        glyphatomsr $i $j
+        glyphdata 3 $len $sign
+        print "$i $j $lcurr $n $neighbours $k $currents"
+      end
+    end
+  end
+	rebond
+	selectall
+	centre 0 0 0
+	finalisemodel
+end
+exportmodel
+	name "XMol XYZ Coordinates"
+	extension xyz
+	glob *.xyz
+	nickname xyz
+	id 2
+
+	# Variable declaration
+	integer n
+	character e
+	double rx,ry,rz
+	atom i
+
+	writeline "$natoms"
+	writeline "$title"
+	for $i
+		writeline "$i.symbol   $i.rx   $i.ry   $i.rz   $i.q"
+	end
+end
+importtrajectory
+    name "Modified XYZ Coordinates"
+    extension "cxz"
+    glob *cxz
+    nickname cxz
+
+    # Variable declaration
+    integer n,neighbours,k,currents,i,j,minus,sign
+    character e,title
+    double rx,ry,rz,q,scale,lcurr,len,nscale
+
+    let $minus = -1
+    let $scale = 100000.0
+    $nscale = "$minus*$scale"
+
+
+    # No header in XYZ trajectories, so only check for frames
+    if $header <> true
+    readline "$natoms"
+    readline "$title%100"
+    setname $title
+    for $n,1,$natoms
+      readline "$e $rx $ry $rz $q"
+      newatom $e
+      setcoords $rx $ry $rz
+      setcharge $q
+    end
+    readline "$currents"
+    for $k,1,$currents
+      readline "$neighbours"
+      for $n,1,$neighbours
+        readline "$i $j $lcurr"
+        if $lcurr < 0
+          $len = "$lcurr*$nscale"
+          let $sign = -1
+        else
+          $len = "$lcurr*$scale"
+          let $sign = 1
+        end
+        if $len = 0.0
+        else
+          newglyph svector
+          glyphatomsr $i $j
+          glyphdata 3 $len $sign
+        end
+      end
+    end
+    rebond
+    centre 0,0,0
+    finaliseframe
+	end
+end
