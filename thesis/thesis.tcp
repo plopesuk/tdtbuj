@@ -3,10 +3,10 @@ Type=TeXnicCenterProjectInformation
 Version=4
 
 [ProjectInfo]
-MainFile=src\main.tex
-UseBibTeX=1
-UseMakeIndex=1
-ActiveProfile=LaTeX => PDF
+MainFile=src\thesis.tex
+UseBibTeX=0
+UseMakeIndex=0
+ActiveProfile=Cmake
 ProjectLanguage=en
-ProjectDialect=US
+ProjectDialect=UK
 

@@ -1,0 +1,126 @@
+# Modified XYZ coordinates files
+# Last modified: 27/11/07.
+importmodel
+	name "Modified XYZ Coordinates"
+	nickname mxz
+	extension mxz
+	glob *.mxz
+	id 2
+
+	# Variable declaration
+	integer natoms,n
+	character e
+	double rx,ry,rz,q,dx,dy,dz,cx,cy,cz,tdx,tdy,tdz,scale
+
+	# Read data
+	readline "$natoms"
+	readline "$title%100"
+	newmodel $title
+	let $cx = 0
+	let $cy = 0
+	let $cz = 0
+  let $tdx = 0
+  let $tdy = 0
+  let $tdz = 0
+  let $scale = 5.0
+
+	for $n,1,$natoms
+		readline "$e $rx $ry $rz $q $dx $dy $dz"
+		newatom $e
+		setcoords $rx $ry $rz
+		setcharge $q
+    $dx = "$scale*$dx"
+    $dy = "$scale*$dy"
+    $dz = "$scale*$dz"
+		newglyph vector
+		glyphatomr 1 $n
+		glyphdata 2 $dx $dy $dz
+		$cx = "$cx + $rx"
+		$cy = "$cy + $ry"
+		$cz = "$cz + $rz"
+    $tdx = "$tdx + $dx"
+    $tdy = "$tdy + $dy"
+    $tdz = "$tdz + $dz"
+	end
+	$cx = "$cx / $natoms"
+	$cy = "$cy / $natoms"
+	$cz = "$cz / $natoms"
+	newglyph vector
+	glyphdata 1 $cx $cy $cz
+	glyphdata 2 $tdx $tdy $tdz
+	rebond
+	selectall
+	centre 0 0 0
+	finalisemodel
+end
+exportmodel
+	name "XMol XYZ Coordinates"
+	extension xyz
+	glob *.xyz
+	nickname xyz
+	id 2
+
+	# Variable declaration
+	integer n
+	character e
+	double rx,ry,rz
+	atom i
+
+	writeline "$natoms"
+	writeline "$title"
+	for $i
+		writeline "$i.symbol   $i.rx   $i.ry   $i.rz   $i.q"
+	end
+end
+importtrajectory
+    name "Modified XYZ Coordinates"
+    extension "mxz"
+    glob *mxz
+    nickname mxz
+
+    # Variable declaration
+    integer n
+    character e,title
+    double rx,ry,rz,q,dx,dy,dz,cx,cy,cz,tdx,tdy,tdz,scale
+
+    # No header in XYZ trajectories, so only check for frames
+    if $header <> true
+    readline "$natoms"
+    readline "$title%100"
+    setname $title
+    let $cx = 0
+    let $cy = 0
+    let $cz = 0
+    let $tdx = 0
+    let $tdy = 0
+    let $tdz = 0
+    let $scale = 5.0
+    for $n,1,$natoms
+      readline "$e $rx $ry $rz $q $dx $dy $dz"
+      newatom $e
+      setcoords $rx $ry $rz
+      setcharge $q
+      $dx = "$scale*$dx"
+      $dy = "$scale*$dy"
+      $dz = "$scale*$dz"
+      newglyph vector
+      glyphatomr 1 $n
+      glyphdata 2 $dx $dy $dz
+      $cx = "$cx + $rx"
+      $cy = "$cy + $ry"
+      $cz = "$cz + $rz"
+      $tdx = "$tdx + $dx"
+      $tdy = "$tdy + $dy"
+      $tdz = "$tdz + $dz"
+    end
+    $cx = "$cx / $natoms"
+    $cy = "$cy / $natoms"
+    $cz = "$cz / $natoms"
+    newglyph vector
+    glyphdata 1 $cx $cy $cz
+    glyphdata 2 $tdx $tdy $tdz
+    rebond
+    centre 0,0,0
+    finaliseframe
+	end
+end
