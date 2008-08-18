@@ -738,8 +738,40 @@ subroutine ReadGeneral(ioLoc,genLoc)
       call error("block ElectricField is missing (you try to apply an external electric field but you do not specify it)",name,.true.,ioLoc)
     endif
     write(ioLoc%uout,'(a,3f16.8)')"External Electric Field(block ElectricField): ",genLoc%E
+    saux=GetString(ioLoc,"EtimeDependent","Constant")
+    write(ioLoc%uout,'(a,a)') &
+       "Time dependent part of the electric field (EtimeDependent): ",trim(saux)
+    if (cstr(trim(saux),"Constant")) then
+      genLoc%etd=k_constE
+    elseif(cstr(trim(saux),"Trigonometric")) then
+      genLoc%etd=k_trigonometricE
+    elseif(cstr(trim(saux),"Gaussian")) then
+      genLoc%etd=k_gaussianE
+    elseif(cstr(trim(saux),"Custom")) then
+      genLoc%etd=k_customE
+    else
+      genLoc%etd=k_constE
+    endif
+    select case(genLoc%etd)
+      case(k_constE, k_customE)
+      case(k_trigonometricE)
+        genLoc%freq=GetReal(ioLoc,"FreqE",1.0_k_pr)
+        write( ioLoc%uout,'(a,ES12.4)')"Frequency of the field)(freqE): "&
+          ,genLoc%freq
+        genLoc%phi0=GetReal(ioLoc,"Phi0E",0.0_k_pr)
+        write( ioLoc%uout,'(a,ES12.4)')"Initial phase of the field)(Phi0E): "&
+          ,genLoc%phi0
+      case(k_gaussianE)
+        genLoc%t0=GetReal(ioLoc,"t0E",0.0_k_pr)
+        write( ioLoc%uout,'(a,ES12.4)')"at what time we apply the fiield)(t0E): "&
+          ,genLoc%t0
+        genLoc%sigma=GetReal(ioLoc,"sigmaE",0.001_k_pr)
+        write( ioLoc%uout,'(a,ES12.4)')"the width of the gaussian for the fiield)(sigmaE): "&
+          ,genLoc%sigma
+    end select
   else
     genLoc%E=0.0_k_pr
+    genLoc%etd=k_constE
   endif
 
 

@@ -61,7 +61,6 @@ module m_Types
     integer :: iNoParams !< no of parameters in optimization
   end type fitType
 
-
 !> \brief see m_ReadData::ReadGeneral module for the meaning
   type,public :: generalType
     real(k_pr) :: bias
@@ -114,9 +113,6 @@ module m_Types
     real(k_pr) :: ranseed !< seed to Initialize the random number generator
     logical :: writeAnimation !< if true will write the coordinates in a file
     integer :: AnimationSteps !< writes only steps which are multiple of it
-!   logical :: write_ene
-!   logical :: write_density
-!   logical :: read_density
     logical :: ReadVelocity !< read velocity block?
     logical :: firstTime = .false. !< is it first time when is read
     logical :: screened
@@ -126,7 +122,7 @@ module m_Types
     real(k_pr) :: qTolerance !< charge tolerance used to find Fermi level
     type(timeType):: time
     type(fitType)  :: fit
-    real(k_pr) :: CurrSimTime !< keeps the time in a td simulation
+    real(k_pr) :: CurrSimTime=0.0_k_pr !< keeps the time in a td simulation
     real(k_pr) :: epsG,gtol
     real(k_pr) :: epsX,xtol
     real(k_pr) :: epsF,ftol
@@ -136,6 +132,12 @@ module m_Types
     integer :: wdensity !< what kind of density shloud be used for Eherenfest Damped
     logical :: hasElectricField !< do we apply an external electric field?
     real(k_pr) :: E(1:3)  !< the components of the electric field
+    integer :: etd !< selects the type of function that gives time dependent
+                   !< part for the electric field
+    real(k_pr) ::freq !< frequency of the electric field
+    real(k_pr) :: phi0 !< initial phase of the electric field
+    real(k_pr) :: t0 !< time t0 at which we apply the electric field
+    real(k_pr) :: sigma !< the width of the gaussian
   end type generalType
 
 !> data type that keeps the neighbours list

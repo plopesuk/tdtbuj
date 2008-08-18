@@ -22,7 +22,7 @@ module m_Electrostatics
   public :: hiujv
   public :: fip
   public :: fact3
-
+  public :: etd
   interface ChargeOnL
     module procedure ChargeOnLSpin, ChargeOnLNoSpin
   end interface
@@ -401,9 +401,10 @@ contains
     enddo
     if (gen%hasElectricField) then
       if (l==0) then
-        sum= sum*k_e2/(4.0_k_pr*k_pi*k_epsilon0) + (atomic%atoms%x(i)*gen%E(1)+atomic%atoms%y(i)*gen%E(2)+atomic%atoms%z(i)*gen%E(3))*k_e*2.0_k_pr*sqrt(k_pi)
+        sum= sum*k_e2/(4.0_k_pr*k_pi*k_epsilon0) + (atomic%atoms%x(i)*gen%E(1)+atomic%atoms%y(i)*gen%E(2)+atomic%atoms%z(i)*gen%E(3))&
+         *k_e*2.0_k_pr*sqrt(k_pi)*etd(gen)
       elseif(l==1) then
-        sum= sum*k_e2/(4.0_k_pr*k_pi*k_epsilon0) + gen%E(mod(2+m,3)+1)*k_e*sqrt(4.0_k_pr*k_pi/3.0_k_pr)
+        sum= sum*k_e2/(4.0_k_pr*k_pi*k_epsilon0) + gen%E(mod(2+m,3)+1)*k_e*sqrt(4.0_k_pr*k_pi/3.0_k_pr)*etd(gen)
       endif
     else
       sum=sum*k_e2/(4.0_k_pr*k_pi*k_epsilon0)
@@ -558,5 +559,23 @@ contains
     enddo
     fip=sum
    end function fip
+
+   real(k_pr) function etd(gen)
+   type(generalType), intent(in) :: gen
+   real(k_pr) :: expo
+
+   select case (gen%etd)
+     case(k_constE)
+       etd=1.0_k_pr
+     case(k_trigonometricE)
+       etd=cos(gen%freq*2.0_k_pr*k_pi*gen%CurrSimTime+gen%phi0)
+     case(k_gaussianE)
+      expo=(gen%CurrSimTime-gen%t0)*(gen%CurrSimTime-gen%t0)/(2.0_k_pr*gen%sigma*gen%sigma)
+      etd=1.0_k_pr/sqrt(2.0_k_pr*k_pi)*ExpRep(-expo)
+     case(k_customE)
+       etd=2.0_k_pr
+   end select
+
+   end function etd
 
 end module m_Electrostatics

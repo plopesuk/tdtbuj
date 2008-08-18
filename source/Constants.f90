@@ -65,6 +65,14 @@ module m_Constants
   integer, parameter, public :: k_TrustRegion=4
 !> fitting methods
 
+  integer, parameter, public :: k_constE=1
+  integer, parameter, public :: k_trigonometricE=2
+  integer, parameter, public :: k_gaussianE=3
+  integer, parameter, public :: k_customE=4
+!> time dependent electric field methods
+
+
+
   integer, parameter, public :: k_wrSCF=1
   integer, parameter, public :: k_wrnSCF=2
   integer, parameter, public :: k_wrTailored=3

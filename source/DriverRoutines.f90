@@ -263,10 +263,11 @@ module m_DriverRoutines
     real(k_pr) :: dt,mi
     complex(k_pr) :: ihbar,trrho,st
     type(matrixType) :: rhoold,rhodot,rhonew,rho0
-    real(k_pr) ::biasFactor,bfa
+    real(k_pr) ::biasFactor,bfa,efield
     character(len=k_ml) :: saux
 
 
+    gen%CurrSimTime=0.0_k_pr
     eneunit=GetUnit()
     popunit=GetUnit()
     xunit=GetUnit()
@@ -274,6 +275,7 @@ module m_DriverRoutines
     accUnit=GetUnit()
     donUnit=GetUnit()
     spacUnit=GetUnit()
+    efield=VectorModulus(gen%E(1),gen%E(2),gen%E(3))
     write(io%uout,'(/a/)')&
          '--Velocity Verlet Ehrenfest Dynamics----------------------------'
     if (gen%writeAnimation) then
@@ -338,8 +340,8 @@ module m_DriverRoutines
     ! now we are ready to start the dynamics,
     ! we have the forces, velocities, positions
     ! and rho at time t
-    write(eneunit,'(a1,a24,6a25)')"#","Time",  "Repuilsive Energy ",  "Electronic Energy",  "SCF Energy",&
-      "Kinetic Energy",  "Total Energy",  "No of Electrons"
+    write(eneunit,'(a1,a24,7a25)')"#","Time",  "Repuilsive Energy ",  "Electronic Energy",  "SCF Energy",&
+      "Kinetic Energy",  "Total Energy",  "No of Electrons","E field"
     st = cmplx(2.0_k_pr*dt,0.0_k_pr,k_pr)
     do istep=1,gen%nsteps
    !set global time variable
@@ -453,7 +455,7 @@ module m_DriverRoutines
       endif
 !            call write_currents(h,rho)
 !            if (mod(istep,50).eq.1) call write_rho_eigenvalues(rho)
-      write(eneunit,'(7f25.18)')gen%CurrSimTime,renergy,eenergy,scfE,kenergy,penergy+kenergy,real(trrho)
+      write(eneunit,'(8f25.18)')gen%CurrSimTime,renergy,eenergy,scfE,kenergy,penergy+kenergy,real(trrho),efield*etd(gen)
 
     enddo !istep loop
     if (gen%writeAnimation) then
@@ -496,12 +498,14 @@ module m_DriverRoutines
     integer  :: i,istep,k,j
     real(k_pr) :: dt,mi,inpn
     complex(k_pr) :: ihbar,trrho,st
-    real(k_pr) ::biasFactor,bfa,gamma,ts
+    real(k_pr) ::biasFactor,bfa,gamma,ts,efield
     character(len=k_ml) :: saux
     integer :: l,m
     logical :: OrbitalCurrent
     integer,allocatable :: currUnit(:)
 
+
+    efield=VectorModulus(gen%E(1),gen%E(2),gen%E(3))
     if (atomic%atoms%ncurrentOnBonds<=0) then
       OrbitalCurrent=.false.
     else
@@ -580,9 +584,7 @@ module m_DriverRoutines
     if((.not.gen%compElec).and.(gen%electrostatics==k_electrostaticsMultipoles)) then
       call initQvs(atomic,gen,sol,tb,sol%density)
     endif
-!          if (.not.gen%comp_elec) then
-!             if (gen%electrostatics==tbu_multi) call init_qvs(density)
-!          endif
+
     ! now build a hamiltonian with no bias
     call BuildHamiltonian(io,gen,atomic,tb,sol)
     call MatrixCeaApbB(sol%deltaRho,sol%rho,sol%rho0,k_cone,-k_cone,io)
@@ -634,8 +636,8 @@ module m_DriverRoutines
       endif
       penergy = eenergy + renergy + scfE
       kenergy = KineticEnergy(atomic)
-      write(eneunit,'(a1,a24,6a25)')"#","Time",  "Repuilsive Energy ",  "Electronic Energy",  "SCF Energy",&
-      "Kinetic Energy",  "Total Energy",  "No of Electrons"
+      write(eneunit,'(a1,a24,7a25)')"#","Time",  "Repuilsive Energy ",  "Electronic Energy",  "SCF Energy",&
+      "Kinetic Energy",  "Total Energy",  "No of Electrons","E field"
       write(eneunit,'(7f25.18)')gen%CurrSimTime,renergy,eenergy,scfE,kenergy,penergy+kenergy,real(trrho)
       call CalcExcessCharges(gen,atomic,sol)
       call CalcDipoles(gen,atomic,sol,tb)
@@ -674,6 +676,7 @@ module m_DriverRoutines
       call ZeroMatrix(sol%rhodot,io)
       call Commutator(sol%rhodot,sol%h,sol%rho,io)
       call MatrixCeaApbB(sol%deltaRho,sol%rho,sol%rho0,k_cone,-k_cone,io)
+      call ZeroDiagonalMatrix(sol%deltaRho,io)
       if (mod(istep,gen%EulerSteps)==0) then !euler step
         call ScalarTMatrix(ihbar*cmplx(dt,0.0_k_pr,k_pr),sol%rhodot,io)
         call ScalarTMatrix(cmplx(gamma*dt,0.0_k_pr,k_pr),sol%deltaRho,io)
@@ -685,7 +688,6 @@ module m_DriverRoutines
         call MatrixCeaApbB(sol%rhonew,sol%rhoold,sol%rhodot,k_cone,k_cone,io)
         ts=2.0_k_pr*dt
       end if
-      call ZeroDiagonalMatrix(sol%deltaRho,io)
       call MatrixCeaApbB(sol%rhonew,sol%rhonew,sol%deltaRho,k_cone,k_cone,io)
       ! at this point rho contains the rho at time=t
        ! propagate the positions
@@ -802,7 +804,7 @@ module m_DriverRoutines
       else
         call BuildHamiltonian(io,gen,atomic,tb,sol)
       endif
-        write(eneunit,'(7f25.18)')gen%CurrSimTime,renergy,eenergy,scfE,kenergy,penergy+kenergy,real(trrho)
+        write(eneunit,'(8f25.18)')gen%CurrSimTime,renergy,eenergy,scfE,kenergy,penergy+kenergy,real(trrho),efield*etd(gen)
       endif
     enddo !istep loop
     if (gen%writeAnimation) then

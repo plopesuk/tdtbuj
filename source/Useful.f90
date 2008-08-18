@@ -62,6 +62,11 @@ module m_Useful
     module procedure AssertEq3, AssertEq4
   end interface
 
+  interface d
+    module procedure deltaInt,deltaReal
+  end interface
+
+
 contains
 
 !> \brief logical function compares two strings
@@ -358,7 +363,7 @@ contains
     enddo
 
   end subroutine InitFact
-!> \brief implements delta function
+!> \brief implements delta function for integers
 !> \details \f[ \delta_{ab}= \begin{cases} 1 & a=b \\
 !> 0 & a\neq b
 !> \end{cases}
@@ -367,15 +372,33 @@ contains
 !> \date 01/11/07, 15:07:30
 !> \param a,b  integers
 
-  real(k_pr) function d(a,b)
+  real(k_pr) function deltaInt(a,b)
     integer :: a,b
-    d=0.0_k_pr
     if (a==b) then
-      d=1.0_k_pr
+      deltaInt=1.0_k_pr
     else
-      d=0.0_k_pr
+      deltaInt=0.0_k_pr
     endif
-  end function d
+  end function deltaInt
+
+
+!> \brief implements delta function for reals
+!> \details \f[ \delta_{ab}= \begin{cases} 1 & a=b \\
+!> 0 & a\neq b
+!> \end{cases}
+!> \f]
+!> \author Alin M Elena
+!> \date 01/11/07, 15:07:30
+!> \param a,b  reals
+  real(k_pr) function deltaReal(a,b)
+    real(k_pr) :: a,b
+    if (abs(a-b)<tiny(1.0_k_pr)) then
+      deltaReal=1.0_k_pr
+    else
+      deltaReal=0.0_k_pr
+    endif
+  end function deltaReal
+
 
 !> \brief implements an discrete step function (Heaviside)
 !> \details \f[ \theta(a)= \begin{cases} 1 & a > 0 \\

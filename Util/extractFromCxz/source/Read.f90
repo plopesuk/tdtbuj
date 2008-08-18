@@ -140,9 +140,7 @@ contains
          endif
          do j=1,zz
            read(unitinp,*,iostat=errno)at1,at2,curr1
-           print *,at1,at2,curr1
            if ((cxz%atom1 == at1) .and. (cxz%atom2 == at2)) then
-           print *,"-----",at1,at2,curr1
              cxz%frames(i)%bondCurrent=curr1
            endif
            if (errno/=0) then
