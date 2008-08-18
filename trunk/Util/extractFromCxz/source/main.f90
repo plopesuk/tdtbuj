@@ -27,7 +27,7 @@ integer :: at
       call error("the atoms are the same!!",myname,.true.,outputunit)
     endif
   else
-    call error("wrong number of arguments!!",myname,.true.,outputunit)
+    call error("wrong number of arguments!!--- usage extractCxz filename at1 at2",myname,.true.,outputunit)
   endif
 
   write(fileCurrent,'(a,i0,a1,i0,a)')"currents",cxz%atom1,"_",cxz%atom2,".out"
