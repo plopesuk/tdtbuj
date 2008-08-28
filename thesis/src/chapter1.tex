@@ -50,7 +50,7 @@ localised functions $\{\phi_i\}$ which leads to the well known secular equation}
 \ee
 with matrices $\underline{H}$ and {\underline{S}} defined by
 \be
-H_{ij}=\bra{\phi_i}H\ket{\phi_j}\quad\quad S_{ij}=\bk{\phi_i}{\phi_j}
+H_{ij}=\bra{\phi_i}H\ket{\phi_j}\quad\quad S_{ij}=\Braket{\phi_i|\phi_j}
 \ee
 \par{Commonly we call $H_{ij}$ hopping integrals and $S_{ij}$ overlap
 integrals. Another common feature is to consider $H_{ij}$, extending only to
@@ -333,3 +333,215 @@ n_{m_1m_4}^{\sigma, 0}n_{m_2m_3}^{\sigma,0}\right]
 +U formalism
 \par{1. adds electron-electron interaction}
 \par{2. restricted to the onsite terms and oritals with the same $l$}
+
+\section{On currents}
+\par{to cite Tchavdar's papers on the subject. notations this should be collected and used a the begining of the chapter.}
+\par{$\Set{\Ket{I\mu}}$ - basis set}
+\par{$\Ket{I\mu}$ an orbital centred on atom $I$}
+\par{$\Ket{\Psi}=\sum_{I,\mu}c_{I\mu}\Ket{I\mu}$ a general electronic state, where $c_{I\mu}$ are the expansion coefficients}
+\par{We assume that we have an orthogonal basis set}
+\be{equation}
+\braket{I\mu | J_nu}=\delta_{IJ}\delta_{\mu\nu}
+\ee
+\par{The Hamiltonian is}
+\be
+\Hamiltonian=\sum_{I\mu J\nu}\Braket{I\mu | \Hamiltonian_{I\mu J\nu} | J\nu}
+\ee
+\be
+\Hamiltonian_{I\mu J\nu}=\Braket{I\mu | \Hamiltonian | J\mu}
+\ee
+\be
+\Hamiltonian\Ket{\Psi(t)}=i\hbar \Ket{\dot{\Psi}(t)}
+\ee
+\be
+\Hamiltonian\Ket{\Psi}=E\Ket{\psi} 
+\ee
+\par{$E$ is the energy eigenvalue}
+\par{Let us define the projection operator}
+\be
+\mc{P}_{I}=\sum_{\mu} \Ket{I\mu}\Bra{I\mu}
+\ee
+\par{it represents the electron occupancy of atomic site $I$. It satisfies the following closure relation}
+\be
+\sum_{I}\mc{P}_{I}=\bm{I}
+\ee
+\be
+\bm{P}_{I}=\Braket{\Psi(t) | \mc{P}_{I} |\Psi(t)}
+\ee
+\par{Let us calculate $\dot{\bm{P}}_{I}(t)$}
+\be
+\begin{split}
+\dot{\bm{P}}_{I}(t)&=\de{}{t}\left[\Braket{\Psi(t) | \mc{P}_{I} |\Psi(t)}\right]\\
+ &=\Braket{\dot{\Psi}(t) | \mc{P}_{I} |\Psi(t)}+\Braket{\Psi(t) | \mc{P}_{I} |\dot{\Psi}(t)}
+\end{split}
+\ee
+\par{using time dependent Schr\"{o}dinger equation}
+\be
+\begin{split}
+\Ket{\dot{\Psi}(t)}=&\frac{1}{i\hbar}\Hamiltonian\Ket{\Psi(t)}\\
+\Bra{\dot{\Psi}(t)}=&-\frac{1}{i\hbar}\Bra{\Psi(t)}\Hamiltonian
+\end{split}
+\ee
+\par{we get}
+\be
+\begin{split}
+\dot{\bm{P}}_{I}(t)=&-\frac{1}{i\hbar}\Braket{\Psi(t) | \mc{HP}_{I} | \Psi(t)}+\frac{1}{i\hbar}\Braket{\Psi(t) | \mc{P}_{I}\Hamiltonian |\Psi(t)}\\
+ =&\frac{1}{i\hbar}\Braket{\Psi(t) | \Commutator{\mc{P}_{I}}{\Hamiltonian} | \Psi(t)}
+\end{split}
+\ee
+\par{Now we can define}
+\be
+\mc{J}_{I}=\frac{1}{i\hbar}\Commutator{\mc{P}_{I}}{\Hamiltonian}
+\ee
+\be
+\begin{split}
+\mc{J}_{I}=&\frac{1}{i\hbar}\left( \mc{P}_{I}\Hamiltonian - \Hamiltonian\mc{P}_{I}  \right)\\
+=&\frac{1}{i\hbar}\left( \mc{P}_{I}\Hamiltonian\bm{I} - \bm{I}\Hamiltonian\mc{P}_{I}  \right)\\
+=&\sum_{J\neq I}\left( \mc{P}_{I}\Hamiltonian\mc{P}_{J} - \mc{P}_{J}\Hamiltonian\mc{P}_{I} \right)
+\end{split}
+\ee
+\par{we define}
+\be
+\mc{J}_{J\mapsto I}=\frac{1}{i\hbar}\left(\mc{P}_{I}\Hamiltonian{H}\mc{P}_{J} - \mc{P}_{J}\Hamiltonian\mc{P}_{I} \right)
+\ee
+\par{it represents the electronic particle current from site $J$ to site $I$, it may be thought as a bond current. This expression is derived under the orthonormal basis assumption.}
+\be
+\begin{split}
+\mc{J}_{J\mapsto I}=&\frac{1}{i\hbar}\left(\sum_{\mu,\nu}\Ket{I\mu}\Bra{I\mu}\Hamiltonian\Ket{J\nu}\Bra{J\nu}-\sum_{\mu,\nu}\Ket{J\nu}\Bra{J\nu}\Hamiltonian\Ket{I\mu}\Bra{I\mu}\right)\\
+=&\frac{1}{i\hbar}\left(\sum_{\mu,\nu}\Ket{I\mu}\Hamiltonian_{I\mu J\nu}\Bra{J\nu}-\sum_{\mu,\nu}\Ket{J\nu}\Hamiltonian_{J\nu I\mu}\Bra{I\mu}\right)
+\end{split}
+\ee
+\par{and now we can compute easily the matrix elements of the bond current operator.}
+\be
+\begin{split}
+\mc{J}_{J\mapsto I}\Ket{K\kappa}=&\frac{1}{i\hbar}\left(\sum_{\mu,\nu}\Ket{I\mu}\Hamiltonian_{I\mu J\nu}\Braket{J\nu | K\kappa}-\sum_{\mu,\nu}\Ket{J\nu}\Hamiltonian_{J\nu I\mu}\Braket{I\mu | K\kappa}\right)\\
+=&\frac{1}{i\hbar}\left(\sum_{\mu}\Ket{I\mu}\Hamiltonian_{I\mu J\kappa}\delta_{JK}-\sum_{\nu}\Ket{J\nu}\Hamiltonian_{J\nu I\kappa}\delta_{IK}\right)
+\end{split}
+\ee
+%
+\be
+\begin{split}
+\Braket{L\lambda | \mc{J}_{J\mapsto I} | K\kappa}=\mc{J}_{J\mapsto I}^{L\lambda K\kappa}=\frac{1}{i\hbar}\left(\Hamiltonian_{I\lambda J\kappa}\delta_{JK}\delta_{IL}-\Hamiltonian{H}_{J\lambda I\kappa}\delta_{IK}\delta_{JL}\right)
+\end{split}
+\ee
+\par{the average electron particle current from $J$ to $I$ is}
+\be
+\begin{split}
+\tm{J}_{J\mapsto I}=&\Trace\left( {\mc{J}_{J\mapsto I}\rho}\right)=\sum_{A\alpha B\beta}\mc{J}_{J\mapsto I}^{A\alpha B\beta}\rho_{A\alpha B\beta}\\
+=&\frac{1}{i\hbar}\sum_{A\alpha B\beta}\left( \Hamiltonian_{I\alpha J\beta}\delta_{IA}\delta_{JB}-\Hamiltonian_{J\alpha I\beta}\delta_{IB}\delta_{JA}\right)\rho{B\beta A\alpha}
+ \end{split}
+\ee
+\par{using the fact that \Hamiltonian is real and the hermicity of $\rho$}
+\be
+\begin{split}
+ \tm{J}_{J\mapsto I}=&\frac{1}{i\hbar}\sum_{\alpha \beta}\Hamiltonian_{I\alpha J\beta}\left(\rho_{J\beta I\alpha}-\rho_{I\alpha J\beta}\right)=\frac{1}{i\hbar}\sum_{\alpha \beta}\Hamiltonian_{I\alpha J\beta}\left(\rho_{J\beta I\alpha}-\rho_{J\beta I\alpha}^{*}\right)\\ \\
+=&\frac{2}{\hbar}\sum_{\alpha \beta}\Hamiltonian_{I\alpha J\beta}\bm{Im}\rho_{J\beta I\alpha}
+\end{split}
+\ee
+\par{and we define the bond current}
+\be
+\tm{J}_{J\mapsto I}=\frac{2e}{\hbar}\sum_{\alpha \beta}\Hamiltonian_{I\alpha J\beta}\bm{Im}\rho_{J\beta I\alpha}
+\ee
+\par{We can find a continuity equation for our current and density}
+\be
+\begin{split}
+\bm{P}_I=&\Trace\left( \mc{P}\hat{\rho}\right)\\
+\dot{\bm{P}}_I=&\Trace\left( \mc{P}\dot{\hat{\rho}}\right)	
+\end{split}
+\ee
+\par{We recall the equation for $\dot{\hat{\rho}}$}
+\be
+\dot{\hat{\rho}}=\frac{1}{i\hbar}\Commutator{\Hamiltonian}{\hat{\rho}}-\Gamma\left(\hat{\rho}-\hat{\rho_0}\right)
+\ee
+\be
+\dot{\bm{P}}_{I}=\Trace\left(\mc{P}_{I}\frac{1}{i\hbar}\Commutator{\Hamiltonian}{\hat{\rho}}\right)-\Gamma \Trace \left( \mc{P}_{I}\left(\hat{\rho}-\hat{\rho_0}\right)\right)
+\ee
+\be
+\begin{split}
+ \Trace&\left( \mc{P}_{I}\Commutator{\Hamiltonian}{\hat{\rho}}\right)=-\Trace\left( \mc{P}_{I}\Commutator{\hat{\rho}}{\Hamiltonian}\right)\\
+ =&-\Trace\left(\Commutator{\mc{P}_I\hat{\rho}}{\Hamiltonian}-\Commutator{\mc{P}_I}{\Hamiltonian}\hat{\rho}\right)\\
+ =&\Trace \left(\Commutator{\mc{P}_{I}}{\Hamiltonian}\hat{\rho}\right)
+\end{split}
+\ee
+\par{Where we used the well known commutators properties}
+\be
+\begin{split}
+ \Commutator{\bm{AB}}{\bm{C}}&=\bm{A}\Commutator{\bm{B}}{\bm{C}}+\Commutator{\bm{A}}{\bm{C}}\bm{B}\\
+ \Trace&\left(\Commutator{\bm{A}}{\bm{B}}\right)=0
+\end{split}
+\ee
+\be
+\dot{\bm{P}}_{I}=\Trace \left(\frac{1}{i\hbar}\Commutator{\mc{P}_{I}}{\Hamiltonian}\hat{\rho}\right)-\Gamma(\bm{P}_{I}-\bm{P}_{0})
+\ee
+\be
+\dot{\rho}_{II}=\sum_{J \neq I}\tm{J}_{J\mapsto I}-\Gamma\Delta\rho_{II}
+\ee
+\section{Magnetic field of bond currents}
+\par{We wan to compute the magnetic field created by the bond current in a ring molecule, see figure \ref{fig:MagneticField}. For simplicity, but without the loss of generality, we consider the molecule laying the x-y plane. The problem can be broken in two parts. Part one compute the magnetic field due to a finite length wire and part two add all the contributions.}
+\par{Part one can be formulated as:}
+\par{\emph{Compute the magnetic field generated by a wire (AB) of finite length, $L$, carrying a constant current $I_0$. The wire is parallel with the y-axis and the current flows in the direction of the y-axis. The distance between the y-axis and the wire is $R$.}}
+\begin{figure}[!ht]
+\begin{center}
+\scalebox{1.2}{\input{bfield.tex}}
+\caption{Geometry of the finite length wire}
+\label{fig:MagneticField}
+\end{center}
+\end{figure}
+\par{The current in the wire can be written as}
+\be
+\bm{j}(\bm{r},t)=I_0\delta(z)\delta(x-R)\Theta(y-a)\Theta(a+L-y)\versor{y}
+\label{eq:current}
+\ee
+\par{where $\delta$ represents the Dirac function and $\Theta$ the Heaviside step function.}
+\par{We can compute very simple, using the retarted potentials, the vector potential $\bm{A}(\bm{r},t)$}
+\be
+\bm{A}(\bm{r},t)=\frac{\mu_0}{4\pi}\int\td^3\bm{r'}\td{t'}\cfrac{\delta\left(t'-t+\cfrac{|\bm{r}-\bm{r'}|}{c}\right)}{|\bm{r}-\bm{r'}|}\bm{j}(\bm{r},t)
+\ee
+\par{there is no time dependence in the current so the time integral is straight-forward}
+\be
+\bm{A}(\bm{r},t)=\frac{\mu_0}{4\pi}\int\td^3\bm{r'}\cfrac{1}{|\bm{r}-\bm{r'}|}\bm{j}(\bm{r},t)
+\ee
+\par{with}
+\ben
+\begin{split}
+ \bm{r}=&x\versor{x}+y\versor{y}+z\versor{z}\\
+\bm{r'}=&R\versor{x}+y'\versor{y}\\
+|\bm{r}-\bm{r'}|=&\sqrt{(x-R)^2+(y-y')^2+z^2}=l\\
+d^2=&(x-R)^2+z^2
+\end{split}
+\een
+\par{and equation \gref{eq:current} $\bm{A}$ becomes}
+\be
+\bm{A}(\bm{r},t)=\frac{\mu_0I_0}{4\pi}\versor{y}\int\td x'\td y'\td z'\cfrac{\delta(z')\delta(x'-R)\Theta(y'-a)\Theta(a+L-y')}{l}
+\ee
+\be
+\bm{A}(\bm{r},t)=\frac{\mu_0I_0}{4\pi}\versor{y}\int_{a}^{a+L}\frac{\td y'}{l}
+\ee
+\par{now we can compute very simple the magnetic field $\bm{B}$}
+\be
+\bm{B}=\nabla\times\bm{A}=
+\left|\begin{array}{ccc}
+       \versor{x} & \versor{y} & \versor{z}  \\
+       \p{}{x} & \p{}{y} & \p{}{z} \\
+        0 & \bm{A}_y & 0
+      \end{array}
+ \right| = -\p{\bm{A}_y}{z}\versor{x}+\p{\bm{A}_y}{x}\versor{z}
+\ee
+\be
+\begin{split}
+ \p{}{z}\frac{1}{l}=&\p{}{z}\frac{1}{\sqrt{(x-R)^2+(y-y')^2+z^2}}=-\cfrac{z}{\left[(x-R)^2+(y-y')^2+z^2\right]^{3/2}}\\
+ \p{}{x}\frac{1}{l}=&\p{}{x}\frac{1}{\sqrt{(x-R)^2+(y-y')^2+z^2}}=-\cfrac{x-R}{\left[(x-R)^2+(y-y')^2+z^2\right]^{3/2}}
+\end{split}
+\ee
+\par{so \bm{B} becomes}
+\be
+\bm{B}=\frac{\mu_0I_0}{4\pi}\int_{a}^{a+L}\frac{\td y'}{\left(d^2+(y-y')^2\right)^{3/2}}\left(z\versor{x}-(x-R)\versor{z}\right)
+\ee
+\par{the integral is}
+\be
+\int\frac{\td y'}{\left(d^2+(y-y')^2\right)^{3/2}}=\frac{1}{d^2}\frac{y'-y}{\sqrt{d^2+(y-y')^2}}+\mc{C}
+\ee
+\par{so}
+\be
+\bm{B}=\frac{\mu_0I_0}{4\pi d^2}\left[\frac{a+L-y}{\sqrt{d^2+(a+L-y)^2}}-\frac{a-y}{\sqrt{d^2+(a-y)^2}}\right]\left(z\versor{x}-(x-R)\versor{z}\right)
+\ee

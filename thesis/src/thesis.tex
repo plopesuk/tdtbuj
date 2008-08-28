@@ -1,5 +1,5 @@
 %it uses aprilthesis.cls just a simple customisation of the standard book latex package
-% with different tips and tricks 
+% with different tips and tricks
 % there is also an extramath.sty package that contains
 % macros needed to write physics and mathematics
 %
@@ -8,7 +8,6 @@
 \usepackage[titletoc]{appendix} % appendices
 \usepackage[english]{babel}  %good spelling
 \usepackage{amssymb,amsmath} %nicer math
-\usepackage{fancyhdr}  %funky headers
 \usepackage{varwidth} %minipages made easier
 \usepackage{makeidx} %index
 \usepackage{hepunits}  %gives you units
@@ -19,7 +18,10 @@
 \usepackage[sort&compress,numbers]{natbib} %references
 \usepackage{hypernat} %references
 \usepackage[style=justsymbols,toc,nonumberlist]{glossaries} %glossaries a little bit non standard
+\renewcommand\bibsection{\chapter*{\bibname \markboth{\bibname}{}}}
+
 %
+
 \makeglossaries
 % the file containting the glossary entry
 \input{glossary}
@@ -29,7 +31,7 @@
 \author{Alin Marin Elena}
 \acadtitle{Licentiate in Physics}
 \affiliation{The Queen's University of Belfast}
-\tdesc{A thesis  submitted to the School of Mathematics and Physics\\in partial fulfilment 
+\tdesc{A thesis  submitted to the School of Mathematics and Physics\\in partial fulfilment
 of the requirements for the degree of\\Doctor of Philosophy}
 %not official asked but nice to have it
 \logo[3cm]{figures/qub}
@@ -39,13 +41,12 @@ of the requirements for the degree of\\Doctor of Philosophy}
 \hypersetup{%
 pdftitle = {Time Dependent Tight Binding+U: Applications to Fluorescent Molecules},
 pdfsubject = {Alin M Elena's PhD thesis},
-pdfkeywords = {time dependent, tight binding, fluorescent, electronic structure, atoms, molecules, dft, oprimisation},
+pdfkeywords = {time dependent, tight binding, fluorescent, electronic structure, atoms, molecules, dft, optimisation,LDA+U,TB+U},
 pdfauthor = {\textcopyright\ Alin Marin Elena}
 }
 %
 \begin{document}
 % you get no style for the frontmatter
-\pagestyle{empty}
 \frontmatter
 % generates the title page
 % according to QUB requirements
@@ -54,24 +55,29 @@ pdfauthor = {\textcopyright\ Alin Marin Elena}
 %if uncommented will insert a dedication page
 %the dedication gets centered in the middle of the page
 %first argument is intended to be used only for a short word
-%second argument contains the dedication text you can use \\ to break the line 
+%second argument contains the dedication text you can use \\ to break the line
+\thispagestyle{empty}
 \makededication{to}{be added}
 %
 %if uncommented will insert main quote page
 % the quote will be centered on the page
 % there is another command \chapterquote{}{} that will insert a quote
 % aligned to right.
-\mainquote{to be decided
-}{\quad \quad ....}
+\thispagestyle{empty}
+\mainquote{``One of the main reasons why the sciences are so poor is that they imagine they are so rich. It isn't their job to throw open the door to infinite wisdom but to put a limit to infinite error.``
+}{\quad \quad Bertolt Brecht - \emph{Life of Galileo}}
 %
 \chapter{Abstract}
+\markboth{Abstract}{}
 \input{abstract}
 %
 \chapter{Acknowledgement}
+\markboth{Acknowledgement}{}
 \input{acknowledgement}
 %
-\setcounter{tocdepth}{1}
+\setcounter{tocdepth}{2}
 \tableofcontents
+
 %
 \glsaddall
 \renewcommand{\glossaryname}{Glossary of Symbols}
@@ -103,6 +109,11 @@ pdfauthor = {\textcopyright\ Alin Marin Elena}
 \chapter{Entropy}
  \input{appendixC}
 \end{appendices}
+\begin{appendices}
+\chapter{Atomic Rydberg Units}
+ \input{appendixD}
+\end{appendices}
+
 %
 \backmatter
 % references. First we redifine the default \bibname
@@ -114,17 +125,14 @@ pdfauthor = {\textcopyright\ Alin Marin Elena}
 \bibliographystyle{plainnat}
 %the file that contains the .bib references
 \bibliography{mythesis}
+
 %we generate the list of tables and figures here at the end
 % it is a matter of taste again the phantomsection trick
-\cleardoublepage
-\phantomsection
-\addcontentsline{toc}{chapter}{\listtablename}
 \listoftables
 %
-\cleardoublepage
-\phantomsection
-\addcontentsline{toc}{chapter}{\listfigurename}
 \listoffigures
+%
+\listofalgorithms
 % the index if there is one.
 % the \addtolength trick is to give us all the chapters starting at the same place on the page
 \cleardoublepage

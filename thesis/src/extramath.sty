@@ -24,9 +24,6 @@
 \DeclareRobustCommand{\ofOrder}[1]{\thesismath{ \mathcal{O}\parenths{#1} }}
 \DeclareRobustCommand{\gref}[1]{(\ref{#1})}
 \DeclareRobustCommand{\td}{\text{d}}
-%\DeclareRobustCommand{\bra}[1]{\left\langle #1 \right\vert}
-%\DeclareRobustCommand{\ket}[1]{\left\vert #1 \right\rangle}
-\DeclareRobustCommand{\bk}[2]{\left\langle #1 \left\vert #2 \right\rangle\right.}
 \DeclareRobustCommand{\poi}[1]{\left\{#1\right\}}
 \DeclareRobustCommand{\de}[2]{\frac{\text{d} #1}{\text{d}#2}}
 \DeclareRobustCommand{\dde}[2]{\frac{\text{d}^2 #1}{\text{d} #2 ^2}}
@@ -40,6 +37,10 @@
 \end{array} \right)}
 \DeclareRobustCommand{\mc}[1]{\mathcal{#1}}
 \DeclareRobustCommand{\bm}[1]{{\bf #1}}
+\DeclareRobustCommand{\tm}[1]{{\textrm #1}}
+\DeclareRobustCommand{\Commutator}[2]{\left[{#1},{#2}\right]}
+
+\DeclareRobustCommand{\versor}[1]{{\vec{\bm{e}}_{#1}}}
 %% General utility defns
 \DeclareRobustCommand{\arXivCode}[1]{arXiv:#1}
 
@@ -47,6 +48,8 @@
 \DeclareRobustCommand{\Hamiltonian}{\thesismath{ \mathcal{H} }\xspace}
 \DeclareRobustCommand{\lagrangian}{\Lagrangian}
 \DeclareRobustCommand{\hamiltonian}{\Hamiltonian}
+\DeclareRobustCommand{\trace}{\thesismath{\textbf{{Tr}}}}
+\DeclareRobustCommand{\Trace}{\thesismath{\textbf{{Tr}}}}
 
 \DeclareRobustCommand{\be}{\begin{equation}}
 \DeclareRobustCommand{\ben}{\begin{equation*}}

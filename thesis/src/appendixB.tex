@@ -51,7 +51,7 @@ where
 \end{equation}
 The charge density is
 \begin{equation}
-\rho(\bm{r})=\sum_{I\mu J\nu}\bk{\bm{r}}{I\mu}\rho^{I\mu J\nu}\bk{J \nu}{\bm{r}}
+\rho(\bm{r})=\sum_{I\mu J\nu}\Braket{\bm{r}|I\mu}\rho^{I\mu J\nu}\Braket{J \nu|\bm{r}}
 \end{equation}
 \par{Another quantity which will be needed is the entropy. The entropy is given by}
 \begin{equation}
@@ -209,15 +209,15 @@ call error("could not find $\mu$ to desired precision in $maxit$ iterations")\;
 \end{algorithm}
 %
 \begin{algorithm}
-\label{spinmatrixelements}
 \caption{Density matrix elements (non-colinear spins)}
+\label{spinmatrixelements}
 \KwData{$\{\epsilon_i\}_{i=1,m},\; a(1:m,1:m),\;T,\;k_B,\; \mu $}
 \KwResult{density matrix $\rho$}
 $uos=n$\;
 $unos=0$\;
 \For{i=1,m}{
 $f(i)=f_F(\epsilon_i;\mu)$\;
-\lIf(computes upper occupied state){$f(i)>q_{tolerance}$}{$uos=i$}
+\lIf{$f(i)>q_{tolerance}$}{$uos=i$}
 \tcf{computes upper occupied state with occupancy one}
 \tcf{because we do not to compute $\sqrt{1}$}
 \lIf{$|f(i)-1|<q_{tolerance}$}{$unos=i$}
@@ -227,7 +227,7 @@ $\rho=0$\;
 compute $\rho(UpperTriangle)=a(:,1:uos)a(:,1:uos)^{\dagger*}$\;
 \tcf{see algorithm \gref{uppertriangle}}
 \tcf{populate lower triangle of $rho$}
-\lFor{i=1,m}{$\rho(i+1:m,i)=(\rho(i,i+1:m))^*$}\;
+\lFor{i=1,m}{$\rho(i+1:m,i)=(\rho(i,i+1:m))^*$}
 \tcf{Compute the entropy $\bm{S}$}
 $\bm{S}=0$\;
 \For{i=unos+1,uos}{

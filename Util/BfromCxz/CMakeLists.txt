@@ -27,7 +27,7 @@ endif(COMMAND cmake_policy)
 ##########################
 ###source files
 set(src_dir source)
-set(target_name readCxz)
+set(target_name BfrCxz)
 ##########################
 
 ##########################
