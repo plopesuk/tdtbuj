@@ -1,12 +1,14 @@
 % thesis.cls -- A LaTeX PhD Thesis class by Alin M Elena
-
-\ProvidesClass{aprilthesis}[2008/03/27]
+% created on 27th of March 2008
+%modified on 28th of August 2008
+\ProvidesClass{aprilthesis}[2008/08/28]
 
 \typeout{Based on standard book class, with customisations}
 
  \usepackage[pdftex]{graphicx}
  \usepackage{setspace}
  \usepackage{extramath}
+ \usepackage{fancyhdr} % funky headers
 
 \DeclareOption*{\PassOptionsToClass{\CurrentOption}{book}}
 % 
@@ -185,59 +187,38 @@
      %\vskip 100\p@
    }}
  
-% 
-% 
-% %------------------------------------------------------------------
-% % Change running page headers so less ugly (remove uppercasing)
-% 
- \if@twoside
-   \def\ps@headings{%
-       \let\@oddfoot\@empty\let\@evenfoot\@empty
-       \def\@evenhead{\thepage\hfil\slshape\leftmark}%
-       \def\@oddhead{{\scshape\rightmark}\hfil\thepage}%
-       \let\@mkboth\markboth
-     \def\chaptermark##1{%
-       \markboth {{%
-         \ifnum \c@secnumdepth >\m@ne
-           \if@mainmatter
-             \@chapapp\ \thechapter. \ %
-           \fi
-         \fi
-         ##1}}{}}%
-     \def\sectionmark##1{%
-       \markright {{%
-         \ifnum \c@secnumdepth >\z@
-           \thesection. \ %
-         \fi
-         ##1}}}}
- \else
-   \def\ps@headings{%
-     \let\@oddfoot\@empty
-     \def\@oddhead{{\rightmark}\hfil\thepage}%
-     \let\@mkboth\markboth
-     \def\chaptermark##1{%
-       \markright {{\scshape%
-         \ifnum \c@secnumdepth >\m@ne
-           \if@mainmatter
-             \@chapapp\ \thechapter. \ %
-           \fi
-         \fi
-         }{\itshape ##1}}}}
- \fi
- \pagestyle{headings}
- 
+\pagestyle{fancy} 
 % %------------------------------------------------------------------
 % % Fix table of contents to use chapter{} not chapter* so that running
 % % head is set correctly. It will still appear un-numbered as it
 % % is used only in 'frontmatter'
 % 
  \renewcommand\tableofcontents{%
-   \if@twocolumn
+  \if@twocolumn
    \@restonecoltrue\onecolumn \else \@restonecolfalse \fi
    \chapter{\contentsname}
+    \markboth{\contentsname}{}      
    \@starttoc{toc}%
    \if@restonecol\twocolumn\fi
  }
+ \renewcommand\listoffigures{%
+  \if@twocolumn
+   \@restonecoltrue\onecolumn \else \@restonecolfalse \fi
+   \chapter{\listfigurename}
+    \markboth{\listfigurename}{}      
+   \@starttoc{lof}%
+   \if@restonecol\twocolumn\fi
+ }
+ \renewcommand\listoftables{%
+  \if@twocolumn
+   \@restonecoltrue\onecolumn \else \@restonecolfalse \fi
+   \chapter{\listtablename}
+    \markboth{\listtablename}{}      
+   \@starttoc{lot}%
+   \if@restonecol\twocolumn\fi
+ }
+
+
  % 
  %------------------------------------------------------------------
  % chapter quote.
