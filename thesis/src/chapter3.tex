@@ -74,7 +74,7 @@ the box. To improve the quality of solution after the algorithm ``claims'' a
 minimum a restart is done until in $m$ successive restarts the difference
 between the best solution and the claimed solution is not great than the
 tolerance. Figure \gref{simplex} presents the algorithm in a pseudocode
-format.}
+format.}\marginpar{the pseudocode should be rewritten with algo class}
 \begin{figure}[!htb]
 \begin{verbatim}
 Step 1: compute psum
@@ -120,7 +120,7 @@ energy states with the probability given by Boltzmann's law in an original
 version. The initial algorithm was proposed by Kirkpatrick
 \citep{Kirkpatrick83} based on Metropolis Monte Carlo integration algorithm
 \citep{Metropolis53}. The formal description of the algorithm is given in Figure
-\gref{SA} in pseudocode version.}
+\gref{SA} in pseudocode version.}\marginpar{the pseudocode should be rewritten with algo class}
 \begin{figure}[!htb]
 \begin{verbatim}
 !factor - annealing temperature reduction factor
@@ -236,21 +236,17 @@ f(x)=\sum_{i=1}^{5}i\cos[(i+1)x_1+i]\sum_{j=1}^{5}j\cos[(j+1)x_2+j]
 \ee
 %
 \begin{figure}[tb]
-\begin{minipage}[tb]{7.6cm}
 \begin{center}
-\includegraphics[width=5.9cm,angle=-90]{figures/levy3}
+\includegraphics[width=0.5\textwidth,angle=-90]{figures/levy3}
 \caption{\label{levy3} Levy No 3  \gref{levy3f}}
 \end{center}
-\end{minipage}
-%\end{figure}
+\end{figure}
 %
-%\begin{figure}[!htb]
-\begin{minipage}[tb]{7.6cm}
+\begin{figure}[!htb]
 \begin{center}
-\includegraphics[width=59mm,angle=-90]{figures/levy5}
+\includegraphics[width=0.5\textwidth,angle=-90]{figures/levy5}
 \caption{\label{levy5} Levy No 5  \gref{levy5f}}
 \end{center}
-\end{minipage}
 \end{figure}
 \par{Levy No 5 function, see figure \gref{levy5},  has a global minimum
 $-186.73090$  and about 760 local minima (2 dimensions) in the box
@@ -273,23 +269,19 @@ f(x)=\sin^2(\pi y_1)+\sum_{i=1}^{n-1}(y_i-1)^2[1+10\sin^2(\pi y_{i+1})]+(y_n-1)^
 where $y_i=1+\frac{x_i-1}{4}$\\
 %
 \begin{figure}[!htb]
-\begin{minipage}[!htb]{7.6cm}
 \begin{center}
-\includegraphics[width=5.9cm,angle=-90]{figures/levy8}
+\includegraphics[width=0.5\textwidth,angle=-90]{figures/levy8}
 \end{center}
 \caption{Levy No 8  \gref{levy8f}}
 \label{levy8}
-\end{minipage}
-%\end{figure}
+\end{figure}
 %
-%\begin{figure}[!htb]
-\begin{minipage}[!htb]{7.6cm}
+\begin{figure}[!htb]
 \begin{center}
-\includegraphics[width=5.9cm,angle=-90]{figures/corana}
+\includegraphics[width=0.5\textwidth,angle=-90]{figures/corana}
 \caption{Corana  \gref{coranaf}}
 \label{corana}
 \end{center}
-\end{minipage}
 \end{figure}
 %
 \par{Corana function, proposed in \citep{Corana87} has a global minimum $0$ at $(0,0,0 ...)$ in the box
@@ -314,22 +306,18 @@ $(1,1,1,...)$ in the box $-2.048\leq x_i \leq 2.048$ $i=\overline{1,n}$}
 f(x)=\sum_{i=1}^{n-1}100(x_{i+1}-x_i^2)^2+(1-x_i)^2
 \ee
 \begin{figure}[!htb]
-\begin{minipage}[!htb]{7.6cm}
 \begin{center}
-\includegraphics[width=5.9cm,angle=-90]{figures/rosenbrock}
+\includegraphics[width=0.5\textwidth,angle=-90]{figures/rosenbrock}
 \end{center}
 \caption{Rosenbrock  \gref{rosenbrockf}}
 \label{rosenbrock}
-\end{minipage}
-%\end{figure}
-%\begin{figure}[tb]
-\begin{minipage}[!htb]{7.6cm}
+\end{figure}
+\begin{figure}[tb]
 \begin{center}
-\includegraphics[width=5.9cm,angle=-90]{figures/rastrigin}
+\includegraphics[width=0.5\textwidth,angle=-90]{figures/rastrigin}
 \end{center}
 \caption{Rastrigin  \gref{rastriginf} }
 \label{rastrigin}
-\end{minipage}
 \end{figure}
 \par{Rastrigin function, see figure \gref{rastrigin},  has a global minimum 0 at $(0,0,0,...)$ in the box
 $-5.12\leq x_i \leq 5.12$ $i=\overline{1,n}$}
@@ -346,23 +334,19 @@ $-500\leq x_i \leq 500$ $i=\overline{1,n}$}
 f(x)=418.982887272433n-\sum_{i=1}^{n}x_i\sin(\sqrt{|x_i|})
 \ee
 \begin{figure}[!htb]
-\begin{minipage}[!htb]{7.6cm}
 \begin{center}
-\includegraphics[width=5.9cm,angle=-90]{figures/schwefel}
+\includegraphics[width=0.5\textwidth,angle=-90]{figures/schwefel}
 \end{center}
 \caption{Schwefel  \gref{schwefelf}}
 \label{schwefel}
-\end{minipage}
-%\end{figure}
+\end{figure}
 %
-%\begin{figure}[!htb]
-\begin{minipage}[!htb]{7.6cm}
+\begin{figure}[!htb]
 \begin{center}
-\includegraphics[width=5.9cm,angle=-90]{figures/ackley}
+\includegraphics[width=0.5\textwidth,angle=-90]{figures/ackley}
 \end{center}
 \caption{Ackley  \gref{ackleyf}}
 \label{ackley}
-\end{minipage}
 \end{figure}
 \par{Ackley function, see figure \gref{ackley},  has a global minimum 0 at
 $(0,0,0,...)$ in the box $-32.768\leq x_i \leq 32.768$ $i=\overline{1,n}$}
@@ -456,52 +440,43 @@ direction) and $\epsilon_p$ (y direction). The scanning is done in the box
 $[-10.0,10.0]$ in an equal spaced grid of $201\times 201$. }
 %
 \begin{figure}[!htb]
-\begin{minipage}[!htb]{7.6cm}
 \begin{center}
-\includegraphics[width=7cm]{figures/n2}
+\includegraphics[width=0.75\textwidth]{figures/n2}
 \end{center}
 \caption{$N_2$ Energy fit}
 \label{fitn2}
-\end{minipage}
-%\end{figure}
+\end{figure}
 %
-%\begin{figure}[!htb]
-\begin{minipage}[!htb]{7.6cm}
+\begin{figure}[!htb]
 \begin{center}
-\includegraphics[width=7cm]{figures/nh3}
+\includegraphics[width=0.75\textwidth]{figures/nh3}
 \end{center}
 \caption{$NH_3$ Energy fit}
 \label{fitnh3}
-\end{minipage}
 \end{figure}
 %
 \begin{figure}
 \begin{center}
-\includegraphics[width=7cm]{figures/nh3u}
+\includegraphics[width=0.75\textwidth]{figures/nh3u}
 \caption{$NH_3$ ``Umbrella'' Energy fit}
 \label{fitnh3um}
 \end{center}
 \end{figure}
 %
 \begin{figure}
-\begin{minipage}[!htb]{7.6cm}
 \begin{center}
-\includegraphics[width=5.9cm,angle=-90]{figures/obj}
+\includegraphics[width=0.5\textwidth,angle=-90]{figures/obj}
 \caption{$NH_3$ Energy in $\epsilon_s$, $\epsilon_p$ space}
 \label{spacenh3}
 \end{center}
-\end{minipage}
-%\end{figure}
+\end{figure}
 %
-%\begin{figure}
-%[!htb]
-\begin{minipage}[!htb]{7.6cm}
+\begin{figure}[!htb]
 \begin{center}
-\includegraphics[width=5.9cm,angle=-90]{figures/umbobj}
+\includegraphics[width=0.5\textwidth,angle=-90]{figures/umbobj}
 \caption{$NH_3$ ``Umbrella''Energy in $\epsilon_s$, $\epsilon_p$ space}
 \label{umbnh3}
 \end{center}
-\end{minipage}
 \end{figure}
 %
 %

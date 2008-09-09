@@ -2,38 +2,43 @@
 % created on 27th of March 2008
 %modified on 28th of August 2008
 \ProvidesClass{aprilthesis}[2008/08/28]
-
 \typeout{Based on standard book class, with customisations}
-
  \usepackage[pdftex]{graphicx}
  \usepackage{setspace}
  \usepackage{extramath}
  \usepackage{fancyhdr} % funky headers
-
-\DeclareOption*{\PassOptionsToClass{\CurrentOption}{book}}
+ \usepackage[T1]{fontenc}
+ \usepackage{times}
 % 
- \ProcessOptions\relax
-
+\DeclareOption*{\PassOptionsToClass{\CurrentOption}{book}}
+%
+\ProcessOptions\relax
 \LoadClass{book}
-
+% load calligraphic font
+\DeclareFontFamily{OT1}{pzc}{}
+\DeclareFontShape{OT1}{pzc}{m}{it}{<-> s * [1.700] pzcmi7t}{}
+\DeclareMathAlphabet{\mathscr}{OT1}{pzc}{m}{it}
+%
 %------------------------------------------------------------------
 % Use just over 1.5x line spacing (assuming 12pt font)
  \onehalfspacing
-
 %------------------------------------------------------------------
 % Make pages a bit larger, given we are using 1.5 spacing
-%%% all these things were computed, well approximated 
+%%% all these things were computed, well approximated
 %% and guessed for a4paper,12pt options of the book package
-   \addtolength{\textwidth}{1.65cm}
-   \setlength{\hoffset}{0.0cm}
-   \setlength{\oddsidemargin}{0.95cm}
-   \setlength{\evensidemargin}{-0.28cm}
-
-   \addtolength{\textheight}{2.5cm}
-   \setlength{\topmargin}{0pt}
-   \addtolength{\voffset}{-0.5cm}
-   \addtolength{\headheight}{2.5pt}
-
+%horizontal part
+   \setlength{\paperwidth}{210mm}   
+   \setlength{\hoffset}{0.0mm}   
+   \setlength{\oddsidemargin}{14.6mm}
+   \setlength{\evensidemargin}{0.9mm}
+   \setlength{\textwidth}{145.0mm}
+%vertical part
+   \setlength{\paperheight}{297mm}
+   \setlength{\voffset}{-20.4mm}
+   \setlength{\headheight}{10.0mm}
+   \setlength{\headsep}{5.0mm}
+   \setlength{\textheight}{242.0mm}
+   \setlength{\footskip}{10.0mm}
 %------------------------------------------------------------------
 % Increase float fraction and discourage float-only pages
  \renewcommand\topfraction{.9}
@@ -42,12 +47,8 @@
  \renewcommand\textfraction{.1}
  \renewcommand\floatpagefraction{0.8}
  \renewcommand\dblfloatpagefraction{0.8}
-
-
 %------------------------------------------------------------------
 % Title page stuff
-
-
  \newcommand*{\affiliation}[1]{\gdef\@affiliation{#1}}
  \newcommand*{\acadtitle}[1]{\gdef\@acadtitle{#1}}
  \newcommand*{\tdesc}[1]{\gdef\@tdesc{#1}}
@@ -66,12 +67,12 @@
          \vskip 10em
          \else%
          \ifdim\logo@width>0\p@\relax
-         \begin{figure*}[!ht] 
+         \begin{figure*}[!ht]
             \centering
              \includegraphics[width=\logo@width]{\@logo}%
           \end{figure*}
          \else
-          \begin{figure*}[!ht] 
+          \begin{figure*}[!ht]
              \centering
               \includegraphics{\@logo}%
           \end{figure*}
@@ -88,8 +89,8 @@
        \vskip 5em%
        {\large \@tdesc\par}%
        \vskip 3em%
-       {\large \@date \par}%       % Set date in \large size. 
- 
+       {\large \@date \par}%       % Set date in \large size.
+
      \end{center}\par
      \vfil%
    \null
@@ -104,25 +105,23 @@
    \global\let\title\relax
    \global\let\author\relax
    \global\let\date\relax
-   \global\let\and\relax
+   %\global\let\and\relax
  }
-% 
+%
  \newcommand{\makededication}[2]{
- \cleardoublepage 
-  \null\vfil%
-   \begin{center}
-   \begin{spacing}{1.25}
-     \textbf{#1}\\
-       #2
-    \vspace{12pt}
-    \end{spacing}
-    \end{center}
-   \null\vfil%
  \cleardoublepage
+ \thispagestyle{empty}
+  \null\vfil%
+   \begin{center}   
+     \textbf{#1}\\
+       {#2}    
+    \end{center}
+   \null\vfil% 
  }
- 
+
  \newcommand{\mainquote}[2]{%
    \cleardoublepage
+   \thispagestyle{empty}
    \null\vfil%
        \begin{center}
        \begin{spacing}{1.25}
@@ -130,74 +129,76 @@
  	\quad\quad \emph{#2}
       \vspace{12pt}
       \end{spacing}
-       \end{center}% 
-    \null\vfil%  
- \cleardoublepage
+       \end{center}%
+    \null\vfil% 
  }
- 
- 
- 
+
+
+
 % %------------------------------------------------------------------
 % % Chapter headings from:
 % % http://zoonek.free.fr/LaTeX/LaTeX_samples_chapter/0.html
 % % Amended to know about not numbering outside the mainmatter
-% 
- \def\thickhrulefill{\leavevmode \leaders \hrule height 1ex \hfill
+%
+
+\def\thickhrulefill{\leavevmode \leaders \hrule height 1ex \hfill
  \kern \z@}
-% 
+%
  \def\@makechapterhead#1{%
    %\vspace*{50\p@}%
    \vspace*{10\p@}%
-   {\parindent \z@ \centering \reset@font
+   {\parindent \z@ \raggedright \reset@font
      \if@mainmatter
-         \thickhrulefill\quad
-         {\scshape \@chapapp{} \thechapter}%
-         \quad \thickhrulefill
-     \else
-         \thickhrulefill
+        $\mathscr{{\@chapapp{}\; \thechapter}}$%
      \fi
          \par\nobreak
-         \vspace*{10\p@}%
+         \vspace*{1\p@}%
          \interlinepenalty\@M
          \hrule
          \vspace*{10\p@}%
-         \Huge \bfseries #1\par\nobreak
+         {\raggedleft \Huge \bfseries #1\par\nobreak}
          \par
-         \vspace*{10\p@}%
-         \hrule
+         %\vspace*{10\p@}%
+         %\hrule
      \vskip 40\p@
      %\vskip 100\p@
    }}
- 
+
  \def\@makeschapterhead#1{%
    %\vspace*{50\p@}%
    \vspace*{10\p@}%
-   {\parindent \z@ \centering \reset@font
-         \thickhrulefill
-         \par\nobreak
-         \vspace*{10\p@}%
+   {\parindent \z@ \raggedleft \reset@font
+         \vspace*{1\p@}%
          \interlinepenalty\@M
          \hrule
          \vspace*{10\p@}%
          \Huge \bfseries #1\par\nobreak
          \par
-         \vspace*{10\p@}%
-         \hrule
+
      \vskip 40\p@
      %\vskip 100\p@
    }}
- 
-\pagestyle{fancy} 
+\pagestyle{fancy}
+%customize headers
+\renewcommand{\chaptermark}[1]{\markboth{}{#1}}
+\renewcommand{\sectionmark}[1]{\markright{\thesection\ #1}}
+\fancyhf{}
+\fancyhead[LE,RO]{\bfseries \thepage}
+\fancyhead[LO]{\nouppercase{\emph{\rightmark}}}
+\fancyhead[RE]{\nouppercase{\emph{\rightmark}}}
+%\lhead{\nouppercase{\emph{\tmark}}}
+%\rhead{\nouppercase{\emph{\leftmark}}}
+\cfoot{}
 % %------------------------------------------------------------------
 % % Fix table of contents to use chapter{} not chapter* so that running
 % % head is set correctly. It will still appear un-numbered as it
 % % is used only in 'frontmatter'
-% 
+%
  \renewcommand\tableofcontents{%
   \if@twocolumn
    \@restonecoltrue\onecolumn \else \@restonecolfalse \fi
    \chapter{\contentsname}
-    \markboth{\contentsname}{}      
+    \markboth{}{\contentsname}
    \@starttoc{toc}%
    \if@restonecol\twocolumn\fi
  }
@@ -205,7 +206,7 @@
   \if@twocolumn
    \@restonecoltrue\onecolumn \else \@restonecolfalse \fi
    \chapter{\listfigurename}
-    \markboth{\listfigurename}{}      
+    \markboth{}{\listfigurename}
    \@starttoc{lof}%
    \if@restonecol\twocolumn\fi
  }
@@ -213,13 +214,13 @@
   \if@twocolumn
    \@restonecoltrue\onecolumn \else \@restonecolfalse \fi
    \chapter{\listtablename}
-    \markboth{\listtablename}{}      
+    \markboth{}{\listtablename}
    \@starttoc{lot}%
    \if@restonecol\twocolumn\fi
  }
 
 
- % 
+ %
  %------------------------------------------------------------------
  % chapter quote.
  % it gets right aligned
@@ -235,7 +236,7 @@
  \end{spacing}
  \vskip 5pt
  }
- 
+
      %%% Clear Header %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
      % Clear Header Style on the Last Empty Odd pages
      \makeatletter
@@ -245,7 +246,7 @@
          \newpage%
          \if@twocolumn\hbox{}\newpage\fi\fi\fi}
      \makeatother
- 
+
  %Fix hyperref labels in PDFTeX
 % 	% \@ifpackageloaded{hyperref}{%
 % 	%   \pdfstringdefDisableCommands{%

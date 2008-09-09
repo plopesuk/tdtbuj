@@ -165,7 +165,7 @@ contains
         k_length2SI=1.0_k_pr !m
         k_time2SI=1.0D-15 !fs
       case(k_unitsARU)
-        k_amuToInternal =  1836.15267247_k_pr
+        k_amuToInternal =  1836.15267247_k_pr/2.0_k_pr
         k_kb = 6.3361921D-6 !Rydberg/K
         k_hbar = 1.0_k_pr
         k_epsilon0 = 1.0_k_pr/(4.0_k_pr*k_pi)
