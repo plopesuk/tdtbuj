@@ -18,7 +18,7 @@ endif(SVN)
 
 set(AUTHOR "Alin M Elena")
 set(AUTHOR_DETAILS "alin.elena@qub.ac.uk")
-set(DESCRITION "Time dependent tight binding +UJ for finite systems")
+set(DESCRIPTION "Time dependent tight binding +UJ for finite systems")
 
 cmake_minimum_required(VERSION 2.6)
 #if(COMMAND cmake_policy)

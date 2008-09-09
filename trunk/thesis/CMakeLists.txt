@@ -14,6 +14,7 @@ ADD_LATEX_DOCUMENT(thesis.tex
   INPUTS
   abstract.tex glossary.tex acknowledgement.tex
   introduction.tex chapter1.tex chapter2.tex chapter3.tex chapter4.tex
+  conclusions.tex
   appendixA.tex appendixB.tex appendixC.tex appendixD.tex
   bfield.tex
   xkeyval.tex xkvtxhdr.tex  pst-xkey.tex  keyval.tex

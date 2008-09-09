@@ -3,7 +3,7 @@
 \label{ch:one}
 %
  \chapterquote{Le savant n'\'etudie pas la nature parce que cela est utile; \\
-\indent il l'\'etudie parce qu'il y prend plaisir, \\ 
+\indent il l'\'etudie parce qu'il y prend plaisir, \\
 \indent et il y prend plaisir parce qu'elle est belle.}%
 {by Henri Poincar\'e}
 %
@@ -17,10 +17,10 @@ speed of the tight binding methods compared with the \emph{ab initio} is two
 or three order of magnitude faster. Gaining speed we loose from the
 transferability of the model, but in tight binding we retain the quantum
 nature of the bonding. The tight binding methods are the ideal candidates, at
-this time, for large size atomistic simulation. For an overview see e.g. \citep{Finnis03,Goringe97b}.}
+this time, for large size atomistic simulation in the field of nanostructure materials, molecular devices and biomolecules. Due to the nature of the approximations many flavours of tight binding were developed lately. Some examples: the NRL-TB total energy method\citep{Mehl96}, the density functional TB (DFTB) method \citep{Frauenheim00,Elstner98,Elstner07,Seifert07}, the ab initio TB method (AITB) \citep{Sankey89, Horsfield97, Tu06}, the nonconventional TB method \citep{Khakimov05}, the environment dependent TB method \citep{Tang96}, the orthogonal and nonorthogonal TB method of Voityuk \citep{Voityuk06,Voityuk06b} and extended H\"{u}ckel TB\citep{Rincon08} to cite only few. For an overview see e.g. \citep{Finnis03,Goringe97b}.}
 \par{The relation between tight binding and density functional theory was
-  investigated by \citep{Sutton88,Foulkes89,Frauenheim00}. In short, they
-  proved that the tight binding models can be derived from DFT.}
+  investigated by Sutton, Foulkes and Frauenheim in \citep{Sutton88,Foulkes89,Frauenheim00}. In short, they
+  prove that DFT can be ''downgraded'' to a tight binding model (DFTB).}
 \par{Different approximations made to full DFT total energy functional give us
 different tight binding models. A common feature of all tight binding models
 is the minimum basis set, that is taking into account  one $s$ orbital,
@@ -126,25 +126,21 @@ tail added at $ r_1=1.5 \angstrom $ and a cut-off $ r_{cut}=1.9 \angstrom $, the
 parameters are taken from Table \gref{tablenh3} first SSA column and represent
 fitted parameters for $N-H$ bond in our GSP-like model.}
 \begin{figure}[!htb]
-\begin{minipage}[!htb]{7.9cm}
 \begin{center}
-\includegraphics[width=7cm]{figures/ssg}
+\includegraphics[width=0.75\textwidth]{figures/ssg}
 \end{center}
 \caption{$ss\sigma$ radial dependence}
 \label{ssg}
-\end{minipage}
-%\end{figure}
+\end{figure}
 %
-%\begin{figure}[!htb]
-\begin{minipage}[!htb]{7.9cm}
+\begin{figure}[!htb]
 \begin{center}
-\includegraphics[width=7cm]{figures/spg}
+\includegraphics[width=0.75\textwidth]{figures/spg}
 \end{center}
 \caption{$sp\sigma$ radial dependence}
 \label{spg}
-\end{minipage}
 \end{figure}
-
+%
 \section{Introduction}
 \par{The hamiltonian in second quantisation including electron-electron interaction term}
 \begin{equation}
@@ -162,7 +158,7 @@ V_{ijkl}&=\int\phi_{i}^{*}(\bm{r})\phi_{l}(\bm{r})W(rr\prime)\phi_{j}^{*}(\bm{r^
 \end{split}
 \end{equation}
 where $W(rr^\prime)=\frac{1}{4\pi\epsilon_0}\frac{e^2}{|\bm{r}-\bm{r^\prime}|}$.
-\par{Electron-electron interaction from the point of view of field theory is: two particles in states $(l\sigma,k\sigma^\prime)$ interact and as a result two particles 
+\par{Electron-electron interaction from the point of view of field theory is: two particles in states $(l\sigma,k\sigma^\prime)$ interact and as a result two particles
 in the states $(i\sigma,j\sigma^\prime)$ emerge. Because of the nature of the hamiltonian, non-relativistic, the spin is conserved (no spin flip is described).}
 \par{In tight-binding usually we ignore all the interactions described by such schemes.}
 \par{Two type of such integrals are important for us direct and exchange Coulomb integrals.}
@@ -177,7 +173,7 @@ exchange Coulomb integrals
 V_{ijij}=\int\phi_{i}^{*}(\bm{r})\phi_{j}(\bm{r})W(rr\prime)\phi_{j}^{*}(\bm{r^\prime})\phi_{i}(\bm{r^\prime})\td\bm{r}\td\bm{r^\prime}=J_{ij}
 \end{equation}
 exchange energy only affects like spin electrons.
-\par{Using the definition of $U$ from \gref{udef} we get a value of order $20eV$ which 
+\par{Using the definition of $U$ from \gref{udef} we get a value of order $20eV$ which
 disagrees with experimental results. This come from the fact that the basis set is incomplete.
 The incompletness of the basis set exclude any virtual transitions to these states.}
 \par{+U formalism describes correctly the discontinuity in the potential as the occputaion number is changed (???Janak's theorem???).}
@@ -199,7 +195,7 @@ The incompletness of the basis set exclude any virtual transitions to these stat
 n_{ik}^{\sigma\sigma^\prime}n_{jl}^{\sigma^\prime\sigma})
 \end{split}
 \end{equation}
-$n_{ij}^{\sigma\sigma^\prime}$ = generalised occupation numbers. (density matrix with non zero off-diagonal elements)\\
+\par{$n_{ij}^{\sigma\sigma^\prime}$ = generalised occupation numbers. (density matrix with non zero off-diagonal elements)}
 \par{Each index $ijkl$ stands for a $ \lbrace \bm{R}nlm \rbrace $ set, but having in mind our assumptions we realise
 that $l,m$ are the only one which differs. We replace ${ijkl} \rightarrow {L_1L_2L_3L_4}$ with $L_i \rightarrow \lbrace l_im_i \rbrace$ and we get}
 rewrite from here
@@ -268,7 +264,7 @@ but in our hypothesis we have
 \begin{equation*}
 l_1=l_2=l_3=l_4=l\qquad n_1=n_2=n_3=n_4=n
 \end{equation*}
-so 
+so
 \begin{equation*}
 R^{k}(nlnlnlnl)=F^k(l,l)\text{ - Slater's Integrals}
 \end{equation*}
@@ -300,7 +296,7 @@ E^U&=\frac{1}{2}\sum_{\{m_i\}\sigma}V_{m_1m_2m_3m_4}( n_{m_1m_4}^{\sigma, 0}n_{m
 \end{split}
 \end{equation}
 \par{Now the potential associated with $E^U$ becomes}
-
+%
 \begin{equation}
 \label{hamU}
 \begin{split}
@@ -312,7 +308,7 @@ n_{m_3m_4}^{-\sigma,0}+(V_{m_1m_3m_4m_2}-V_{m_1m_3m_2m_4})n_{m_3m_4}^{\sigma,0})
 \end{equation}
 %
 \par{Now from the point of view of the second order theory the first term in \gref{hamU} should be added to $H^{in}$.
-Second term represents the matrix element of the hamiltonian 
+Second term represents the matrix element of the hamiltonian
 associated with $E_2$. The terms which contain only products of $n^0$ in \gref{eu2} can be regarded as a reference energy. No forces arise from \gref{eu2}. So, we have}
 %
 \begin{equation}
@@ -340,7 +336,7 @@ n_{m_1m_4}^{\sigma, 0}n_{m_2m_3}^{\sigma,0}\right]
 \par{$\Ket{I\mu}$ an orbital centred on atom $I$}
 \par{$\Ket{\Psi}=\sum_{I,\mu}c_{I\mu}\Ket{I\mu}$ a general electronic state, where $c_{I\mu}$ are the expansion coefficients}
 \par{We assume that we have an orthogonal basis set}
-\be{equation}
+\be
 \braket{I\mu | J_nu}=\delta_{IJ}\delta_{\mu\nu}
 \ee
 \par{The Hamiltonian is}
@@ -354,7 +350,7 @@ n_{m_1m_4}^{\sigma, 0}n_{m_2m_3}^{\sigma,0}\right]
 \Hamiltonian\Ket{\Psi(t)}=i\hbar \Ket{\dot{\Psi}(t)}
 \ee
 \be
-\Hamiltonian\Ket{\Psi}=E\Ket{\psi} 
+\Hamiltonian\Ket{\Psi}=E\Ket{\psi}
 \ee
 \par{$E$ is the energy eigenvalue}
 \par{Let us define the projection operator}
@@ -446,7 +442,7 @@ n_{m_1m_4}^{\sigma, 0}n_{m_2m_3}^{\sigma,0}\right]
 \be
 \begin{split}
 \bm{P}_I=&\Trace\left( \mc{P}\hat{\rho}\right)\\
-\dot{\bm{P}}_I=&\Trace\left( \mc{P}\dot{\hat{\rho}}\right)	
+\dot{\bm{P}}_I=&\Trace\left( \mc{P}\dot{\hat{\rho}}\right)
 \end{split}
 \ee
 \par{We recall the equation for $\dot{\hat{\rho}}$}
@@ -483,7 +479,7 @@ n_{m_1m_4}^{\sigma, 0}n_{m_2m_3}^{\sigma,0}\right]
 \begin{figure}[!ht]
 \begin{center}
 \scalebox{1.2}{\input{bfield.tex}}
-\caption{Geometry of the finite length wire}
+\caption{Geometry of the finite length wire and a ring molecule}
 \label{fig:MagneticField}
 \end{center}
 \end{figure}
