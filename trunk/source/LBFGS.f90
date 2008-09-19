@@ -3,19 +3,19 @@
 !> \author Alin M. Elena
 !> \date 18th of January 2008
 module m_LBFGS
-use m_Constants
-use m_Useful
-use m_Types
-use m_Gutenberg
-use mkl95_BLAS, only : dot,axpy
-implicit none
-
-private
-
-public :: linearBFGS
-
+  use m_Constants
+  use m_Useful
+  use m_Types
+  use m_Gutenberg
+  use mkl95_BLAS, only: dot, axpy
+  implicit none
+!
+  private
+!
+  public :: linearBFGS
+!
 contains
-
+!
 !> \brief driver routine for linearBFGS optimization
 !> \author Alin M Elena
 !> \date 10/11/07, 15:22:53
@@ -24,92 +24,85 @@ contains
 !> \param atomic type(atomicxType) contains all info about the atoms and basis set and some parameters
 !> \param tb type(modelType) contains information about the tight binding model parameters
 !> \param sol type(solutionType) contains information about the solution space
-  subroutine linearBFGS(io,gen,atomic,tb,sol,func)
-    character(len=*), parameter :: myname = 'linearBFGS'
-    type(ioType), intent(inout) :: io
-    type(generalType), intent(inout) :: gen
-    type(atomicxType), intent(inout) :: atomic
-    type(solutionType), intent(inout) :: sol
-    type(modelType), intent(inout) :: tb
-
+  subroutine linearBFGS (io, gen, atomic, tb, sol, func)
+    character (len=*), parameter :: myname = 'linearBFGS'
+    type (ioType), intent (inout) :: io
+    type (generalType), intent (inout) :: gen
+    type (atomicxType), intent (inout) :: atomic
+    type (solutionType), intent (inout) :: sol
+    type (modelType), intent (inout) :: tb
+!
     interface
-      function func(gen,atomic,tb,sol,io,x,f,gradient)
+      function func (gen, atomic, tb, sol, io, x, f, gradient)
         use m_Constants
         use m_Types
         implicit none
-          real(k_pr), dimension(:), intent(in) :: x
-          real(k_pr), dimension(:), intent(inout),optional :: gradient
-          real(k_pr), intent(inout) :: f
-          type(generalType), intent(inout) :: gen
-          type(atomicxType), intent(inout) :: atomic
-          type(modelType), intent(inout) :: tb
-          type(solutionType), intent(inout) :: sol
-          type(ioType), intent(inout) :: io
-          integer :: func
+        real (k_pr), dimension (:), intent (in) :: x
+        real (k_pr), dimension (:), intent (inout), optional :: gradient
+        real (k_pr), intent (inout) :: f
+        type (generalType), intent (inout) :: gen
+        type (atomicxType), intent (inout) :: atomic
+        type (modelType), intent (inout) :: tb
+        type (solutionType), intent (inout) :: sol
+        type (ioType), intent (inout) :: io
+        integer :: func
       end function func
     end interface
-
-    integer  :: i
-    integer  :: m,n, res
-    real(k_pr) :: epsx,epsf,epsg,gtol,xtol,ftol
-    real(k_pr), allocatable :: x(:)
-    integer  :: info,atom, iprint(1:2),maxfev
-
-    write(io%uout,'(/a/)')&
-         "--LBFGS Optimization Run-----------------------------------------"
-    n = atomic%atoms%nmoving*3
-    m = min(gen%HessianM,n)
+!
+    integer :: i
+    integer :: m, n, res
+    real (k_pr) :: epsx, epsf, epsg, gtol, xtol, ftol
+    real (k_pr), allocatable :: x (:)
+    integer :: info, atom, iprint (1:2), maxfev
+!
+    write (io%uout, '(/a/)') "--LBFGS Optimization Run-----------------------------------------"
+    n = atomic%atoms%nmoving * 3
+    m = Min (gen%HessianM, n)
     if (io%verbosity > k_highVerbos) then
-      iprint(1) = 1
-      iprint(2) = 3
+      iprint (1) = 1
+      iprint (2) = 3
     else
-      iprint(1) = -1
-      iprint(2) = 0
-    endif
-
-    epsf = gen%epsF
-    epsg = gen%epsG
-    epsx = gen%epsX
+      iprint (1) = - 1
+      iprint (2) = 0
+    end if
+!
+    epsf = gen%epsf
+    epsg = gen%epsg
+    epsx = gen%epsx
     xtol = gen%xtol
-    gtol=gen%gtol
+    gtol = gen%gtol
     info = 0
-    maxfev=gen%maxFeval
-    ftol=gen%ftol
-    allocate(x(1:n))
-
-    do i=1,atomic%atoms%nmoving
-      atom=atomic%atoms%id(atomic%atoms%moving(i))
-      x(3*(i-1)+1) = atomic%atoms%x(atom)
-      x(3*(i-1)+2) = atomic%atoms%y(atom)
-      x(3*(i-1)+3) = atomic%atoms%z(atom)
-    enddo
-    call lbfgs(n,m,x,epsg,epsf,epsx,xtol,gtol,ftol,maxfev,gen%nsteps,iprint,info,&
-                 func,gen,atomic,tb,sol,io)
-    res=func(gen,atomic,tb,sol,io,x,ftol,x)
-    deallocate(x)
-
-    open(unit=1,file="new_coords.xyz",status="unknown",action="write")
-    call PrintXYZ(1,atomic,.false.,"Optimised coordinates")
-    close(unit=1)
-
-    write(io%uout,'(/a)')&
-      "Final forces:"
-    call PrintForces(atomic%atoms,io)
-    write(io%uout,'(/a)')&
-      "Final coordinates:"
-    call PrintCoordinates(io,atomic,gen)
-    if (info<0) then
-      write(io%uout,'(/a,i4)')&
-          "WARNING: Optimization did not converge.",info
+    maxfev = gen%maxFeval
+    ftol = gen%ftol
+    allocate (x(1:n))
+!
+    do i = 1, atomic%atoms%nmoving
+      atom = atomic%atoms%id(atomic%atoms%moving(i))
+      x (3*(i-1)+1) = atomic%atoms%x(atom)
+      x (3*(i-1)+2) = atomic%atoms%y(atom)
+      x (3*(i-1)+3) = atomic%atoms%z(atom)
+    end do
+    call lbfgs (n, m, x, epsg, epsf, epsx, xtol, gtol, ftol, maxfev, gen%nsteps, iprint, info, func, gen, atomic, tb, sol, io)
+    res = func (gen, atomic, tb, sol, io, x, ftol, x)
+    deallocate (x)
+!
+    open (unit=1, file="new_coords.xyz", status="unknown", action="write")
+    call PrintXYZ (1, atomic, .false., "Optimised coordinates")
+    close (unit=1)
+!
+    write (io%uout, '(/a)') "Final forces:"
+    call PrintForces (atomic%atoms, io)
+    write (io%uout, '(/a)') "Final coordinates:"
+    call PrintCoordinates (io, atomic, gen)
+    if (info < 0) then
+      write (io%uout, '(/a,i4)') "WARNING: Optimization did not converge.", info
     else
-      write(io%uout,'(/a,i4)')&
-          "LBFGS report: Optimization converged with code: ",info
-    endif
-    write(io%uout,'(/a)')&
-      "----------------------------------------------------------------"
+      write (io%uout, '(/a,i4)') "LBFGS report: Optimization converged with code: ", info
+    end if
+    write (io%uout, '(/a)') "----------------------------------------------------------------"
   end subroutine linearBFGS
-
-
+!
+!
 !> \brief        limited memory bfgs method for large scale optimization
 !> \details     this subroutine solves the unconstrained minimization problem
 !> \details   min f(x),    x= (x1,x2,...,xn),
@@ -253,243 +246,241 @@ contains
 !>     the steplength is determined at each iteration by means of the
 !>     line search routine mcvsrch, which is a slight modification of
 !>     the routine csrch written by more' and thuente.
-  subroutine lbfgs(n,m,x,epsg,epsf,epsx,xtol,gtol,ftol,maxfev,maxits,iprint,info,&
-          func,gen,atomic,tb,sol,io)
-    character(len=*), parameter :: myname="lbfgs"
-    real(k_pr), intent(in) :: xtol,epsg,epsf,epsx,gtol,ftol
-    type(generalType), intent(inout) :: gen
-    type(atomicxType), intent(inout) :: atomic
-    type(modelType), intent(inout) :: tb
-    type(solutionType), intent(inout) :: sol
-    type(ioType), intent(inout) :: io
-    integer, intent(in):: maxits,n,m,maxfev,iprint(1:2)
-    integer,intent(inout) :: info
-    real(k_pr), intent(inout) :: x(:)
-
+  subroutine lbfgs (n, m, x, epsg, epsf, epsx, xtol, gtol, ftol, maxfev, maxits, iprint, info, func, gen, atomic, tb, sol, io)
+    character (len=*), parameter :: myname = "lbfgs"
+    real (k_pr), intent (in) :: xtol, epsg, epsf, epsx, gtol, ftol
+    type (generalType), intent (inout) :: gen
+    type (atomicxType), intent (inout) :: atomic
+    type (modelType), intent (inout) :: tb
+    type (solutionType), intent (inout) :: sol
+    type (ioType), intent (inout) :: io
+    integer, intent (in) :: maxits, n, m, maxfev, iprint (1:2)
+    integer, intent (inout) :: info
+    real (k_pr), intent (inout) :: x (:)
+!
     interface
-      function func(gen,atomic,tb,sol,io,x,f,gradient)
+      function func (gen, atomic, tb, sol, io, x, f, gradient)
         use m_Constants
         use m_Types
         implicit none
-          real(k_pr), dimension(:), intent(in) :: x
-          real(k_pr), dimension(:), intent(inout),optional :: gradient
-          real(k_pr), intent(inout) :: f
-          type(generalType), intent(inout) :: gen
-          type(atomicxType), intent(inout) :: atomic
-          type(modelType), intent(inout) :: tb
-          type(solutionType), intent(inout) :: sol
-          type(ioType), intent(inout) :: io
-          integer :: func
+        real (k_pr), dimension (:), intent (in) :: x
+        real (k_pr), dimension (:), intent (inout), optional :: gradient
+        real (k_pr), intent (inout) :: f
+        type (generalType), intent (inout) :: gen
+        type (atomicxType), intent (inout) :: atomic
+        type (modelType), intent (inout) :: tb
+        type (solutionType), intent (inout) :: sol
+        type (ioType), intent (inout) :: io
+        integer :: func
       end function func
     end interface
-
-    real(k_pr) :: gnorm,stp1,stp,ys,yy,sq,yr,beta,xnorm
-   integer :: iter,nfun,point,ispt,iypt,bound,npt,cp,i,nfev,inmc,iycn,iscn
+!
+    real (k_pr) :: gnorm, stp1, stp, ys, yy, sq, yr, beta, xnorm
+    integer :: iter, nfun, point, ispt, iypt, bound, npt, cp, i, nfev, inmc, iycn, iscn
     logical :: finish
 !   character(len=255) :: saux
-    real(k_pr), allocatable :: g(:),diag(:),w(:),tx(:),ta(:),xold(:)
-    real(k_pr) :: f, fold,tf, txnorm,v
+    real (k_pr), allocatable :: g (:), diag (:), w (:), tx (:), ta (:), xold (:)
+    real (k_pr) :: f, fold, tf, txnorm, v
     integer :: res
-    real(k_pr) :: stpmin,stpmax
-
-    allocate(g(1:n))
-    allocate(diag(1:n))
-    allocate(w(1:n*(2*m+1)+2*m))
-    allocate(xold(1:n))
-    allocate(tx(1:n))
-    allocate(ta(1:n))
-    g=0.0_k_pr
-    diag=0.0_k_pr
-    w=0.0_k_pr
-    tx=0.0_k_pr
-    ta=0.0_k_pr
-    f=0.0_k_pr
-    write(io%uout,'(a,a)')"Energy update from: ", myname
-    res=func(gen,atomic,tb,sol,io,x,f,g)
-
+    real (k_pr) :: stpmin, stpmax
+!
+    allocate (g(1:n))
+    allocate (diag(1:n))
+    allocate (w(1:n*(2*m+1)+2*m))
+    allocate (xold(1:n))
+    allocate (tx(1:n))
+    allocate (ta(1:n))
+    g = 0.0_k_pr
+    diag = 0.0_k_pr
+    w = 0.0_k_pr
+    tx = 0.0_k_pr
+    ta = 0.0_k_pr
+    f = 0.0_k_pr
+    write (io%uout, '(a,a)') "Energy update from: ", myname
+    res = func (gen, atomic, tb, sol, io, x, f, g)
+!
     fold = f
     iter = 0
     info = 0
-    if( n<=0 .or. m<=0 .or. m>n .or. &
-          epsg<0.0_k_pr .or. epsf<0.0_k_pr .or. epsx<0.0_k_pr .or. maxits<0 ) then
-        info = -1
-        return
-    endif
+    if (n <= 0 .or. m <= 0 .or. m > n .or. epsg < 0.0_k_pr .or. epsf < 0.0_k_pr .or. epsx < 0.0_k_pr .or. maxits < 0) then
+      info = - 1
+      return
+    end if
     nfun = 1
     point = 0
     finish = .false.
-    diag=1.0_k_pr
+    diag = 1.0_k_pr
     stpmin = 10.0e-20_k_pr
     stpmax = 10.0e20_k_pr
-    ispt = n+2*m;
-    iypt = ispt+n*m;
-    do i=1,n
-      w(ispt+i) = -g(i)*diag(i)
-    enddo
-    gnorm = sqrt(dot(g,g))
-    stp1 = 1/gnorm
-
+    ispt = n + 2 * m
+    iypt = ispt + n * m
+    do i = 1, n
+      w (ispt+i) = - g (i) * diag (i)
+    end do
+    gnorm = Sqrt (dot(g, g))
+    stp1 = 1 / gnorm
+!
     do while (.true.)
-        xold=x
-        iter = iter+1
-        info = 0
-        bound = iter-1
-        if(iter/=1)then
-          if( iter>m ) then
-            bound = m
-          endif
-          ys = dot(w(iypt+npt+1:iypt+npt+n),w(ispt+npt+1:ispt+npt+n))
-          yy = dot(w(iypt+npt+1:iypt+npt+n),w(iypt+npt+1:iypt+npt+n))
-          diag = ys/yy
-          cp = point
-          if(point==0) then
-            cp = m
-          endif
-          w(n+cp) = 1/ys
-          w(1:n) = -g(1:n)
-          cp = point
-          do i = 1,bound
-            cp = cp-1;
-            if( cp==-1 ) then
-              cp = m-1;
-            endif
-            sq = dot(w(ispt+cp*n+1:ispt+cp*n+n), w(1:n))
-            inmc = n+m+cp+1
-            iycn = iypt+cp*n
-            w(inmc) = w(n+cp+1)*sq
-            call axpy(w(iycn+1:iycn+n),w(1:n),-w(inmc))
-          enddo
-          do i=1,n
-            w(i) = diag(i)*w(i)
-          enddo
-          do i = 1, bound
-            yr = dot(w(iypt+cp*n+1:iypt+cp*n+n),w(1:n))
-            beta = w(n+cp+1)*yr
-            inmc = n+m+cp+1
-            beta = w(inmc)-beta
-            iscn = ispt+cp*n
-            call axpy(w(iscn+1:iscn+n),w(1:n),beta)
-            cp = cp+1
-            if( cp==m ) then
-              cp = 0
-            endif
-          enddo
-          do i = 1, n
-            w(ispt+point*n+i) = w(i)
-          enddo
-        endif
-        nfev = 0
-        stp = 1
-        if( iter==1 ) then
-          stp = stp1
-        endif
-        w(1:n) = g(1:n)
-        call mcsrch(n, x, f, g, w(ispt+point*n+1:ispt+point*n+n), stp, ftol, xtol, maxfev, info, nfev, &
-                diag, gtol, stpmin,stpmax,func,gen,atomic,tb,sol,io)
-        if( info/=1 ) then
-          if( info==0 ) then
-            info = -1
-            return
-          endif
-        endif
-        nfun = nfun+nfev
-        npt = point*n
-  !!!! potentially thread unsafe check that ispt/=iypt
+      xold = x
+      iter = iter + 1
+      info = 0
+      bound = iter - 1
+      if (iter /= 1) then
+        if (iter > m) then
+          bound = m
+        end if
+        ys = dot (w(iypt+npt+1:iypt+npt+n), w(ispt+npt+1:ispt+npt+n))
+        yy = dot (w(iypt+npt+1:iypt+npt+n), w(iypt+npt+1:iypt+npt+n))
+        diag = ys / yy
+        cp = point
+        if (point == 0) then
+          cp = m
+        end if
+        w (n+cp) = 1 / ys
+        w (1:n) = - g (1:n)
+        cp = point
+        do i = 1, bound
+          cp = cp - 1
+          if (cp ==-1) then
+            cp = m - 1
+          end if
+          sq = dot (w(ispt+cp*n+1:ispt+cp*n+n), w(1:n))
+          inmc = n + m + cp + 1
+          iycn = iypt + cp * n
+          w (inmc) = w (n+cp+1) * sq
+          call axpy (w(iycn+1:iycn+n), w(1:n),-w(inmc))
+        end do
         do i = 1, n
-          w(ispt+npt+i) = stp*w(ispt+npt+i)
-          w(iypt+npt+i) = g(i)-w(i)
-        enddo
-        point = point+1
-        if( point==m ) then
-          point = 0
-        endif
-        if((iter>maxits) .and. (maxits>0)) then
-          info = 5
+          w (i) = diag (i) * w (i)
+        end do
+        do i = 1, bound
+          yr = dot (w(iypt+cp*n+1:iypt+cp*n+n), w(1:n))
+          beta = w (n+cp+1) * yr
+          inmc = n + m + cp + 1
+          beta = w (inmc) - beta
+          iscn = ispt + cp * n
+          call axpy (w(iscn+1:iscn+n), w(1:n), beta)
+          cp = cp + 1
+          if (cp == m) then
+            cp = 0
+          end if
+        end do
+        do i = 1, n
+          w (ispt+point*n+i) = w (i)
+        end do
+      end if
+      nfev = 0
+      stp = 1
+      if (iter == 1) then
+        stp = stp1
+      end if
+      w (1:n) = g (1:n)
+      call mcsrch (n, x, f, g, w(ispt+point*n+1:ispt+point*n+n), stp, ftol, xtol, maxfev, info, nfev, diag, gtol, stpmin, stpmax, &
+     & func, gen, atomic, tb, sol, io)
+      if (info /= 1) then
+        if (info == 0) then
+          info = - 1
           return
-        endif
-        call IterationReport(iprint,iter,nfun,gnorm,n,m,x,f,g,stp,finish,io)
-        gnorm = sqrt(dot(g,g))
-        if( gnorm<=epsg ) then
-          info = 4
-          return
-        endif
-        tf = max(abs(fold), max(abs(f), 1.0_k_pr))
-        if( abs(fold-f)<=epsf*tf ) then
-          info = 1
-          return
-        endif
-
-        tx=xold
-        tx=tx-x
-        xnorm = sqrt(dot(x,x))
-        txnorm = max(xnorm, sqrt(dot( xold, xold)))
-        txnorm = max(txnorm, 1.0_k_pr)
-        v = sqrt(dot(tx, tx))
-        if( v<=epsx ) then
-          info = 2
-          return
-        endif
-        fold=f
-        xold=x
-    enddo
-
-    deallocate(g,diag,w,tx,ta,xold)
-
+        end if
+      end if
+      nfun = nfun + nfev
+      npt = point * n
+!!!! potentially thread unsafe check that ispt/=iypt  
+      do i = 1, n
+        w (ispt+npt+i) = stp * w (ispt+npt+i)
+        w (iypt+npt+i) = g (i) - w (i)
+      end do
+      point = point + 1
+      if (point == m) then
+        point = 0
+      end if
+      if ((iter > maxits) .and. (maxits > 0)) then
+        info = 5
+        return
+      end if
+      call IterationReport (iprint, iter, nfun, gnorm, n, m, x, f, g, stp, finish, io)
+      gnorm = Sqrt (dot(g, g))
+      if (gnorm <= epsg) then
+        info = 4
+        return
+      end if
+      tf = Max (Abs(fold), Max(Abs(f), 1.0_k_pr))
+      if (Abs(fold-f) <= epsf*tf) then
+        info = 1
+        return
+      end if
+!
+      tx = xold
+      tx = tx - x
+      xnorm = Sqrt (dot(x, x))
+      txnorm = Max (xnorm, Sqrt(dot(xold, xold)))
+      txnorm = Max (txnorm, 1.0_k_pr)
+      v = Sqrt (dot(tx, tx))
+      if (v <= epsx) then
+        info = 2
+        return
+      end if
+      fold = f
+      xold = x
+    end do
+!
+    deallocate (g, diag, w, tx, ta, xold)
+!
   end subroutine lbfgs
-
-
-  subroutine IterationReport(iprint,iter,nfun,gnorm,n,m,x,f,g,stp,finish,io)
-
- !     -------------------------------------------------------------
- !     this routine prints monitoring information. the frequency and
- !     amount of output are controlled by iprint.
- !     -------------------------------------------------------------
- !
-    integer, intent(in) :: iprint(2),iter,nfun,n,m
-    real(k_pr), intent(in) :: x(:),g(:),f,gnorm,stp
-    type(ioType), intent(in) :: io
-    logical, intent(in) :: finish
+!
+!
+  subroutine IterationReport (iprint, iter, nfun, gnorm, n, m, x, f, g, stp, finish, io)
+!
+!     ------------------------------------------------------------- 
+!     this routine prints monitoring information. the frequency and 
+!     amount of output are controlled by iprint. 
+!     ------------------------------------------------------------- 
+! 
+    integer, intent (in) :: iprint (2), iter, nfun, n, m
+    real (k_pr), intent (in) :: x (:), g (:), f, gnorm, stp
+    type (ioType), intent (in) :: io
+    logical, intent (in) :: finish
     integer :: i
-
-    if (iter == 0)then
-      write(io%uout,'(a)')"=============================================================="
-      write(io%uout,'(a,i0,a,i0,a)') "n= ",n," number of corrections= ",m, "initial values"
-      write(io%uout,'(a,ES12.4,a,ES12.4)')"f=",f," gnorm= ",gnorm
-            if (iprint(2)>=1)then
-                write(io%uout,'(a)') "vector X:"
-                write(io%uout,'(1500f16.8)') (x(i),i=1,n)
-                write(io%uout,'(a)')"gradient vector (Forces): "
-                write(io%uout,'(1500f16.8)') (g(i),i=1,n)
-              endif
-      write(io%uout,'(a)')"=============================================================="
-      write(io%uout,'(a,4x,a,8x,a,7x,a)')"   i   nfn","func","gnorm","steplength"
+!
+    if (iter == 0) then
+      write (io%uout, '(a)') "=============================================================="
+      write (io%uout, '(a,i0,a,i0,a)') "n= ", n, " number of corrections= ", m, "initial values"
+      write (io%uout, '(a,ES12.4,a,ES12.4)') "f=", f, " gnorm= ", gnorm
+      if (iprint(2) >= 1) then
+        write (io%uout, '(a)') "vector X:"
+        write (io%uout, '(1500f16.8)') (x(i), i=1, n)
+        write (io%uout, '(a)') "gradient vector (Forces): "
+        write (io%uout, '(1500f16.8)') (g(i), i=1, n)
+      end if
+      write (io%uout, '(a)') "=============================================================="
+      write (io%uout, '(a,4x,a,8x,a,7x,a)') "   i   nfn", "func", "gnorm", "steplength"
     else
-      if ((iprint(1)==0).and.(iter/=1.and..not.finish))return
-          if (iprint(1)/=0)then
-              if(mod(iter-1,iprint(1))==0.or.finish)then
-                    if(iprint(2)>1.and.iter>1) write(io%uout,'(a,4x,a,8x,a,7x,a)')"   i   nfn","func","gnorm","steplength"
-                    write(io%uout,'(2(i4,1x),3x,3(1f10.3,2x))')iter,nfun,f,gnorm,stp
-              else
-                    return
-              endif
-          else
-              if( iprint(2)>1.and.finish) write(io%uout,'(a,4x,a,8x,a,7x,a)')"   i   nfn","func","gnorm","steplength"
-              write(io%uout,'(2(i4,1x),3x,3(1f10.3,2x))')iter,nfun,f,gnorm,stp
-          endif
-          if (iprint(2)==2.or.iprint(2)==3)then
-                if (finish)then
-                    write(io%uout,'(a)')"final point X: "
-                else
-                    write(io%uout,'(a)') "vector X:"
-                endif
-                  write(io%uout,'(1500f16.8)')(x(i),i=1,n)
-              if (iprint(2)==3)then
-                  write(io%uout,'(a)')"gradient vector (Forces): "
-                  write(io%uout,'(1500f16.8)')(g(i),i=1,n)
-              endif
-          endif
-        if (finish) write(io%uout,'(a)') " the minimization terminated without detecting errors. iflag = 0"
-    endif
+      if ((iprint(1) == 0) .and. (iter /= 1 .and. .not. finish)) return
+      if (iprint(1) /= 0) then
+        if (Mod(iter-1, iprint(1)) == 0 .or. finish) then
+          if (iprint(2) > 1 .and. iter > 1) write (io%uout, '(a,4x,a,8x,a,7x,a)') "   i   nfn", "func", "gnorm", "steplength"
+          write (io%uout, '(2(i4,1x),3x,3(1f10.3,2x))') iter, nfun, f, gnorm, stp
+        else
+          return
+        end if
+      else
+        if (iprint(2) > 1 .and. finish) write (io%uout, '(a,4x,a,8x,a,7x,a)') "   i   nfn", "func", "gnorm", "steplength"
+        write (io%uout, '(2(i4,1x),3x,3(1f10.3,2x))') iter, nfun, f, gnorm, stp
+      end if
+      if (iprint(2) == 2 .or. iprint(2) == 3) then
+        if (finish) then
+          write (io%uout, '(a)') "final point X: "
+        else
+          write (io%uout, '(a)') "vector X:"
+        end if
+        write (io%uout, '(1500f16.8)') (x(i), i=1, n)
+        if (iprint(2) == 3) then
+          write (io%uout, '(a)') "gradient vector (Forces): "
+          write (io%uout, '(1500f16.8)') (g(i), i=1, n)
+        end if
+      end if
+      if (finish) write (io%uout, '(a)') " the minimization terminated without detecting errors. iflag = 0"
+    end if
   end subroutine IterationReport
 !
 ! !c
@@ -607,169 +598,168 @@ contains
 ! !c
 ! !c       wa is a work array of length n.
 ! !c     **********
-
-  subroutine mcsrch(n,x,f,g,s,stp,ftol,xtol,maxfev,info,nfev,wa,gtol,stpmin,stpmax, &
-            func,gen,atomic,tb,sol,io)
-    character(len=*), parameter :: myname="mcsrch"
-    type(generalType), intent(inout) :: gen
-    type(atomicxType), intent(inout) :: atomic
-    type(modelType), intent(inout) :: tb
-    type(solutionType), intent(inout) :: sol
-    type(ioType), intent(inout) :: io
-        integer, intent(in) :: n,maxfev
-    integer, intent(inout) :: info,nfev
-    real(k_pr), intent(inout) :: f,stp
-    real(k_pr), intent(in) :: ftol,gtol,xtol, stpmin, stpmax
-    real(k_pr), intent(inout) :: x(:),g(:),wa(:),s(:)
-
+!
+  subroutine mcsrch (n, x, f, g, s, stp, ftol, xtol, maxfev, info, nfev, wa, gtol, stpmin, stpmax, func, gen, atomic, tb, sol, io)
+    character (len=*), parameter :: myname = "mcsrch"
+    type (generalType), intent (inout) :: gen
+    type (atomicxType), intent (inout) :: atomic
+    type (modelType), intent (inout) :: tb
+    type (solutionType), intent (inout) :: sol
+    type (ioType), intent (inout) :: io
+    integer, intent (in) :: n, maxfev
+    integer, intent (inout) :: info, nfev
+    real (k_pr), intent (inout) :: f, stp
+    real (k_pr), intent (in) :: ftol, gtol, xtol, stpmin, stpmax
+    real (k_pr), intent (inout) :: x (:), g (:), wa (:), s (:)
+!
     interface
-      function func(gen,atomic,tb,sol,io,x,f,gradient)
+      function func (gen, atomic, tb, sol, io, x, f, gradient)
         use m_Constants
         use m_Types
         implicit none
-          real(k_pr), dimension(:), intent(in) :: x
-          real(k_pr), dimension(:), intent(inout),optional :: gradient
-          real(k_pr), intent(inout) :: f
-          type(generalType), intent(inout) :: gen
-          type(atomicxType), intent(inout) :: atomic
-          type(modelType), intent(inout) :: tb
-          type(solutionType), intent(inout) :: sol
-          type(ioType), intent(inout) :: io
-          integer :: func
+        real (k_pr), dimension (:), intent (in) :: x
+        real (k_pr), dimension (:), intent (inout), optional :: gradient
+        real (k_pr), intent (inout) :: f
+        type (generalType), intent (inout) :: gen
+        type (atomicxType), intent (inout) :: atomic
+        type (modelType), intent (inout) :: tb
+        type (solutionType), intent (inout) :: sol
+        type (ioType), intent (inout) :: io
+        integer :: func
       end function func
     end interface
-
-
+!
+!
     integer :: res
-    integer ::  infoc,j
-    logical :: brackt,stage1
-    real(k_pr) :: dg,dgm,dginit,dgtest,dgx,dgxm,dgy,dgym
-    real(k_pr) :: finit,ftest1,fm,fx,fxm,fy,fym,p5,p66,stx,sty
-    real(k_pr) :: stmin,stmax,width,width1,xtrapf, mytemp
-
+    integer :: infoc, j
+    logical :: brackt, stage1
+    real (k_pr) :: dg, dgm, dginit, dgtest, dgx, dgxm, dgy, dgym
+    real (k_pr) :: finit, ftest1, fm, fx, fxm, fy, fym, p5, p66, stx, sty
+    real (k_pr) :: stmin, stmax, width, width1, xtrapf, mytemp
+!
     p5 = 0.5_k_pr
     p66 = 0.66_k_pr
     xtrapf = 4.0_k_pr
-    f=0.0_k_pr
-    write(io%uout,'(a,a)')"Energy update from: ", myname
-    res=func(gen,atomic,tb,sol,io,x,f,g)
+    f = 0.0_k_pr
+    write (io%uout, '(a,a)') "Energy update from: ", myname
+    res = func (gen, atomic, tb, sol, io, x, f, g)
     infoc = 1
     info = 0
-    if( n<=0 .or. stp<=k_zero .or. ftol<0.0_k_pr .or. gtol<k_zero .or. xtol< k_zero&
-        .or. stpmin<k_zero .or. stpmax<stpmin .or. maxfev<=0 ) then
+    if (n <= 0 .or. stp <= k_zero .or. ftol < 0.0_k_pr .or. gtol < k_zero .or. xtol < k_zero .or. stpmin < k_zero .or. stpmax < &
+   & stpmin .or. maxfev <= 0) then
       return
-    endif
+    end if
     dginit = 0.0_k_pr
-    do j=1,n
-      dginit = dginit+g(j)*s(j);
-    enddo
-    if( dginit>=0 ) then
+    do j = 1, n
+      dginit = dginit + g (j) * s (j)
+    end do
+    if (dginit >= 0) then
       return
-    endif
+    end if
     brackt = .false.
     stage1 = .true.
     nfev = 0
     finit = f
-    dgtest = ftol*dginit
-    width = stpmax-stpmin
-    width1 = width/p5
-    do j=1,n
-      wa(j) = x(j)
-    enddo
+    dgtest = ftol * dginit
+    width = stpmax - stpmin
+    width1 = width / p5
+    do j = 1, n
+      wa (j) = x (j)
+    end do
     stx = 0.0_k_pr
     fx = finit
     dgx = dginit
     sty = 0.0_k_pr
     fy = finit
     dgy = dginit
-    do while(.true.)
-      if( brackt ) then
-        if( stx<sty ) then
+    do while (.true.)
+      if (brackt) then
+        if (stx < sty) then
           stmin = stx
           stmax = sty
         else
           stmin = sty
           stmax = stx
-        endif
+        end if
       else
         stmin = stx
-        stmax = stp+xtrapf*(stp-stx)
-      endif
-      if( stp>stpmax ) then
-        stp = stpmax;
-      endif
-      if( stp<stpmin ) then
+        stmax = stp + xtrapf * (stp-stx)
+      end if
+      if (stp > stpmax) then
+        stp = stpmax
+      end if
+      if (stp < stpmin) then
         stp = stpmin
-      endif
-      if( brackt .and.(stp<=stmin .or. stp>=stmax) .or. nfev>=maxfev-1 .or. infoc==0 .or. &
-         brackt .and. stmax-stmin<=xtol*stmax ) then
+      end if
+      if (brackt .and. (stp <= stmin .or. stp >= stmax) .or. nfev >= maxfev-1 .or. infoc == 0 .or. brackt .and. stmax-stmin <= &
+     & xtol*stmax) then
         stp = stx
-      endif
-      do j = 1,n
-        x(j) = wa(j)+stp*s(j)
-      enddo
-      write(io%uout,'(a,a)')"Energy update from: ", myname
-      res=func(gen,atomic,tb,sol,io,x,f,g)
+      end if
+      do j = 1, n
+        x (j) = wa (j) + stp * s (j)
+      end do
+      write (io%uout, '(a,a)') "Energy update from: ", myname
+      res = func (gen, atomic, tb, sol, io, x, f, g)
       info = 0
-      nfev = nfev+1
+      nfev = nfev + 1
       dg = 0.0_k_pr
-      do j = 1,n
-        dg = dg+g(j)*s(j)
-      enddo
-      ftest1 = finit+stp*dgtest
-      if( brackt .and. (stp<=stmin .or. stp>=stmax) .or. (infoc==0) ) then
+      do j = 1, n
+        dg = dg + g (j) * s (j)
+      end do
+      ftest1 = finit + stp * dgtest
+      if (brackt .and. (stp <= stmin .or. stp >= stmax) .or. (infoc == 0)) then
         info = 6
-      endif
-      if( (stp==stpmax) .and. (f<=ftest1) .and. (dg<=dgtest) )then
+      end if
+      if ((stp == stpmax) .and. (f <= ftest1) .and. (dg <= dgtest)) then
         info = 5
-      endif
-      if( stp==stpmin .and. (f>ftest1.or.dg>=dgtest) ) then
+      end if
+      if (stp == stpmin .and. (f > ftest1 .or. dg >= dgtest)) then
         info = 4
-      endif
-      if( nfev>=maxfev ) then
+      end if
+      if (nfev >= maxfev) then
         info = 3
-      endif
-      if( brackt .and. stmax-stmin<=xtol*stmax ) then
+      end if
+      if (brackt .and. stmax-stmin <= xtol*stmax) then
         info = 2
-      endif
-      if( f<=ftest1 .and. abs(dg)<=-gtol*dginit ) then
+      end if
+      if (f <= ftest1 .and. Abs(dg) <=-gtol*dginit) then
         info = 1
-      endif
-      if( info/=0 ) then
+      end if
+      if (info /= 0) then
         return
-      endif
+      end if
       mytemp = ftol
-      if( gtol<ftol ) then
-      mytemp = gtol
-      endif
-      if( stage1 .and. f<=ftest1 .and. dg>=mytemp*dginit ) then
-      stage1 = .false.
-      endif
-      if( stage1 .and. f<=fx .and. f>ftest1 ) then
-        fm = f-stp*dgtest
-        fxm = fx-stx*dgtest
-        fym = fy-sty*dgtest
-        dgm = dg-dgtest
-        dgxm = dgx-dgtest
-        dgym = dgy-dgtest
-        call mcstep(stx, fxm, dgxm, sty, fym, dgym, stp, fm, dgm, brackt, stmin, stmax, infoc)
-        fx = fxm+stx*dgtest
-        fy = fym+sty*dgtest
-        dgx = dgxm+dgtest
-        dgy = dgym+dgtest
+      if (gtol < ftol) then
+        mytemp = gtol
+      end if
+      if (stage1 .and. f <= ftest1 .and. dg >= mytemp*dginit) then
+        stage1 = .false.
+      end if
+      if (stage1 .and. f <= fx .and. f > ftest1) then
+        fm = f - stp * dgtest
+        fxm = fx - stx * dgtest
+        fym = fy - sty * dgtest
+        dgm = dg - dgtest
+        dgxm = dgx - dgtest
+        dgym = dgy - dgtest
+        call mcstep (stx, fxm, dgxm, sty, fym, dgym, stp, fm, dgm, brackt, stmin, stmax, infoc)
+        fx = fxm + stx * dgtest
+        fy = fym + sty * dgtest
+        dgx = dgxm + dgtest
+        dgy = dgym + dgtest
       else
-        call mcstep(stx, fx, dgx, sty, fy, dgy, stp, f, dg, brackt, stmin, stmax, infoc)
-      endif
-      if( brackt ) then
-        if( abs(sty-stx)>=p66*width1 ) then
-          stp = stx+p5*(sty-stx)
-        endif
+        call mcstep (stx, fx, dgx, sty, fy, dgy, stp, f, dg, brackt, stmin, stmax, infoc)
+      end if
+      if (brackt) then
+        if (Abs(sty-stx) >= p66*width1) then
+          stp = stx + p5 * (sty-stx)
+        end if
         width1 = width
-        width = abs(sty-stx)
-      endif
-    enddo
+        width = Abs (sty-stx)
+      end if
+    end do
   end subroutine mcsrch
-
+!
 ! !c
 ! !c     subroutine mcstep
 ! !c
@@ -845,149 +835,148 @@ contains
 ! !c     to stx than the quadratic step, the cubic step is taken,
 ! !c     else the average of the cubic and quadratic steps is taken.
 ! !c
-
-  subroutine mcstep(stx,fx,dx,sty,fy,dy,stp,fp,dp,brackt,stmin,stmax,info)
-    integer, intent(inout) :: info
-    real(k_pr), intent(inout) :: stx,fx,dx,sty,fy,dy,stp,fp,dp
-    real(k_pr), intent(in) :: stmin,stmax
-    logical, intent(inout) :: brackt
-    real(k_pr) :: p, q, r, s, sgnd, stpc, stpf, stpq, theta, p66,gamma
+!
+  subroutine mcstep (stx, fx, dx, sty, fy, dy, stp, fp, dp, brackt, stmin, stmax, info)
+    integer, intent (inout) :: info
+    real (k_pr), intent (inout) :: stx, fx, dx, sty, fy, dy, stp, fp, dp
+    real (k_pr), intent (in) :: stmin, stmax
+    logical, intent (inout) :: brackt
+    real (k_pr) :: p, q, r, s, sgnd, stpc, stpf, stpq, theta, p66, gamma
     logical :: bound
-
-    p66=0.66_k_pr
+!
+    p66 = 0.66_k_pr
     info = 0
-    if( brackt  .and. (stp<=min(stx, sty) .or. stp>=max(stx, sty)) .or.&
-      dx*(stp-stx)>=k_zero .or. stmax<stmin ) then
+    if (brackt .and. (stp <= Min(stx, sty) .or. stp >= Max(stx, sty)) .or. dx*(stp-stx) >= k_zero .or. stmax < stmin) then
       return
-    endif
-    sgnd = dp*(dx/abs(dx))
-    if( fp>fx ) then
+    end if
+    sgnd = dp * (dx/Abs(dx))
+    if (fp > fx) then
       info = 1
       bound = .true.
-      theta = 3.0_k_pr*(fx-fp)/(stp-stx)+dx+dp
-      s = max(abs(theta), max(abs(dx), abs(dp)))
-      gamma = s*sqrt((theta*theta/s/s)-dx/s*(dp/s))
-      if( stp<stx ) then
-        gamma = -gamma
-      endif
-      p = gamma-dx+theta
-      q = gamma-dx+gamma+dp
-      r = p/q
-      stpc = stx+r*(stp-stx)
-      stpq = stx+dx/((fx-fp)/(stp-stx)+dx)/2.0_k_pr*(stp-stx)
-      if(abs(stpc-stx)<abs(stpq-stx) ) then
+      theta = 3.0_k_pr * (fx-fp) / (stp-stx) + dx + dp
+      s = Max (Abs(theta), Max(Abs(dx), Abs(dp)))
+      gamma = s * Sqrt ((theta*theta/s/s)-dx/s*(dp/s))
+      if (stp < stx) then
+        gamma = - gamma
+      end if
+      p = gamma - dx + theta
+      q = gamma - dx + gamma + dp
+      r = p / q
+      stpc = stx + r * (stp-stx)
+      stpq = stx + dx / ((fx-fp)/(stp-stx)+dx) / 2.0_k_pr * (stp-stx)
+      if (Abs(stpc-stx) < Abs(stpq-stx)) then
         stpf = stpc
       else
-        stpf = stpc+(stpq-stpc)/2;
-      endif
+        stpf = stpc + (stpq-stpc) / 2
+      end if
       brackt = .true.
     else
-      if( sgnd<0 ) then
+      if (sgnd < 0) then
         info = 2
         bound = .false.
-        theta = 3.0_k_pr*(fx-fp)/(stp-stx)+dx+dp
-        s = max(abs(theta), max(abs(dx), abs(dp)))
-        gamma = s*sqrt(theta*theta/s/s-dx/s*(dp/s))
-        if( stp>stx ) then
-          gamma = -gamma
-        endif
-        p = gamma-dp+theta
-        q = gamma-dp+gamma+dx
-        r = p/q
-        stpc = stp+r*(stx-stp)
-        stpq = stp+dp/(dp-dx)*(stx-stp)
-        if( abs(stpc-stp)>abs(stpq-stp) ) then
+        theta = 3.0_k_pr * (fx-fp) / (stp-stx) + dx + dp
+        s = Max (Abs(theta), Max(Abs(dx), Abs(dp)))
+        gamma = s * Sqrt (theta*theta/s/s-dx/s*(dp/s))
+        if (stp > stx) then
+          gamma = - gamma
+        end if
+        p = gamma - dp + theta
+        q = gamma - dp + gamma + dx
+        r = p / q
+        stpc = stp + r * (stx-stp)
+        stpq = stp + dp / (dp-dx) * (stx-stp)
+        if (Abs(stpc-stp) > Abs(stpq-stp)) then
           stpf = stpc
         else
           stpf = stpq
-        endif
+        end if
         brackt = .true.
-
-        else
-            if( abs(dp)<abs(dx) ) then
-                info = 3
-                bound = .true.
-                theta = 3.0_k_pr*(fx-fp)/(stp-stx)+dx+dp
-                s = max(abs(theta), max(abs(dx), abs(dp)))
-                gamma = s*sqrt(max(k_zero, theta*theta/s/s-dx/s*(dp/s)))
-                if( stp>stx ) then
-                  gamma = -gamma
-                endif
-                p = gamma-dp+theta
-                q = gamma+(dx-dp)+gamma
-                r = p/q
-                if( r<0 .and. gamma/=0 ) then
-                    stpc = stp+r*(stx-stp)
-                else
-                   if( stp>stx ) then
-                     stpc = stmax
-                    else
-                      stpc = stmin
-                    endif
-                endif
-                stpq = stp+dp/(dp-dx)*(stx-stp)
-                if( brackt ) then
-                    if( abs(stp-stpc)<abs(stp-stpq) ) then
-                      stpf = stpc
-                    else
-                        stpf = stpq
-                    endif
-                else
-                    if( abs(stp-stpc)>abs(stp-stpq) ) then
-                      stpf = stpc
-                    else
-                        stpf = stpq
-                    endif
-                endif
+!
+      else
+        if (Abs(dp) < Abs(dx)) then
+          info = 3
+          bound = .true.
+          theta = 3.0_k_pr * (fx-fp) / (stp-stx) + dx + dp
+          s = Max (Abs(theta), Max(Abs(dx), Abs(dp)))
+          gamma = s * Sqrt (Max(k_zero, theta*theta/s/s-dx/s*(dp/s)))
+          if (stp > stx) then
+            gamma = - gamma
+          end if
+          p = gamma - dp + theta
+          q = gamma + (dx-dp) + gamma
+          r = p / q
+          if (r < 0 .and. gamma /= 0) then
+            stpc = stp + r * (stx-stp)
+          else
+            if (stp > stx) then
+              stpc = stmax
             else
-                info = 4
-                bound = .false.
-                if( brackt ) then
-                    theta = 3.0_k_pr*(fp-fy)/(sty-stp)+dy+dp
-                    s = max(abs(theta), max(abs(dy), abs(dp)))
-                    gamma = s*sqrt(theta*theta/s/s-dy/s*(dp/s))
-                    if( stp>sty ) then
-                      gamma = -gamma
-                    endif
-                    p = gamma-dp+theta
-                    q = gamma-dp+gamma+dy
-                    r = p/q
-                    stpc = stp+r*(sty-stp)
-                    stpf = stpc
-                else
-                    if( stp>stx ) then
-                        stpf = stmax
-                    else
-                        stpf = stmin
-                    endif
-                endif
-            endif
-        endif
-    endif
-    if( fp>fx ) then
-        sty = stp
-        fy = fp
-        dy = dp
-    else
-        if( sgnd<k_zero ) then
-            sty = stx
-            fy = fx
-            dy = dx
-        endif
-        stx = stp
-        fx = fp
-        dx = dp
-    endif
-    stpf = min(stmax, stpf)
-    stpf = max(stmin, stpf)
-    stp = stpf
-    if( brackt .and. bound ) then
-        if( sty>stx ) then
-            stp = min(stx+p66*(sty-stx), stp)
+              stpc = stmin
+            end if
+          end if
+          stpq = stp + dp / (dp-dx) * (stx-stp)
+          if (brackt) then
+            if (Abs(stp-stpc) < Abs(stp-stpq)) then
+              stpf = stpc
+            else
+              stpf = stpq
+            end if
+          else
+            if (Abs(stp-stpc) > Abs(stp-stpq)) then
+              stpf = stpc
+            else
+              stpf = stpq
+            end if
+          end if
         else
-            stp = max(stx+p66*(sty-stx), stp)
-        endif
-    endif
+          info = 4
+          bound = .false.
+          if (brackt) then
+            theta = 3.0_k_pr * (fp-fy) / (sty-stp) + dy + dp
+            s = Max (Abs(theta), Max(Abs(dy), Abs(dp)))
+            gamma = s * Sqrt (theta*theta/s/s-dy/s*(dp/s))
+            if (stp > sty) then
+              gamma = - gamma
+            end if
+            p = gamma - dp + theta
+            q = gamma - dp + gamma + dy
+            r = p / q
+            stpc = stp + r * (sty-stp)
+            stpf = stpc
+          else
+            if (stp > stx) then
+              stpf = stmax
+            else
+              stpf = stmin
+            end if
+          end if
+        end if
+      end if
+    end if
+    if (fp > fx) then
+      sty = stp
+      fy = fp
+      dy = dp
+    else
+      if (sgnd < k_zero) then
+        sty = stx
+        fy = fx
+        dy = dx
+      end if
+      stx = stp
+      fx = fp
+      dx = dp
+    end if
+    stpf = Min (stmax, stpf)
+    stpf = Max (stmin, stpf)
+    stp = stpf
+    if (brackt .and. bound) then
+      if (sty > stx) then
+        stp = Min (stx+p66*(sty-stx), stp)
+      else
+        stp = Max (stx+p66*(sty-stx), stp)
+      end if
+    end if
   end subroutine mcstep
-
+!
 end module m_LBFGS

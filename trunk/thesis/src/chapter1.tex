@@ -28,10 +28,26 @@ $3p$-orbitals, $5d$-orbitals
 $\{\ket{s},\ket{p_x},\ket{p_y},\ket{p_x},\ket{d_{xy}},\ket{d_{yz}},\ket{d_{zx}},$
 $\ket{d_{x^2-y^2}},\ket{d_{3z^2-r^2}}\}$
 per atom. Principal quantum numbers do not have any meaning. The main
-approximations that would define a tight binding model are: ignoring three
-centre integrals, parametrise two centre integrals, ignore inter-site Coulomb,
-assume orthogonality of orbitals, ignore charge transfer, a.s.o.}
-\par{Usually a general tight binding model starts with the assumption that the
+approximations that would define a tight binding model. Finnis in \citep{Finnis03} gives a list of common  approximations in tight binding} 
+\begin{itemize}
+  \item{ignoring three centre integrals}
+  \item{parametrise two centre integrals}
+  \item{ignore non-spherical terms on an atom}
+  \item{ignore inter-site Coulomb interactions}
+  \item{ignore charge transfers}
+  \item{assume orthogonality of orbitals}
+  \item{make a real space representation as multi-ion potentials}
+  \item{make a real space second moment approximation}
+\end{itemize}
+\par{Finnis \citep{Finnis03} defines the quality of a tight binding model as the ratio of the predictive power of the model over complexity}
+\begin{equation*}
+ Q=\textrm{predictive power}/complexity
+\end{equation*}
+\par{Predictive power is in fact an abuse of concept since we refer to quantities which were already measured or computed via more accurate methods. Finnis \citep{Finnis03} calls it \emph{prediction of the past}. Predictive power is in fact a measure of the \emph{transferability} and tells you how well is computed a quantity which was not involved in the parametrisation process.}
+\par{The remainder of this chapter will present the approximations used in our tight binding model.}
+\section{From Density Functional Theory to Tight Binding}
+\section{scrap}
+\par{Usually\marginpar{this should be rewritten and moved somewhere else} a general tight binding model starts with the assumption that the
 total energy can be written as}
 \be
 E=\sum_{i=1}^{N}\epsilon_i+\frac{1}{2}\sum_{i,j,i\neq j}U(R_{ij})
