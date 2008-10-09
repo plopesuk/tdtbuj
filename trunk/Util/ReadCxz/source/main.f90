@@ -36,8 +36,6 @@ program ReadCxz
     err = err + Abs (errno)
     allocate (cxz%frames(i)%curr1(1:cxz%natoms), stat=errno)
     err = err + Abs (errno)
-    allocate (cxz%frames(i)%curr2(1:cxz%natoms), stat=errno)
-    err = err + Abs (errno)
   end do
   if (errno > 0) then
     call error ("Error allocating the memory ", myname, .true., outputunit)
@@ -47,7 +45,6 @@ program ReadCxz
     cxz%frames(i)%y = 0.0_k_pr
     cxz%frames(i)%z = 0.0_k_pr
     cxz%frames(i)%curr1 = 0.0_k_pr
-    cxz%frames(i)%curr2 = 0.0_k_pr
     cxz%frames(i)%element = ""
   end do
 !
@@ -63,7 +60,6 @@ program ReadCxz
     deallocate (cxz%frames(i)%y)
     deallocate (cxz%frames(i)%z)
     deallocate (cxz%frames(i)%curr1)
-    deallocate (cxz%frames(i)%curr2)
     deallocate (cxz%frames(i)%element)
   end do
   deallocate (cxz%frames)

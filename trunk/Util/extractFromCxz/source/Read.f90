@@ -25,7 +25,7 @@ contains
     if (errno /= 0) then
       call error ("Error reading file "//trim(file), myname, .true., unitout)
     end if
-! determine no of atoms and no of frames     
+! determine no of atoms and no of frames
     read (unitinp,*, iostat=errno) n
     if (errno /= 0) then
       call error ("Error reading no of atoms from file "//trim(file), myname, .true., unitout)
@@ -108,7 +108,7 @@ contains
       err = 0
       do j = 1, cxz%natoms
         if (i == 1) then
-          read (unitinp,*, iostat=errno) saux, x, y, z, curr1, curr2
+          read (unitinp,*, iostat=errno) saux, x, y, z, curr1
           err = err + Abs (errno)
           if (j == cxz%atom1) then
             cxz%element1 = trim (saux)

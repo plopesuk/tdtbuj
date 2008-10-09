@@ -82,7 +82,7 @@ contains
     end if
 !
     if (genLoc%spin) then
-!spin down       
+!spin down
       if ( .not. sol%hdown%created) then
         call CreateMatrix (sol%hdown, atomic%basis%norbitals/2, .true.)
       end if
@@ -207,7 +207,7 @@ contains
 !
     if (( .not. genLoc%compElec) .and. (genLoc%electrostatics == k_electrostaticsMultipoles)) then
       if ( .not. allocated(sol%delq)) then
-! this is the first time      
+! this is the first time
         allocate (sol%delq(1:atomic%atoms%natoms), sol%vs(1:atomic%atoms%natoms), stat=info)
         if (info /= 0) then
           call error ("not enough memory to precompute electrostatic, please change to ComputeMultipolesOnFly T", sMyName, .true., &
@@ -262,13 +262,13 @@ contains
 !    calculate the tail function parameters
     do i = 1, atomic%species%nspecies
       do j = 1, atomic%species%nspecies
-! repulsions          
+! repulsions
         f = RepNoTail (tbMod%hopping(i, j)%d1, atomic%species%id(i), atomic%species%id(j), tbMod, genLoc)
         fp = RepPNoTail (tbMod%hopping(i, j)%d1, atomic%species%id(i), atomic%species%id(j), tbMod, genLoc)
         fpp = RepPpNoTail (tbMod%hopping(i, j)%d1, atomic%species%id(i), atomic%species%id(j), tbMod, genLoc)
         tbMod%hopping(i, j)%repTail = makeTailType (f, fp, fpp, tbMod%hopping(i, j)%d1, tbMod%hopping(i, j)%dcut, ioLoc)
 !
-! hoppings          
+! hoppings
         if ( .not. allocated(tbMod%hopping(i, j)%hmnTail)) then
           allocate (tbMod%hopping(i, j)%hmnTail(0:tbMod%hopping(i, j)%l1, 0:tbMod%hopping(i, j)%l2, 0:tbMod%hopping(i, j)%ll))
         end if
@@ -311,7 +311,7 @@ contains
     real (k_pr) :: sq
     integer :: g
     character (len=k_ml) :: saux
-!     check for validity     
+!     check for validity
     if (l1 < 0 .or. l2 < 0 .or. l3 < 0) then
       write (saux, '(a,i0,1x,i0,1x,i0,1x,i0,1x,i0,1x,i0)') "error in the input l-values in gaunt", l1, m1, l2, m2, l3, m3
       call error (trim(saux), myname, .true., io)
@@ -445,18 +445,18 @@ contains
 ! =====End Gaunt Coefficients ================================================================================
 ! ====Radial dependence=========================================================================================
   function rad (r, sp1, sp2, gen, tb, l1, l2, m)
-! Gives you the radial dependence for elemental overlaps    
-! for specie sp1, sp2    
-!--subroutine name--------------------------------!    
+! Gives you the radial dependence for elemental overlaps
+! for specie sp1, sp2
+!--subroutine name--------------------------------!
     character (len=*), parameter :: myname = 'rad'
-!--subroutine parameters -------------------------!    
+!--subroutine parameters -------------------------!
     real (k_pr), intent (inout) :: r
     integer, intent (inout) :: sp1, sp2
     type (modelType), intent (inout) :: tb
     type (generalType), intent (inout) :: gen
     integer, intent (in) :: l1, l2, m
     real (k_pr) :: rad
-!-------------------------------------------------!    
+!-------------------------------------------------!
     if (r <= (tb%hopping(sp1, sp2)%r1)) then
       rad = tb%hopping(sp1, sp2)%a(l1, l2, m) * RadNoTail (r, sp1, sp2, gen, tb)
     else if (r <= (tb%hopping(sp1, sp2)%rcut)) then
@@ -467,18 +467,18 @@ contains
   end function rad
 !
   function RadNoTail (r, sp1, sp2, gen, tb)
-!Gives you the radial dependence for elemental overlaps    
-! for specie sp1, sp2    
-!--subroutine name--------------------------------!    
+!Gives you the radial dependence for elemental overlaps
+! for specie sp1, sp2
+!--subroutine name--------------------------------!
     character (len=*), parameter :: myname = 'rad'
-!--subroutine parameters -------------------------!    
+!--subroutine parameters -------------------------!
     real (k_pr), intent (in) :: r
     integer, intent (in) :: sp1, sp2
     type (modelType), intent (in) :: tb
     type (generalType), intent (in) :: gen
 !
     real (k_pr) :: RadNoTail
-!-------------------------------------------------!    
+!-------------------------------------------------!
     real (k_pr) :: r0, n, nc, rc
     select case (gen%bond)
     case (k_bondGSP)
@@ -496,18 +496,18 @@ contains
 !
 !
   function RadP (alpha, r, sp1, sp2, gen, tb, l1, l2, m)
-!Gives you the radial dependence for elemental overlaps    
-! for specie sp1, sp2    
-!--subroutine name--------------------------------!    
+!Gives you the radial dependence for elemental overlaps
+! for specie sp1, sp2
+!--subroutine name--------------------------------!
     character (len=*), parameter :: myname = 'RadP'
-!--subroutine parameters -------------------------!    
+!--subroutine parameters -------------------------!
     real (k_pr), intent (inout) :: r
     integer, intent (inout) :: sp1, sp2, alpha
     integer, intent (in) :: l1, l2, m
     type (modelType), intent (inout) :: tb
     type (generalType), intent (inout) :: gen
     real (k_pr) :: RadP
-!-------------------------------------------------!    
+!-------------------------------------------------!
 !
 !
     if (r <= tb%hopping(sp1, sp2)%r1) then
@@ -527,18 +527,18 @@ contains
 !
 !
   function RadPNoTail (alpha, r, sp1, sp2, gen, tb)
-!Gives you the radial dependence for elemental overlaps    
-! for specie sp1, sp2    
-!--subroutine name--------------------------------!    
+!Gives you the radial dependence for elemental overlaps
+! for specie sp1, sp2
+!--subroutine name--------------------------------!
     character (len=*), parameter :: myname = 'RadP_notail'
-!--subroutine parameters -------------------------!    
+!--subroutine parameters -------------------------!
     real (k_pr), intent (inout) :: r
     integer, intent (inout) :: sp1, sp2
     integer, intent (in) :: alpha
     type (modelType), intent (inout) :: tb
     type (generalType), intent (inout) :: gen
     real (k_pr) :: RadPNoTail
-!-------------------------------------------------!    
+!-------------------------------------------------!
     real (k_pr) :: r0, n, nc, rc
 !
     select case (gen%bond)
@@ -565,18 +565,18 @@ contains
   end function RadPNoTail
 !
   function RadPp (alpha, beta, r, sp1, sp2, gen, tb, l1, l2, m)
-!Gives you the radial dependence for elemental overlaps    
-! for specie sp1, sp2    
-!--subroutine name--------------------------------!    
+!Gives you the radial dependence for elemental overlaps
+! for specie sp1, sp2
+!--subroutine name--------------------------------!
     character (len=*), parameter :: myname = 'RadPpNoTail'
-!--subroutine parameters -------------------------!    
+!--subroutine parameters -------------------------!
     real (k_pr), intent (inout) :: r
     integer, intent (inout) :: sp1, sp2, alpha, beta
     type (modelType), intent (inout) :: tb
     integer, intent (in) :: l1, l2, m
     type (generalType), intent (inout) :: gen
     real (k_pr) :: RadPp
-!-------------------------------------------------!    
+!-------------------------------------------------!
 !
     if (r <= tb%hopping(sp1, sp2)%r1) then
       RadPp = tb%hopping(sp1, sp2)%a(l1, l2, m) * RadPpNoTail (alpha, beta, r, sp1, sp2, gen, tb)
@@ -595,18 +595,18 @@ contains
   end function RadPp
 !
   function RadPpNoTail (alpha, beta, r, sp1, sp2, gen, tb)
-!Gives you the radial dependence for elemental overlaps    
-! for specie sp1, sp2    
-!--subroutine name--------------------------------!    
+!Gives you the radial dependence for elemental overlaps
+! for specie sp1, sp2
+!--subroutine name--------------------------------!
     character (len=*), parameter :: myname = 'RadPpNoTail'
-!--subroutine parameters -------------------------!    
+!--subroutine parameters -------------------------!
     real (k_pr), intent (inout) :: r
     integer, intent (inout) :: sp1, sp2
     integer, intent (in) :: alpha, beta
     type (modelType), intent (inout) :: tb
     type (generalType), intent (inout) :: gen
     real (k_pr) :: RadPpNoTail
-!-------------------------------------------------!    
+!-------------------------------------------------!
     real (k_pr) :: r0, n, nc, rc
 !
     select case (gen%bond)
@@ -633,17 +633,17 @@ contains
 ! ============end radial dependence==============================================================================
 ! ====repulsive term======================================================================================
   function rep (r, sp1, sp2, tb, gen)
-!--subroutine name--------------------------------!    
+!--subroutine name--------------------------------!
     character (len=*), parameter :: myname = 'rep'
-!--subroutine parameters -------------------------!    
+!--subroutine parameters -------------------------!
     real (k_pr) :: rep
     real (k_pr), intent (in) :: r
     integer, intent (in) :: sp1, sp2
     type (modelType), intent (inout) :: tb
     type (generalType), intent (inout) :: gen
-!--internal variables ----------------------------!    
-!    real(k_pr) :: phi0,d0,m,dc,mc    
-!-------------------------------------------------!    
+!--internal variables ----------------------------!
+!    real(k_pr) :: phi0,d0,m,dc,mc
+!-------------------------------------------------!
 !
 !
     if (r <= tb%hopping(sp1, sp2)%d1) then
@@ -658,17 +658,17 @@ contains
 !
 !
   function RepNoTail (r, sp1, sp2, tb, gen)
-!--subroutine name--------------------------------!    
+!--subroutine name--------------------------------!
     character (len=*), parameter :: myname = 'RepNoTail'
-!--subroutine parameters -------------------------!    
+!--subroutine parameters -------------------------!
     real (k_pr) :: RepNoTail
     real (k_pr), intent (in) :: r
     integer, intent (in) :: sp1, sp2
     type (modelType), intent (inout) :: tb
     type (generalType), intent (inout) :: gen
-!--internal variables ----------------------------!    
+!--internal variables ----------------------------!
     real (k_pr) :: phi0, d0, m, dc, mc
-!-------------------------------------------------!    
+!-------------------------------------------------!
     select case (gen%bond)
     case (k_bondGSP)
       phi0 = tb%hopping(sp1, sp2)%phi0
@@ -686,17 +686,17 @@ contains
   end function RepNoTail
 !
   function RepP (r, sp1, sp2, tb, gen)
-!--subroutine name--------------------------------!    
+!--subroutine name--------------------------------!
     character (len=*), parameter :: myname = 'RepP'
-!--subroutine parameters -------------------------!    
+!--subroutine parameters -------------------------!
     real (k_pr) :: RepP
     real (k_pr), intent (in) :: r
     integer, intent (in) :: sp1, sp2
     type (modelType), intent (inout) :: tb
     type (generalType), intent (inout) :: gen
-!--internal variables ----------------------------!    
+!--internal variables ----------------------------!
 !    real(k_pr) :: phi0,d0,m,dc,mc
-!-------------------------------------------------!    
+!-------------------------------------------------!
 !
     if (r <= tb%hopping(sp1, sp2)%d1) then
       RepP = RepPNoTail (r, sp1, sp2, tb, gen)
@@ -709,17 +709,17 @@ contains
   end function RepP
 !
   function RepPNoTail (r, sp1, sp2, tb, gen)
-!--subroutine name--------------------------------!    
+!--subroutine name--------------------------------!
     character (len=*), parameter :: myname = 'RepPNoTail'
-!--subroutine parameters -------------------------!    
+!--subroutine parameters -------------------------!
     real (k_pr) :: RepPNoTail
     real (k_pr), intent (in) :: r
     integer, intent (in) :: sp1, sp2
     type (modelType), intent (inout) :: tb
     type (generalType), intent (inout) :: gen
-!--internal variables ----------------------------!    
+!--internal variables ----------------------------!
     real (k_pr) :: phi0, d0, m, dc, mc
-!-------------------------------------------------!    
+!-------------------------------------------------!
     select case (gen%bond)
     case (k_bondGSP)
       phi0 = tb%hopping(sp1, sp2)%phi0
@@ -740,17 +740,17 @@ contains
 !
 !
   function RepPp (r, sp1, sp2, tb, gen)
-!--subroutine name--------------------------------!    
+!--subroutine name--------------------------------!
     character (len=*), parameter :: myname = 'RepPp'
-!--subroutine parameters -------------------------!    
+!--subroutine parameters -------------------------!
     real (k_pr) :: RepPp
     real (k_pr), intent (in) :: r
     integer, intent (in) :: sp1, sp2
     type (modelType), intent (inout) :: tb
     type (generalType), intent (inout) :: gen
-!--internal variables ----------------------------!    
+!--internal variables ----------------------------!
 !    real(k_pr) :: phi0,d0,m,dc,mc
-!-------------------------------------------------!    
+!-------------------------------------------------!
 !
     if (r <= tb%hopping(sp1, sp2)%d1) then
       RepPp = RepPpNoTail (r, sp1, sp2, tb, gen)
@@ -764,17 +764,17 @@ contains
 !
 !
   function RepPpNoTail (r, sp1, sp2, tb, gen)
-!--subroutine name--------------------------------!    
+!--subroutine name--------------------------------!
     character (len=*), parameter :: myname = 'RepPpNoTail'
-!--subroutine parameters -------------------------!    
+!--subroutine parameters -------------------------!
     real (k_pr) :: RepPpNoTail
     real (k_pr), intent (in) :: r
     integer, intent (in) :: sp1, sp2
     type (modelType), intent (inout) :: tb
     type (generalType), intent (inout) :: gen
-!--internal variables ----------------------------!    
+!--internal variables ----------------------------!
     real (k_pr) :: phi0, d0, m, dc, mc
-!-------------------------------------------------!    
+!-------------------------------------------------!
     select case (gen%bond)
     case (k_bondGSP)
       phi0 = tb%hopping(sp1, sp2)%phi0
@@ -795,13 +795,13 @@ contains
 ! ========end  repulsive term ============================================================================
 !======== onsite term======================
   function onsite (orba, orbb, tb)
-!--subroutine name--------------------------------!    
+!--subroutine name--------------------------------!
     character (len=*), parameter :: myname = "onsite"
-!--subroutine parameters -------------------------!    
+!--subroutine parameters -------------------------!
     real (k_pr) :: onsite
     type (orbitalType), intent (in) :: orba, orbb
     type (modelType), intent (in) :: tb
-!--internal variables ----------------------------!    
+!--internal variables ----------------------------!
 !
     if ((orba%l == orbb%l) .and. (orba%m == orbb%m)) then
       onsite = tb%hopping(orba%sp, orba%sp)%eps(orba%l)
@@ -812,14 +812,14 @@ contains
 !=====end onsite term ======================
 !========embedding term=========================================
   function embedding (x, sp, tb)
-!--subroutine name--------------------------------!    
+!--subroutine name--------------------------------!
     character (len=*), parameter :: myname = "embedding"
-!--subroutine parameters -------------------------!    
+!--subroutine parameters -------------------------!
     real (k_pr) :: embedding
     real (k_pr), intent (in) :: x
     integer, intent (in) :: sp
     type (modelType), intent (in) :: tb
-!--internal variables ----------------------------!    
+!--internal variables ----------------------------!
     real (k_pr) :: a1, a2, a3, a4
 !
     a1 = tb%hopping(sp, sp)%a1
@@ -832,14 +832,14 @@ contains
   end function embedding
 !
   function EmbeddingP (x, sp, tb)
-!--subroutine name--------------------------------!    
+!--subroutine name--------------------------------!
     character (len=*), parameter :: myname = "embedding"
-!--subroutine parameters -------------------------!    
+!--subroutine parameters -------------------------!
     real (k_pr) :: EmbeddingP
     real (k_pr), intent (in) :: x
     integer, intent (in) :: sp
     type (modelType), intent (in) :: tb
-!--internal variables ----------------------------!    
+!--internal variables ----------------------------!
     real (k_pr) :: a1, a2, a3, a4
 !
     a1 = tb%hopping(sp, sp)%a1
@@ -851,14 +851,14 @@ contains
   end function EmbeddingP
 !
   function EmbeddingPp (x, sp, tb)
-!--subroutine name--------------------------------!    
+!--subroutine name--------------------------------!
     character (len=*), parameter :: myname = 'EmbeddingPp'
-!--subroutine parameters -------------------------!    
+!--subroutine parameters -------------------------!
     real (k_pr) :: EmbeddingPp
     real (k_pr), intent (in) :: x
     integer, intent (in) :: sp
     type (modelType), intent (in) :: tb
-!--internal variables ----------------------------!    
+!--internal variables ----------------------------!
     real (k_pr) :: a2, a3, a4
 !
 !
@@ -1101,7 +1101,7 @@ contains
     integer :: i, j, at, atp
     real (k_pr) :: inpn, aux, aux2
 !
-    aux2 = 0.0_k_pr
+
     do i = 1, atomic%atoms%ncurrent
       atp = atomic%atoms%current(i)
       aux = 0.0_k_pr
@@ -1154,9 +1154,8 @@ contains
     type (ioType), intent (inout) :: io
     integer, intent (inout) :: l, m
     integer :: i, j, at, atp
-    real (k_pr) :: inpn, aux, aux2
+    real (k_pr) :: inpn, aux
 !
-    aux2 = 0.0_k_pr
     do i = 1, atomic%atoms%ncurrent
       atp = atomic%atoms%current(i)
       aux = 0.0_k_pr

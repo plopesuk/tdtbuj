@@ -1,4 +1,4 @@
-% thesis.cls -- A LaTeX PhD Thesis class by Alin M Elena
+ % thesis.cls -- A LaTeX PhD Thesis class by Alin M Elena
 % created on 27th of March 2008
 %modified on 28th of August 2008
 \ProvidesClass{aprilthesis}[2008/08/28]
@@ -22,6 +22,7 @@
 %------------------------------------------------------------------
 % Use just over 1.5x line spacing (assuming 12pt font)
  \onehalfspacing
+ %\doublespacing
 %------------------------------------------------------------------
 % Make pages a bit larger, given we are using 1.5 spacing
 %%% all these things were computed, well approximated
@@ -62,7 +63,7 @@
      \null\vfil
 % %    \vskip 60\p@
      \begin{center}%
-      {\huge \sc \@affiliation \par}
+      {\LARGE \sc \@affiliation \par}
       \ifx\@logo\@undefined
          \vskip 10em
          \else%
@@ -78,14 +79,15 @@
           \end{figure*}
          \fi
        \fi
-       {\Huge\bf \@title \par}%
+       \vskip 4cm
+       {\LARGE \sc \bf \@title \par}%
        \vskip 5em%
        {\Large\bf \sc
        \lineskip .75em%
        \begin{tabular}[t]{c}%
          \@author
        \end{tabular}\par}%
-       {\Large \@acadtitle}
+       {\large \@acadtitle}
        \vskip 5em%
        {\large \@tdesc\par}%
        \vskip 3em%
@@ -180,7 +182,7 @@
    }}
 \pagestyle{fancy}
 %customize headers
-\renewcommand{\chaptermark}[1]{\markboth{}{#1}}
+\renewcommand{\chaptermark}[1]{\markboth{}{ #1}}
 \renewcommand{\sectionmark}[1]{\markright{\thesection\ #1}}
 \fancyhf{}
 \fancyhead[LE,RO]{\bfseries \thepage}
@@ -189,6 +191,11 @@
 %\lhead{\nouppercase{\emph{\tmark}}}
 %\rhead{\nouppercase{\emph{\leftmark}}}
 \cfoot{}
+\renewcommand\mainmatter{%
+  \if@openright\cleardoublepage\else\clearpage\fi
+  \@mainmattertrue  
+  }
+
 % %------------------------------------------------------------------
 % % Fix table of contents to use chapter{} not chapter* so that running
 % % head is set correctly. It will still appear un-numbered as it

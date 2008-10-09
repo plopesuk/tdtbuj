@@ -11,7 +11,7 @@ module m_Useful
   type, private :: frameType
     character (len=k_mw) :: frameLabel
     real (k_pr) :: timestamp
-    real (k_pr), allocatable, dimension (:) :: x, y, z, dx, dy, dz, q, curr1, curr2
+    real (k_pr), allocatable, dimension (:) :: x, y, z, dx, dy, dz, q, curr1
     character (len=2), allocatable, dimension (:) :: element
     real (k_pr) :: tdx, tdy, tdz, dipole, charge, projDipole
   end type frameType
