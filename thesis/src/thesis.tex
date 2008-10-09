@@ -13,6 +13,7 @@
 \usepackage{hepunits}  %gives you units
 \usepackage{braket}    %Dirac brakets
 \usepackage{multirow}
+\usepackage{cancel}   %cancels terms in equations
 \usepackage[hang,small,bf]{caption} %% funky captions
 \usepackage[lined,vlined,ruled,linesnumbered]{algorithm2e}  %%% to write pseudocode
 \usepackage[backref,colorlinks=true,bookmarks=true,plainpages=false]{hyperref} %links in pdf
@@ -27,12 +28,12 @@
 \input{glossary}
 \makeindex
 %
-\title{Time Dependent Tight Binding+U: Applications to Fluorescent Molecules}
+\title{Time Dependent Tight Binding+U:\\ Applications to Fluorescent Molecules}
 \author{Alin Marin Elena}
 \acadtitle{Licentiate in Physics}
 \affiliation{The Queen's University of Belfast}
-\tdesc{A thesis  submitted to the School of Mathematics and Physics\\in partial fulfilment
-of the requirements for the degree of\\Doctor of Philosophy}
+\tdesc{A thesis  submitted to the \emph{School of Mathematics and Physics}\\in partial fulfilment
+of the requirements for the degree of\\ \emph{Doctor of Philosophy}}
 %not official asked but nice to have it
 \logo[3cm]{figures/qub}
 % uncomment if you want a certain date
@@ -48,6 +49,8 @@ pdfauthor = {\textcopyright\ Alin Marin Elena}
 \begin{document}
 % you get no style for the frontmatter
 \frontmatter
+\pagenumbering{arabic}
+\setcounter{page}{1}
 % generates the title page
 % according to QUB requirements
 \maketitle
@@ -90,6 +93,8 @@ pdfauthor = {\textcopyright\ Alin Marin Elena}
 \input{chapter2}
 \input{chapter3}
 \input{chapter4}
+\input{parametrisation}
+\input{chapter5}
 \input{conclusions}
 % appendices now
 \begin{appendices}
@@ -98,7 +103,7 @@ pdfauthor = {\textcopyright\ Alin Marin Elena}
 \end{appendices}
 %
 \begin{appendices}
-\chapter[Algorithm ... ]{An algorithm to generate density matrix}
+\chapter{Algorithms}
  \input{appendixB}
 \end{appendices}
 %

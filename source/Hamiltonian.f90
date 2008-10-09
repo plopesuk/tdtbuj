@@ -42,14 +42,14 @@ contains
     type (solutionType), intent (inout) :: sol
     integer :: i, j, k, o, norbsi, norbsj
     real (kind=k_pr) :: rij, hij, l, m, n
-!-------------------------------------------------!  
+!-------------------------------------------------!
 !
     call ResetSparseMatrix (sol%h)
     if ( .not. gen%spin) then
 !!!!!   !$OMP PARALLEL DO DEFAULT(shared) PRIVATE(i,j,k,o,hij,rij,l,m,n)  SCHEDULE(static)
       do i = 1, atomic%atoms%natoms - 1
         do j = i + 1, atomic%atoms%natoms
-! Offsite terms  
+! Offsite terms
           call AtomDistance (atomic%atoms, j, i, rij, l, m, n)
           do k = 1, atomic%species%norbs(atomic%atoms%sp(i))
             do o = 1, atomic%species%norbs(atomic%atoms%sp(j))
@@ -241,7 +241,7 @@ contains
 !> \param gen type(generalType) contains the info needed by the program to k_run
 !> \param tb type(modelType) contains information about the tight binding model parameters
   subroutine RepulsiveForces (gen, atomic, tb)
-!--subroutine name--------------------------------!    
+!--subroutine name--------------------------------!
     character (len=*), parameter :: myname = 'RepulsiveForces'
     type (atomicType), intent (inout) :: atomic
     type (generalType), intent (inout) :: gen
@@ -253,7 +253,7 @@ contains
 !    real(k_pr) :: rxir, ryir, rzir
     integer :: i, j, b, r, k
     real (k_pr) :: fact, fact1
-!-------------------------------------------------!    
+!-------------------------------------------------!
 !
     if ( .not. gen%embedding) then
 !
@@ -322,19 +322,19 @@ contains
 !> \param tb type(modelType) contains information about the tight binding model parameters
 !> \param sol type(solutionType) contains information about the solution space
   subroutine ForceOperator (alpha, j, atomic, gen, tb, sol)
-!--subroutine name--------------------------------!    
+!--subroutine name--------------------------------!
     character (len=*), parameter :: myname = 'ForceOperator'
-!--subroutine parameters -------------------------!    
+!--subroutine parameters -------------------------!
     integer, intent (inout) :: alpha, j
     type (generalType), intent (inout) :: gen
     type (atomicxType), intent (inout) :: atomic
     type (modelType), intent (inout) :: tb
     type (solutionType), intent (inout) :: sol
-!--internal variables ----------------------------!    
+!--internal variables ----------------------------!
     real (k_pr) :: rij
     integer :: i, k, o
     real (k_pr) :: fact, l, m, n !,fact2,ff2,
-!-------------------------------------------------!    
+!-------------------------------------------------!
 !
     call ResetSparseMatrix (sol%forceOp)
     do i = 1, atomic%atoms%natoms
@@ -401,7 +401,7 @@ contains
     type (solutionType), intent (inout) :: sol
     type (ioType), intent (inout) :: io
     type (generalType), intent (in) :: gen
-!-------------------------------------------------!    
+!-------------------------------------------------!
 !
 !
     ElectronicEnergy = ProductTrace (sol%rho, sol%h, io)
@@ -415,7 +415,7 @@ contains
 !> \param atomic type(atomicType) contains all info about the atoms and basis set and some parameters
 !> \param tb type(modelType) contains information about the tight binding model parameters
   real (k_pr) function RepulsiveEnergy (gen, atomic, tb)
-!--subroutine name--------------------------------!    
+!--subroutine name--------------------------------!
     character (len=*), parameter :: myname = 'RepulsiveEnergy'
     real (k_pr) :: renergy, phi
     real (k_pr) :: rij

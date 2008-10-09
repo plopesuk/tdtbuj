@@ -1,5 +1,6 @@
+\section{An algorithm to generate density matrix}
 \SetKwComment{tcf}{!}{}
-\section{Introduction}
+\subsection{Introduction}
 \par{For the density matrix which is associated with a determinant wave function of Slater type
 we can define the operator}
 \begin{equation}
@@ -58,8 +59,8 @@ The charge density is
 \bm{S}=-k_B\sum_{i=0}^{\infty}\left(f_F(\epsilon_i)\ln(f_F(\epsilon_i)+(1-f_F(\epsilon_i))\ln(1-f_F(\epsilon_i)\right)
 \end{equation}
 
-\section{Computer implementation}
-\subsection{Spinless case}
+\subsection{Computer implementation}
+\subsubsection{Spinless case}
 \label{spinless}
 \par{{\bf The problem.} Having a Hamiltonian $n \times n$. Let us consider its eigenvalues
 $\epsilon_i, \; i=1,n$ such that $\epsilon_i < \epsilon_j$ if $i<j$ and its eigenvectors
@@ -144,7 +145,7 @@ $c(i,j)=c(i,j)+tmp*a(i,l)$\;
 }
 }
 \end{algorithm}
-\subsection{Colinear Spins Case}
+\subsubsection{Colinear Spins Case}
 \par{In the spin case the Hamiltonian is of the form}
 \begin{equation}
 \label{spinH}
@@ -176,7 +177,7 @@ $\mu^{\downarrow},\;\rho^{\downarrow},\;\bm{S}^{\downarrow}$. So, we get}
 \begin{equation}
 \bm{S}=\bm{S^{\uparrow}}+\bm{S^{\downarrow}}
 \end{equation}
-\subsection{Non-Colinear Spins Case}
+\subsubsection{Non-Colinear Spins Case}
 \par{For the non-colinear spins case the Hamiltonian \gref{spinH} can not be anymore split in blocks($\uparrow \uparrow,\;\uparrow \downarrow,\;...$)
 The dimension of the Hamiltonian now is $m=2n$, where $n$ is the number of orbitals
 in the spinless case. Now the algorithms \gref{fermilevel} and \gref{matrixelements} change

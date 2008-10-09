@@ -1,5 +1,4 @@
-\chapter[TDTB+UJ]%
-{Time Dependent Tight Binding+UJ}
+\chapter{Time Dependent Tight Binding+UJ}
 \label{ch:one}
 %
  \chapterquote{Le savant n'\'etudie pas la nature parce que cela est utile; \\
@@ -46,6 +45,85 @@ approximations that would define a tight binding model. Finnis in \citep{Finnis0
 \par{Predictive power is in fact an abuse of concept since we refer to quantities which were already measured or computed via more accurate methods. Finnis \citep{Finnis03} calls it \emph{prediction of the past}. Predictive power is in fact a measure of the \emph{transferability} and tells you how well is computed a quantity which was not involved in the parametrisation process.}
 \par{The remainder of this chapter will present the approximations used in our tight binding model.}
 \section{From Density Functional Theory to Tight Binding}
+\subsection{Basic DFT ideas}
+\subsection{Second order HKS functional}
+\par{
+We will discuss in this section one of the most useful general equation in the study of the interatomic force models, second-order HKS functional. The starting point is the HKS functional and the idea is to expand it to the second order deviations of the density from some reference $\rho^{\tm{in}}$ \emph{which is not} necessary the ground state density. Single particle states $\Ket{n}$ vary from $\Ket{n^\tm{in}}$ to $\Ket{n}$ and the density $\rho$ varies from $\rho^\tm{in}$ to $\rho$.}
+\be
+\begin{split}
+ \Ket{n} & = \Ket{n^{\tm{in}}}+\Ket{\delta n} \\
+ \rho^{\tm{in}}(\bm{r}) & =\sum_{n} f_n \Braket{\bm{r}|n^{\tm{in}}}\Braket{n^{\tm{in}}|\bm{r}}\\
+ \rho(\bm{r}) & =\rho^{\tm{in}}(\bm{r}) +\delta \rho(\bm{r})=\sum_{n}f_n\Braket{\bm{r}|n}\Braket{n|\bm{r}}
+\end{split}
+\label{eq:defrhoin}
+\ee
+\par{Replacing $\rho$ in the HKS functional \marginpar{add HKS citation} it becomes}
+ \be
+E^{\tm{HKS}}[\rho]=T_s[\rho]+E_H\left[\rho^{\tm{in}}+\delta \rho\right]+E_{xc}\left[\rho^{\tm{in}}+\delta\rho\right]+E_{ZZ}+\int\rho V_{ext}\td\bm{r}
+\label{eq:HKSb}
+\ee
+\par{The Hartree energy is quadratic in $\rho$ so we can expand it exactly in terms of deviations of $\rho$.}
+\begin{equation}
+ E_H[\rho] = E_H\left[ \rho^{\tm{in}}\right]+e\int V_{H}\left[\rho^{\tm{in}}(\bm{r})\right]\delta\rho(\bm{r})\td\bm{r}+\frac{1}{2}\frac{e^2}{4\pi\varepsilon_0}\int\frac{\delta\rho(\bm{r})\delta\rho(\bm{r'})}{|\bm{r}-\bm{r'}|}\td\bm{r}\td\bm{r'}
+\end{equation}
+\begin{equation}
+ V_H\left[ \rho^{\tm{in}}(\bm{r})\right]=\frac{e}{4 \pi \varepsilon_0}\int \frac{\rho^{\tm{in}}(\bm{r'})}{|\bm{r}-\bm{r'}|}\td \bm{r'}
+\end{equation}
+\par{To simplify the nnotation we will use $\delta \rho' = \delta \rho(\bm{r'})$ and $\delta \rho = \delta \rho(\bm{r})$}
+\par{The exchange=correlation functional expanded up to the second order in density deviation can be written as}
+\begin{equation}
+ E_{xc}^{(2)}=E_{xc}\left[ \rho^{\tm{in}}\right] + e\int V_{xc}\left[ \rho^{\tm{in}}\right]\delta \rho \td \bm{r} + \frac{1}{2}\frac{e^2}{4\pi \varepsilon_0}\int \left . \vdd{E_{xc}[\rho]}{\rho}{\rho'}\right|_{\rho^{\tm{in}}} \delta \rho \delta \rho' \td \bm{r} \td \bm{r'} 
+\end{equation}
+\par{using $E_{H}\left[ \rho^{\tm{in}}\right]=\frac{e}{2}\int \rho^{\tm{in}}(\bm{r})V_{H}\left[ \rho^{\tm{in}}\right] \td{\bm{r}}$ we can evaluate the contributions of the Hartree and exchange-correlation up to the second order}
+\begin{equation}
+\begin{split}
+ E_H[\rho]+E_{xc}^{(2)}[\rho] & = \frac{e}{2}\int \rho^{\tm{in}}(\bm{r})V_{H}\left[ \rho^{\tm{in}}\right] \td{\bm{r}} + e\int V_{H}\left[ \rho^{\tm{in}}\right] \delta \rho \td{\bm{r}} + \\ & +  \frac{1}{2}\frac{e^2}{4 \pi \varepsilon_0} \int \frac{\delta \rho\delta \rho'}{|\bm{r}-\bm{r'}|}\td \bm{r} \td \bm{r'} + E_{xc}\left[ \rho^{\tm{in}}\right] + e\int V_{xc}\left[ \rho^{\tm{in}}\right]\delta \rho \td \bm{r} + \\ & + \frac{1}{2}\frac{e^2}{4\pi \varepsilon_0}\int \left . \vdd{E_{xc}[\rho]}{\rho}{\rho'}\right|_{\rho^{\tm{in}}} \delta \rho \delta \rho' \td \bm{r} \td \bm{r'} 
+\end{split}
+\label{eq:ehexc}
+\end{equation}
+\par{using \gref{eq:defrhoin} and gathering all the second order terms we get}
+ \begin{equation}
+\begin{split}
+ E_H[\rho]+E_{xc}^{(2)}[\rho] & = -\frac{e}{2}\int \rho^{\tm{in}}(\bm{r})V_{H}\left[ \rho^{\tm{in}}\right] \td{\bm{r}} + e\int \rho V_{H}\left[ \rho^{\tm{in}}\right] \td{\bm{r}} + \\ & + E_{xc}\left[ \rho^{\tm{in}}\right] + e\int \rho(\bm{r})V_{xc}\left[ \rho^{\tm{in}}\right] \td{\bm{r}} - e\int \rho^{\tm{in}}(\bm{r})V_{xc}\left[ \rho^{\tm{in}}\right] \td{\bm{r}}+ \\ &+ \frac{1}{2}\frac{e^2}{4\pi \varepsilon_0}\int \tm{C}_{\tm{in}}(\bm{r},\bm{r'}) \delta \rho \delta \rho' \td \bm{r} \td \bm{r'} 
+\end{split}
+\label{eq:b}
+\end{equation}
+\par{where the kernel $\tm{C}_{\tm{in}}$ is defined by}
+\begin{equation}
+ \tm{C}_{\tm{in}}(\bm{r},\bm{r'})=\frac{1}{|\bm{r}-\bm{r'}|}+\left .\vdd{E_{xc}[\rho]}{\rho}{\rho'}\right |_{\rho=\rho'}
+\end{equation}
+\par{now the Hamiltonian corresponding to $\rho^{\tm{in}}$ can be written as}
+\begin{equation}
+ \Hamiltonian^{\tm{in}} = \hat{T} + V_{ext}+V_{H}^{\tm{in}}+V_{xc}^{\tm{in}}
+\end{equation}
+\par{which allows us to write the kinetic energy of the non-interacting electrons system as}
+\begin{equation}
+ T_s[\rho] = \sum_{n}f_n \Braket{n | \Hamiltonian^{\in} | n} - e\int \rho V_eff[\rho^{\in}]\td \bm{r}
+\label{eq:a}
+\end{equation}
+where 
+\begin{equation}
+ V_{eff}[\rho^{\in}] = V_{ext}+V_H[\rho^{\in}]+V_{xc}[\rho^{\in}]
+\end{equation}
+\par{now we can write down the second order HKS functional by replacing eqs. \gref{eq:a} and \gref{eq:b} into eq. \gref{eq:HKSb}}
+\begin{equation}
+ \begin{split}
+  E_{HKS}^{(2)}  & = \sum_{n} f_n \Braket{ n | \Hamiltonian^{\in} | n} -\cancel{e\int \rho(\bm{r})V_H[\rho]\td \bm{r}} - \cancel{e\int \rho(\bm{r})V_H[\rho^{\in}]\td \bm{r}} - \\ & -
+   \cancel{e\int \rho(\bm{r})V_{xc}[\rho^{\in}]\td \bm{r}} + \cancel{e\int \rho(\bm{r})V_{ext}[\rho]\td\bm{r}} + E_{ZZ}+E_{xc}[\rho^{\in}] - \\ & - \frac{e}{2}\int \rho^{\in}(\bm{r})V_{H}[\rho^{\in}]\td \bm{r} - e\int \rho^{\in}(\bm{r})V_{xc}[\rho^{\in}]\td \bm{r} + \cancel{e\int \rho(\bm{r})V_H[\rho^{\in}]\td \bm{r}}+ \\ &+\cancel{e\int \rho(\bm{r})V_{xc}[\rho^{\in}]\td \bm{r}}+\frac{1}{2}\frac{e^2}{4\pi \varepsilon_0}\int \tm{C}_{\tm{in}}(\bm{r},\bm{r'}) \delta \rho \delta \rho' \td \bm{r} \td \bm{r'} \\ & = 
+   \sum_{n} f_n \Braket{ n | \Hamiltonian^{\in} | n} + E_{ZZ}+E_{xc}[\rho^{\in}] - E_{H}[\rho^{\in}] - \\ & -  e\int \rho^{\in}(\bm{r}) V_{xc}[\rho^{\in}]\td \bm{r} +\frac{1}{2}\frac{e^2}{4\pi \varepsilon_0}\int \tm{C}_{\tm{in}}(\bm{r},\bm{r'}) \delta \rho \delta \rho' \td \bm{r} \td \bm{r'}
+ \end{split}
+\label{eq:hks2}
+\end{equation}
+\par{This functional is very interesting. Up to this point has only one approximation in it, the truncation in $E_{xc}$ to the second order in $\delta \rho$. Looking for the stationary value of eq. \gref{eq:hks2} we get the Kohn-Sham equations}
+\begin{equation}
+ (T+V_{eff}^{(2)})\Ket{n}=\varepsilon_n \Ket{n}
+\end{equation}
+\par{in which}
+\begin{equation}
+  V_{eff}^{(2)}[\rho(\bm{r})] =  V_{eff}[\rho^{\in}(\bm{r})]+e\int \tm{C}_{\in}(\bm{r,r'})\delta \rho' \td \bm{r'}
+\end{equation}
+\par{in the last equation the r\^ole of the kernel $\tm{C}_{\in}$ becomes clear. It describes the change in the Hartree, exchange and correlation potentials to the first order change in the charge density.}
+\subsection{Semi-empirical tight binding}
 \section{scrap}
 \par{Usually\marginpar{this should be rewritten and moved somewhere else} a general tight binding model starts with the assumption that the
 total energy can be written as}
@@ -157,7 +235,8 @@ fitted parameters for $N-H$ bond in our GSP-like model.}
 \label{spg}
 \end{figure}
 %
-\section{Introduction}
+\section{Polarisable Ions}
+\section{+U}
 \par{The hamiltonian in second quantisation including electron-electron interaction term}
 \begin{equation}
 H=\sum_{i,\sigma}\epsilon_ia_{i\sigma}^{\dag}a_{i\sigma}+\sum_{i\neq j,\sigma}t_{ij}a_{i\sigma}^{\dag}a_{j\sigma}+\frac{1}{2}\sum_{ijkl\sigma \sigma{\prime}}
@@ -193,7 +272,7 @@ exchange energy only affects like spin electrons.
 disagrees with experimental results. This come from the fact that the basis set is incomplete.
 The incompletness of the basis set exclude any virtual transitions to these states.}
 \par{+U formalism describes correctly the discontinuity in the potential as the occputaion number is changed (???Janak's theorem???).}
-\section{The model}
+\subsection{+U 1}
 \par{Assumptions:}
 \begin{itemize}
 \item{Not all electrons are correlated. These are separated out from the others identified by the orbitals they occupy or region of space or both.}
@@ -290,7 +369,7 @@ V_{m_1m_2m_3m_4}=\sum_{k=0}^{2l}\frac{4\pi}{2k+1}F^k(l,l)\sum_{p=-k}^{k}\mc{G}_{
 \par{for the last relation we used the selection rules for Gaunt coefficients to get the sum limits for $k$.
 $k$ must be also even.}
 %
-\section{+U for second order theory}
+\subsection{+U for second order theory}
 \par{We start by simply rewritting the density in the form $n=n^0+\delta n$, wehere $n^0$ is the reference density.
 Now \gref{Eu} becomes}
 \begin{equation}
@@ -341,11 +420,11 @@ n_{m_1m_4}^{\sigma, 0}n_{m_2m_3}^{\sigma,0}\right]
 \end{split}
 \end{equation}
 %
-\section{Outline}
+\subsection{Outline}
 +U formalism
 \par{1. adds electron-electron interaction}
 \par{2. restricted to the onsite terms and oritals with the same $l$}
-
+\section{Time dependent tight binding}
 \section{On currents}
 \par{to cite Tchavdar's papers on the subject. notations this should be collected and used a the begining of the chapter.}
 \par{$\Set{\Ket{I\mu}}$ - basis set}
@@ -353,7 +432,7 @@ n_{m_1m_4}^{\sigma, 0}n_{m_2m_3}^{\sigma,0}\right]
 \par{$\Ket{\Psi}=\sum_{I,\mu}c_{I\mu}\Ket{I\mu}$ a general electronic state, where $c_{I\mu}$ are the expansion coefficients}
 \par{We assume that we have an orthogonal basis set}
 \be
-\braket{I\mu | J_nu}=\delta_{IJ}\delta_{\mu\nu}
+\braket{I\mu | J\nu}=\delta_{IJ}\delta_{\mu\nu}
 \ee
 \par{The Hamiltonian is}
 \be
@@ -485,6 +564,7 @@ n_{m_1m_4}^{\sigma, 0}n_{m_2m_3}^{\sigma,0}\right]
 \be
 \dot{\bm{P}}_{I}=\Trace \left(\frac{1}{i\hbar}\Commutator{\mc{P}_{I}}{\Hamiltonian}\hat{\rho}\right)-\Gamma(\bm{P}_{I}-\bm{P}_{0})
 \ee
+\par{and the continuity equation is}
 \be
 \dot{\rho}_{II}=\sum_{J \neq I}\tm{J}_{J\mapsto I}-\Gamma\Delta\rho_{II}
 \ee

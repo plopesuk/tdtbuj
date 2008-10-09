@@ -25,20 +25,25 @@
 \DeclareRobustCommand{\gref}[1]{(\ref{#1})}
 \DeclareRobustCommand{\td}{\text{d}}
 \DeclareRobustCommand{\poi}[1]{\left\{#1\right\}}
+% derivatives
 \DeclareRobustCommand{\de}[2]{\frac{\text{d} #1}{\text{d}#2}}
 \DeclareRobustCommand{\dde}[2]{\frac{\text{d}^2 #1}{\text{d} #2 ^2}}
+% partial derivatives
 \DeclareRobustCommand{\p}[2]{\frac{\partial #1}{\partial #2}}
 \DeclareRobustCommand{\pp}[2]{\frac{\partial^{2} #1}{\partial #2^{2}}}
 \DeclareRobustCommand{\ppp}[3]{\frac{\partial^{2} #1}{\partial #2 \partial #3}}
+% variational derivatives
 \DeclareRobustCommand{\vd}[2]{\frac{\delta #1}{\delta #2}}
+\DeclareRobustCommand{\vdd}[3]{\frac{\delta^{2} #1}{\delta #2 \delta #3}}
 \DeclareRobustCommand{\tjm}[6]{\left( \begin{array}{ccc}
  #1 & #3 & #5 \\
  #2 & #4 & #6 \\
 \end{array} \right)}
 \DeclareRobustCommand{\mc}[1]{\mathcal{#1}}
 \DeclareRobustCommand{\bm}[1]{{\bf #1}}
-\DeclareRobustCommand{\tm}[1]{{\textrm #1}}
+\DeclareRobustCommand{\tm}[1]{{\textrm{#1}}}
 \DeclareRobustCommand{\Commutator}[2]{\left[{#1},{#2}\right]}
+\DeclareRobustCommand{\in}{\text{in}}
 
 \DeclareRobustCommand{\versor}[1]{{\vec{\bm{e}}_{#1}}}
 %% General utility defns

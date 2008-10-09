@@ -1,4 +1,4 @@
-\section[Complex Spherical ...]{Complex Spherical Harmonics}
+\section{Complex Spherical Harmonics}
 \subsection{Definition}
  \par{A spherical harmonic $Y_{lm}(\vartheta,\varphi)$ is a single-valued function,
 continuous, bounded complex function of two real arguments $\vartheta,\varphi$ with
@@ -55,7 +55,7 @@ Y_{lm}(\vartheta,\varphi \pm 2n\pi )&=Y_{lm}(\vartheta,\varphi)\\
 \par{We shall consider only the spherical harmonics $Y_{lm}(\vartheta,\varphi)$
 with $l$ and $m$ integers because the boundary conditions \gref{boundary} are
 fulfilled only for such values of the parameters.}
-\subsection[Normalization, Completeness ...]{Normalization, Completeness and other relations}
+\subsection{Normalization, Completeness and Other Relations}
 \par{The differential equations \gref{sphdiff} and the boundary conditions
   \gref{boundary} are homogeneous. Hence, they determine the spherical
   harmonics up to an arbitrary complex factor. The absolute value of this
@@ -101,7 +101,7 @@ Y_{lm}^{*}(\vartheta,\varphi)=Y_{lm}(\vartheta,-\varphi)=(-1)^{m}Y_{l-m}(\varthe
 \par{Equations \gref{sphdiff} and relations \gref{boundary}, \gref{y00},
   \gref{ycomplex} completely define $Y_{lm}(\vartheta,\varphi)$. Since $l$ and $m$ are integers,
   $Y_{lm}(\vartheta,\varphi)$ is single-valued.}
-\subsection[Solutions of Some ...]{Solutions of Some Differential Equations in Terms of $Y_{lm}(\vartheta,\varphi)$}
+\subsection[Solutions of Some Differential Equations ...]{Solutions of Some Differential Equations in Terms of $Y_{lm}(\vartheta,\varphi)$}
 \par{(a) Solution of Laplace equation}
 \begin{equation}
 \nabla^2f(r,\vartheta,\varphi)=0
@@ -138,7 +138,7 @@ B_{lm}^{(1)}(r,\vartheta,\varphi)=i^lh_l^{(1)}(kr)Y_{lm}(\vartheta,\varphi)\qqua
 $B_{lm}^{(2)}$ corresponds to an outgoing spherical wave. These functions are
 called running spherical waves. In the limit $k \rightarrow 0$ we regain
 Laplace equation and solid harmonics.}
-\subsection[Explicit form ...]{Explicit form of spherical harmonics}
+\subsection{Explicit form of spherical harmonics}
 \begin{equation}
 Y_{lm}(\vartheta,\varphi)=e^{im\varphi}\sqrt{\frac{2l+1}{4\pi}\frac{(l-m)!}{(l+m)!}}P_l^m(\cos \vartheta)
 \end{equation}
@@ -162,7 +162,7 @@ Y_{lm}(\frac{\pi}{2},\varphi)=\left\{\begin{array}{lc}
 \end{array}
 \right.
 \end{equation}
-\subsection[Symmetry Properties ...]{Symmetry Properties and Other Relations}
+\subsection{Symmetry Properties and Other Relations}
 \par{The symmetry relations given bellow couple spherical harmonics
   $Y_{lm}(\vartheta,\varphi)$ with different values of $\vartheta,\varphi$ and
   $l,m$.}
@@ -235,7 +235,7 @@ I&=0
 \par{A comprehensive description of complex spherical harmonics and their
   properties can be found in \citep{Varshalovich88}} 
 %
-\subsection[Expansion in Series ...]{Expansion in Series of the Spherical Harmonics}
+\subsection{Expansion in Series of the Spherical Harmonics}
 %
 \par{An arbitrary function $f(\vartheta,\varphi)$ which is defined in the interval $0\le \vartheta \le
 \pi$ and $0\le \varphi <2\pi$ and satisfies the condition}
@@ -281,7 +281,7 @@ the angular dependence of ${\bf x}$. If $r_1<r_2$ we get
 \end{split}
 \end{equation}
 %
-\subsection[Expansion of Products...]{Expansion of Products of the Spherical Harmonics}
+\subsection{Expansion of Products of the Spherical Harmonics}
 \par{A direct product of two spherical harmonics of the same argument may be
   expanded in series as (the so-called {\it Clebsch-Gordan series})}
 \begin{equation}
@@ -303,7 +303,7 @@ Y_{l_1m_1}(\vartheta,\varphi)Y_{l_2m_2}(\vartheta,\varphi)Y_{l_3m_3}(\vartheta,\
 C_{l_1m_1l_2m_2}^{L^{\prime}M^{\prime}}C_{L^{\prime}M^{\prime}l_2m_2}^{LM}Y_{LM}(\vartheta,\varphi)
 \end{split}
 \end{equation*}
-\subsection[Integrals ...]{Integrals over Total Solid Angle}
+\subsection{Integrals over Total Solid Angle}
 \begin{equation}
 \int_{0}^{2\pi}\td \varphi\int_{0}^{\pi}\td \vartheta \sin \vartheta Y_{lm}(\vartheta,\varphi)=\sqrt{4\pi}\delta_{l0}\delta_{m0}
 \end{equation}
@@ -492,7 +492,7 @@ I_{lm}(-\bm{r})&=(-1)^lI_{lm}(\bm{r})\\
 I_{lm}^{*}(\bm{r})&=(-1)^mI_{l-m}(\bm{r})
 \end{split}
 \end{equation} 
-\section[Real Spherical ...]{Real Spherical Harmonics}
+\section{Real Spherical Harmonics}
 \subsection{Definition}
 \par{We can define real spherical harmonics as}
 \begin{equation}
@@ -585,7 +585,7 @@ relation. Next let us check the completeness relation}
 \end{split}
 \end{equation}
 \par{The line of proof is identical with that one followed for ortho-normalization relation.}
-\subsection[Expansions ...]{Expansions in terms of real spherical harmonics}
+\subsection{Expansions in terms of real spherical harmonics}
 \begin{equation}
 \frac{1}{|{\bf r}_1-{\bf
     r}_2|}=\sum_{l=0}^{\infty}\sum_{m=-l}^{l}\frac{4\pi}{2l+1}\frac{r_<^l}{r_>^{l+1}}Y_{lm}(\hat{{\bf r}_1})Y_{lm}^{*}(\hat{{\bf r}_2})
@@ -636,7 +636,7 @@ and following the same line as above we find out the following expansion
 \label{rwave}
 e^{i\bm{r}_1\cdot\bm{r}_2}=4\pi\sum_{l=0}^{\infty}\sum_{m=-l}^{l}i^lj_l(r_1r_2)X_{lm}(\hat{\bm{r}}_2)X_{lm}(\hat{\bm{r}}_1)
 \end{equation}
-\subsection[Addition Theorem ...]{Addition Theorem for Real Solid Harmonics}
+\subsection{Addition Theorem for Real Solid Harmonics}
 \par{Relation \gref{rwave} could be used to get an addition theorem for
   $\mc{R}_{lm}$ as suggested in \citep{Chakrabarti95},\citep{Deb83}}
 \par{Multiplying relation \gref{rwave} by $X_{l_1m_1}(\hat{\bm{r}}_1)$ and

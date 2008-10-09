@@ -442,7 +442,7 @@ contains
   end subroutine PrintTbGSP
 !
 !
-!> \brief Prints the initialization routine for the Harrison tight binding model  
+!> \brief Prints the initialization routine for the Harrison tight binding model
 !> \author Alin M Elena
 !> \date 31/10/07, 23:20:15
 !> \param io type(ioType) contains all the info about I/O files
@@ -809,7 +809,7 @@ contains
     type (atomicType), intent (inout) :: atomic
     type (ioType), intent (in) :: io
     integer :: i
-!-------------------------------------------------!    
+!-------------------------------------------------!
 !
     write (io%uout,*) "==atomic forces================================================="
     write (io%uout,*) "    i      FX         FY         FZ      species   IsMoving"
@@ -887,18 +887,18 @@ contains
     end do
     ld = Sqrt (ax*ax+ay*ay+az*az)
     write (io%uout, '(a,4f16.8,a)') "dipole moment ", ax, ay, az, ld, " Debye"
-!  avoid division by zero  
+!  avoid division by zero
     if (Abs(ld) > epsilon(ax)) then
       write (io%uout, '(a,f9.6,1x,f9.6,1x,f9.6,a)') "dipole moment orientation (", ax / ld, ay / ld, az / ld, ") unit vector"
     end if
     write (io%uout, '(a)') " __________________________________________________________________"
-!! dipoles in local units  
+!! dipoles in local units
     write (io%uout, '(a)') "  Atom |Specie|  Dipole x    |  Dipole y   |    Dipole z     | Units |"
     do at = 1, atomic%atoms%natoms
       write (io%uout, '(2i7,3g16.8)') at, atomic%atoms%sp(at), atomic%atoms%dx(at), atomic%atoms%dy(at), atomic%atoms%dz(at)
     end do
     write (io%uout, '(a,3g16.8)') "dipole moment ", atomic%atoms%tdipx, atomic%atoms%tdipy, atomic%atoms%tdipz
-!! dipoles in SI units  
+!! dipoles in SI units
     write (io%uout, '(a)') "  Atom |Specie|  Dipole x    |  Dipole y   |    Dipole z     | Units |"
     do at = 1, atomic%atoms%natoms
       write (io%uout, '(2i7,3g16.8,a)') at, atomic%atoms%sp(at), atomic%atoms%dx(at) * u2SI, atomic%atoms%dy(at) * u2SI, &
@@ -906,7 +906,7 @@ contains
     end do
     write (io%uout, '(a,3g16.8,a)') "dipole moment ", atomic%atoms%tdipx * u2SI, atomic%atoms%tdipy * u2SI, atomic%atoms%tdipz * &
    & u2SI, " Cm"
-!! dipoles in Debye  
+!! dipoles in Debye
     write (io%uout, '(a)') "  Atom |Specie|  Dipole x    |  Dipole y   |    Dipole z     | Units |"
     do at = 1, atomic%atoms%natoms
       write (io%uout, '(2i7,3f16.8,a)') at, atomic%atoms%sp(at), atomic%atoms%dx(at) * u2D, atomic%atoms%dy(at) * u2D, &
@@ -1000,7 +1000,7 @@ contains
 !> \param lIsVelocity logical if set to true prints the velocities also
 !> \param label characters if present will be printed in the comment line
 !> \remarks first line number of atoms, second line a title given by variable labe and then each line has the structure
-!> AtomSymbol X Y Z (cartesian coordinates) q (charge) dx dy dz (dipole moment cartesian components) vx vy vz (cartesian components 
+!> AtomSymbol X Y Z (cartesian coordinates) q (charge) dx dy dz (dipole moment cartesian components) vx vy vz (cartesian components
   subroutine PrintXYZ (unit, atomic, lIsVelocity, label)
     character (len=*), parameter :: sMyName = "PrintXYZ"
     type (atomicxType), intent (in) :: atomic
@@ -1050,11 +1050,11 @@ contains
     end if
 !
     do i = 1, atomic%atoms%natoms
-      comm = PartialTrace (atomic%atoms%id(i), atomic, sol%rhoDot, .true.) / dt
-      delta = PartialTrace (atomic%atoms%id(i), atomic, sol%deltaRho, .true.) / dt
-      jc = sol%CurrentMatrix2 (i, i) / k_e
-      write (unit, '(a2,1x,3f16.8,6g)') symbol (atomic%species%z(atomic%atoms%sp(i))), atomic%atoms%x(i), atomic%atoms%y(i), &
-     & atomic%atoms%z(i), jc, - delta, comm, delta + comm, - jc + delta, comm + jc
+!       comm = PartialTrace (atomic%atoms%id(i), atomic, sol%rhoDot, .true.) / dt
+!       delta = PartialTrace (atomic%atoms%id(i), atomic, sol%deltaRho, .true.) / dt
+      jc = sol%CurrentMatrix2 (i, i)
+      write (unit, '(a2,1x,3f16.8,1g)') symbol (atomic%species%z(atomic%atoms%sp(i))), atomic%atoms%x(i), atomic%atoms%y(i), &
+     & atomic%atoms%z(i), jc!, - delta, comm, delta + comm, - jc + delta, comm + jc
     end do
     write (unit, '(i0)') atomic%atoms%ncurrent
     do i = 1, atomic%atoms%ncurrent

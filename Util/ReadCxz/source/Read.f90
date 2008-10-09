@@ -25,7 +25,7 @@ contains
     if (errno /= 0) then
       call error ("Error reading file "//trim(file), myname, .true., unitout)
     end if
-! determine no of atoms and no of frames    
+! determine no of atoms and no of frames
     read (unitinp,*, iostat=errno) n
     if (errno /= 0) then
       call error ("Error reading no of atoms from file "//trim(file), myname, .true., unitout)
@@ -80,7 +80,7 @@ contains
     integer :: errno, err, i, n, j, k, zz
     character (len=k_ml) :: line
     character (len=k_mw) :: saux, a, b, c
-    real (k_pr) :: x, y, z, curr1, curr2, q
+    real (k_pr) :: x, y, z, curr1, q
     integer :: unitinp
     logical :: status
 !
@@ -105,7 +105,7 @@ contains
       err = 0
       do j = 1, cxz%natoms
         read (unitinp,*, iostat=errno) cxz%frames(i)%element(j), cxz%frames(i)%x(j), cxz%frames(i)%y(j), cxz%frames(i)%z(j), &
-       & cxz%frames(i)%curr1(j), cxz%frames(i)%curr2(j)
+       & cxz%frames(i)%curr1(j)
         err = err + Abs (errno)
       end do
       if (err /= 0) then

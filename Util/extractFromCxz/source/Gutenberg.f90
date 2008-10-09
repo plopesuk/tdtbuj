@@ -19,7 +19,7 @@ contains
    & cxz%x1, cxz%y1, cxz%z1
     write (unitout, '(a,i0,1x,a1,2a2,a,3f12.8)') "#and atom ", cxz%atom2, "(", cxz%element2, ") ", "position: ", cxz%x2, cxz%y2, &
    & cxz%z2
-    write (unitout, '(a1,2a16)', advance="no") "#", "Time ", "BondCurrent"
+    write (unitout, '(a1,2a16)') "#", "Time ", "BondCurrent"
     do i = 1, cxz%nframes
       write (unitout, '(2g)') cxz%frames(i)%timestamp, cxz%frames(i)%bondCurrent
     end do
