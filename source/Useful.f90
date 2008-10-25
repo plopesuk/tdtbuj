@@ -481,12 +481,12 @@ contains
     aux = 0.0_k_pr
     m = atomic%basis%norbitals * (atomic%basis%norbitals-1) / 2
     do k = 0, GetLmax (atomic%atoms%sp(at), atomic%speciesBasis, atomic%species)
-! spin down    
+! spin down
       from = atomic%atoms%orbs(at, 1) + j
       to = from + 2 * k
       m_down = sum (sol%density(from+m:to+m)) + sum (sol%n0(from:to))
       md = md + m_down
-!spin up    
+!spin up
       from = atomic%atoms%orbs(at, 1) + j + atomic%basis%norbitals / 2
       to = from + 2 * k
       m_up = sum (sol%density(from+m:to+m)) + sum (sol%n0(from:to))
@@ -511,27 +511,14 @@ contains
 !> \param specBasis type(orbitalType) all the info about species basis
 !> \param spec type(speciesType) all the info about species
   integer function GetLmax (sp, specBasis, spec)
-!--subroutine name--------------------------------!    
+!--subroutine name--------------------------------!
     character (len=*), parameter :: myname = 'GetLmax'
-!--subroutine parameters -------------------------!    
+!--subroutine parameters -------------------------!
     integer, intent (in) :: sp
     type (orbitalType), intent (in) :: specBasis (:, :)
     type (speciesType), intent (in) :: spec
-! for an atom at gives you the maximum l (quantum orbital number)
-! in the basis
-!--internal variables ----------------------------!    
-    integer :: i, LMax
-    LMax = 0
-!    do i=1,atomic%atoms%norbs(at)
-! we suppose that the basis is the same for spin up and spin down
-!      if (lmax<atomic%basis%orbitals(atomic%atoms%orbs(at,i))%l) &
-!        lmax=atomic%basis%orbitals(atomic%atoms%orbs(at,i))%l
-!    enddo
-!
-    do i = 1, spec%norbs(sp)
-      if (LMax < specBasis(sp, i)%l) LMax = specBasis(sp, i)%l
-    end do
-    GetLmax = LMax
+!--internal variables ----------------------------!
+    GetLmax = maxval (specBasis(sp, :)%l)
   end function GetLmax
 !
 !> \brief returns the maximum l for an atom
@@ -540,14 +527,14 @@ contains
 !> \param specBas type(orbitalType) all the info about species basis
 !> \param spec type(speciesType) all the info about species
   integer function LMax (specBas, spec)
-!--subroutine name--------------------------------!    
+!--subroutine name--------------------------------!
     character (len=*), parameter :: myname = 'Lmax'
-!--subroutine parameters -------------------------!    
+!--subroutine parameters -------------------------!
     type (orbitalType), intent (in) :: specBas (:, :)
     type (speciesType), intent (in) :: spec
 ! for an atom at gives you the maximum l (quantum orbital number)
 ! in the basis
-!--internal variables ----------------------------!    
+!--internal variables ----------------------------!
     integer :: i, lm, tmp
     lm = 0
     do i = 1, spec%nspecies
@@ -569,7 +556,7 @@ contains
 !
   subroutine AtomDistance (atoms, j, i, r, l, m, n)
     character (len=*), parameter :: myname = 'AtomDistance'
-!--subroutine parameters--------------------------!    
+!--subroutine parameters--------------------------!
     integer, intent (in) :: i, j
     type (atomicType), intent (in) :: atoms
     real (k_pr), intent (inout) :: r, l, m, n
@@ -595,7 +582,7 @@ contains
 !
   subroutine AtomDistVec (atoms, j, i, r, rx, ry, rz)
     character (len=*), parameter :: myname = 'AtomDistVec'
-!--subroutine parameters--------------------------!    
+!--subroutine parameters--------------------------!
     integer, intent (in) :: i, j
     type (atomicType), intent (in) :: atoms
     real (k_pr), intent (inout) :: r, rx, ry, rz
@@ -613,7 +600,7 @@ contains
 !> \param j,i integers the ids of the atoms
   real (k_pr) function Distance (atoms, j, i)
     character (len=*), parameter :: myname = 'Distance'
-!--subroutine parameters--------------------------!    
+!--subroutine parameters--------------------------!
     integer, intent (in) :: i, j
     type (atomicType), intent (in) :: atoms
 !
@@ -630,15 +617,15 @@ contains
 !>\remarks
 !> \f[ f_{FD}=\cfrac{1}{e^{\cfrac{\epsilon - \mu}{k_BT}}+1} \f]
   function Fermi (temp, energy, mu)
-!--subroutine name--------------------------------!    
+!--subroutine name--------------------------------!
     character (len=*), parameter :: myname = 'fermi'
     real (k_pr) :: temp
     real (k_pr) :: energy
     real (k_pr) :: mu
     real (k_pr) :: Fermi
-!--internal variables ----------------------------!    
+!--internal variables ----------------------------!
     real (k_pr) :: expo
-!-------------------------------------------------!    
+!-------------------------------------------------!
     expo = (energy-mu) / (temp*k_kb)
     if (expo <-100.0_k_pr) then
       Fermi = 1.0_k_pr
@@ -1038,14 +1025,14 @@ contains
 !
     n = atomic%basis%norbitals
     if (spin) then
-! spin down    
+! spin down
       aux = 0.0_k_pr
       from = atomic%atoms%orbs(at, 1)
       to = - 1 + from + atomic%species%norbs(atomic%atoms%sp(at)) / 2
       do i = from, to
         aux = aux + real (matrix%a(i, i), k_pr)
       end do
-!spin up    
+!spin up
       from = atomic%atoms%orbs(at, 1) + atomic%basis%norbitals / 2
       to = - 1 + from + atomic%species%norbs(atomic%atoms%sp(at)) / 2
       do i = from, to

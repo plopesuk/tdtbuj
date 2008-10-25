@@ -117,11 +117,11 @@ contains
       call PrintXYZ (io%uani, atomic, .false., "T = 0.0")
     end if
     open (file='bo_dyn.ENE', unit=eneunit)
-! initialize forces and velocities    
+! initialize forces and velocities
     call SinglePoint (io, gen, atomic, tb, sol)
     call InitVelocities (gen, atomic, sol)
     dt = gen%deltat
-!write out the initial vels, forces and energies    
+!write out the initial vels, forces and energies
     call PrintVelocities (io, atomic)
     call PrintForces (atomic%atoms, io)
     eenergy = ElectronicEnergy (gen, sol, io)
@@ -137,13 +137,13 @@ contains
    & renergy, 'SCF energy        = ', scfE, '-TS               = ', minusts, 'Total energy      = ', eenergy + renergy + scfE + &
    & minusts
     sol%totalEnergy = eenergy + renergy + minusts + scfE
-! this is the time loop    
+! this is the time loop
     write (eneunit, '(a1,a28,6a29)') "#", "Time", "Repulsive Energy ", "Electronic Energy", "SCF Energy", "-TS", "Kinetic Energy", &
    & "Total Energy"
     do istep = 1, gen%nsteps
-!set global time variable      
+!set global time variable
       gen%CurrSimTime = istep * dt * k_time2SI
-! calculates positions at t+dt       
+! calculates positions at t+dt
 !       write(io%uout,*)"timestep"
 !       call PrintCoordinates(io,atomic)
 !       call PrintForces(atomic%atoms,io)
@@ -156,16 +156,16 @@ contains
       end do
 !       call PrintVelocities(io,atomic)
 !       call PrintCoordinates(io,atomic)
-! store forces at t in fold      
+! store forces at t in fold
       do k = 1, atomic%atoms%nmoving
         i = atomic%atoms%moving(k)
         atomic%atoms%fxo (i) = atomic%atoms%fx(i)
         atomic%atoms%fyo (i) = atomic%atoms%fy(i)
         atomic%atoms%fzo (i) = atomic%atoms%fz(i)
       end do
-! calculate forces at t+dt      
+! calculate forces at t+dt
       call SinglePoint (io, gen, atomic, tb, sol)
-! calculate velocities at t+dt      
+! calculate velocities at t+dt
       do k = 1, atomic%atoms%nmoving
         i = atomic%atoms%moving(k)
         mi = atomic%species%mass(atomic%atoms%sp(i))
@@ -173,11 +173,11 @@ contains
         atomic%atoms%vy (i) = atomic%atoms%vy(i) + 0.5_k_pr * dt * (atomic%atoms%fy(i)+atomic%atoms%fyo(i)) / mi
         atomic%atoms%vz (i) = atomic%atoms%vz(i) + 0.5_k_pr * dt * (atomic%atoms%fz(i)+atomic%atoms%fzo(i)) / mi
       end do
-! scale velocities       
+! scale velocities
       if (gen%scaleVelocities) then
         call scaleVelocities (gen, atomic)
       end if
-! now calculate the energies       
+! now calculate the energies
       eenergy = ElectronicEnergy (gen, sol, io)
       renergy = RepulsiveEnergy (gen, atomic%atoms, tb)
       minusts = sol%electronicEntropy
@@ -264,12 +264,12 @@ contains
     end if
     open (file='eh_dyn.ENE', unit=eneunit)
     open (file='eh_dyn.POP', unit=popunit)
-! prepare the electronic subsystem,    
-! which is an eigenstate of the hamitonian    
-! with the bias    
+! prepare the electronic subsystem,
+! which is an eigenstate of the hamitonian
+! with the bias
     call FullSCF (io, gen, atomic, tb, sol)
     dt = gen%deltat
-! initialize DM storage spaces    
+! initialize DM storage spaces
     call CreateMatrix (rhoold, sol%h%dim, .true.)
     call CreateMatrix (rhodot, sol%h%dim, .true.)
     call CreateMatrix (rhonew, sol%h%dim, .true.)
@@ -285,7 +285,7 @@ contains
       write (spacUnit,*) "0.0", ChargeOnGroup (atomic%atoms%spacer, atomic%atoms)
     end if
 !
-! now build a hamiltonian with no bias    
+! now build a hamiltonian with no bias
     call BuildHamiltonian (io, gen, atomic, tb, sol)
     call CopyMatrix (rho0, sol%rho, io)
     if (gen%BiasRampSteps > 0) then
@@ -301,26 +301,26 @@ contains
 !          endif
     call AddH2 (gen, atomic, sol, tb, io)
     ihbar = cmplx (0.0_k_pr,-1.0_k_pr/k_hbar, k_pr)
-! go back in time one step for the DM integration    
+! go back in time one step for the DM integration
     call Commutator (rhodot, sol%h, sol%rho, io)
     st = cmplx (-dt, 0.0_k_pr, k_pr)
     call ScalarTMatrix (ihbar*st, rhodot, io)
     call MatrixCeaApbB (rhoold, sol%rho, rhodot, k_cone, k_cone, io)
-! calculate the forces from the prepared DM and the present H      
+! calculate the forces from the prepared DM and the present H
     call CopyMatrix (sol%h, sol%hin, io)
     call ZeroForces (atomic)
     call RepulsiveForces (gen, atomic%atoms, tb)
     call electronicForces (atomic, gen, tb, sol, io)
-! initialize the velocities    
+! initialize the velocities
     call InitVelocities (gen, atomic, sol)
-! now we are ready to start the dynamics,    
-! we have the forces, velocities, positions    
-! and rho at time t    
+! now we are ready to start the dynamics,
+! we have the forces, velocities, positions
+! and rho at time t
     write (eneunit, '(a1,a24,7a25)') "#", "Time", "Repuilsive Energy ", "Electronic Energy", "SCF Energy", "Kinetic Energy", "Total&
    & Energy", "No of Electrons", "E field"
     st = cmplx (2.0_k_pr*dt, 0.0_k_pr, k_pr)
     do istep = 1, gen%nsteps
-!set global time variable   
+!set global time variable
       gen%CurrSimTime = istep * dt * k_time2SI
       call BuildDensity (atomic, sol)
       if (( .not. gen%compElec) .and. (gen%electrostatics == k_electrostaticsMultipoles)) then
@@ -335,9 +335,9 @@ contains
       call Commutator (rhodot, sol%h, sol%rho, io)
       call ScalarTMatrix (ihbar*st, rhodot, io)
       call MatrixCeaApbB (rhonew, rhoold, rhodot, k_cone, k_cone, io)
-! at this point rho contains the rho at time=t       
-! propagate the positions       
-! calculates positions at t+dt       
+! at this point rho contains the rho at time=t
+! propagate the positions
+! calculates positions at t+dt
       do k = 1, atomic%atoms%nmoving
         i = atomic%atoms%moving(k)
         mi = atomic%species%mass(atomic%atoms%sp(i))
@@ -345,19 +345,19 @@ contains
         atomic%atoms%y (i) = atomic%atoms%y(i) + dt * atomic%atoms%vy(i) + 0.5_k_pr * dt * dt * atomic%atoms%fy(i) / mi
         atomic%atoms%z (i) = atomic%atoms%z(i) + dt * atomic%atoms%vz(i) + 0.5_k_pr * dt * dt * atomic%atoms%fz(i) / mi
       end do
-! store forces at t in fold       
+! store forces at t in fold
       do k = 1, atomic%atoms%nmoving
         i = atomic%atoms%moving(k)
         atomic%atoms%fxo (i) = atomic%atoms%fx(i)
         atomic%atoms%fyo (i) = atomic%atoms%fy(i)
         atomic%atoms%fzo (i) = atomic%atoms%fz(i)
       end do
-! shuffle the DMs, rho is now rho(t+dt)       
+! shuffle the DMs, rho is now rho(t+dt)
       call CopyMatrix (rhoold, sol%rho, io)
       call CopyMatrix (sol%rho, rhonew, io)
-! calculate forces at t+dt           
+! calculate forces at t+dt
       call BuildHamiltonian (io, gen, atomic, tb, sol)
-! Ramp for the bias       
+! Ramp for the bias
       if ((gen%BiasRampSteps > 0) .and. ((istep) <= gen%BiasRampSteps)) then
         bfa = real (istep, k_pr) / real (gen%BiasRampSteps, k_pr)
         biasFactor = - (bfa-1) ** 3 * (1+3*bfa+6*bfa**2)
@@ -376,7 +376,7 @@ contains
       call RepulsiveForces (gen, atomic%atoms, tb)
       call electronicForces (atomic, gen, tb, sol, io)
       call ScfForces (gen, atomic, sol, tb, io)
-! calculate velocities at t+dt       
+! calculate velocities at t+dt
       do k = 1, atomic%atoms%nmoving
         i = atomic%atoms%moving(k)
         mi = atomic%species%mass(atomic%atoms%sp(i))
@@ -386,7 +386,7 @@ contains
 !
       end do
 !
-! scale velocities       
+! scale velocities
       if (gen%scaleVelocities) then
         call scaleVelocities (gen, atomic)
       end if
@@ -410,9 +410,9 @@ contains
         if (gen%writeAnimation) then
           call CalcExcessCharges (gen, atomic, sol)
           call CalcDipoles (gen, atomic, sol, tb)
-!               call writeAnimation_frame(aniunit)  
-!               call write_frame(xunit)  
-!               call write_frame_rho(runit,rho0)  
+!               call writeAnimation_frame(aniunit)
+!               call write_frame(xunit)
+!               call write_frame_rho(runit,rho0)
           write (accUnit,*) gen%CurrSimTime, ChargeOnGroup (atomic%atoms%acceptor, atomic%atoms)
           write (donUnit,*) gen%CurrSimTime, ChargeOnGroup (atomic%atoms%donor, atomic%atoms)
           write (spacUnit,*) gen%CurrSimTime, ChargeOnGroup (atomic%atoms%spacer, atomic%atoms)
@@ -442,6 +442,8 @@ contains
 !
     write (io%uout, '(/a/)') 'End Velocity Verlet-------------------------------------------------------------'
   end subroutine EhrenfestDynamics
+
+
 !> \brief driver routine for verlet velocity Ehrenfest molecular dynamics
 !> damped
 !> \details numerical instabilities in time propragation of density matrix are handled using the scheme proposed in
@@ -511,16 +513,16 @@ contains
       open (unit=runit, file="eh_dyn.rho", form="UNFORMATTED", status="replace", action="write")
     end if
     open (file='eh_dyn.ENE', unit=eneunit)
-! prepare the electronic subsystem,    
-! which is an eigenstate of the hamitonian    
-! with the bias    
+! prepare the electronic subsystem,
+! which is an eigenstate of the hamitonian
+! with the bias
     i = io%verbosity
     io%verbosity = k_HighVerbos + 1
     gen%lIsExcited = .false.
     call SinglePoint (io, gen, atomic, tb, sol)
     atomic%atoms%chrg0 = atomic%atoms%chrg
     dt = gen%deltat
-! initialize DM storage spaces    
+! initialize DM storage spaces
     call CopyMatrix (sol%rho0, sol%rho, io)
 !
     select case (gen%wdensity)
@@ -541,8 +543,6 @@ contains
           sol%rho%a (j, i) = cmplx (0.0_k_pr, 0.0_k_pr, k_pr)
         end do
       end do
-!       call GetRho(sol%rho)
-!       gen%lIsExcited=.false.
     end select
     io%verbosity = i
     write (io%uout, '(/a/)') '--Setup ended----------------------------'
@@ -551,7 +551,7 @@ contains
       call initQvs (atomic, gen, sol, tb, sol%density)
     end if
 !
-! now build a hamiltonian with no bias    
+! now build a hamiltonian with no bias
     call BuildHamiltonian (io, gen, atomic, tb, sol)
     call MatrixCeaApbB (sol%deltaRho, sol%rho, sol%rho0, k_cone,-k_cone, io)
     if (gen%BiasRampSteps > 0) then
@@ -564,7 +564,7 @@ contains
     end if
 !
     ihbar = cmplx (0.0_k_pr,-1.0_k_pr/k_hbar, k_pr)
-! go back in time one step for the DM integration    
+! go back in time one step for the DM integration
     call Commutator (sol%rhodot, sol%h, sol%rho, io)
     st = cmplx (-dt, 0.0_k_pr, k_pr)
     call ScalarTMatrix (ihbar*st, sol%rhodot, io)
@@ -573,17 +573,17 @@ contains
     call ZeroDiagonalMatrix (sol%deltaRho, io)
     call MatrixCeaApbB (sol%rhoold, sol%rho, sol%rhodot, k_cone, k_cone, io)
     call MatrixCeaApbB (sol%rhoold, sol%rhoold, sol%deltaRho, k_cone, k_cone, io)
-! calculate the forces from the prepared DM and the present H      
+! calculate the forces from the prepared DM and the present H
     call CopyMatrix (sol%h, sol%hin, io)
     call ZeroForces (atomic)
     call RepulsiveForces (gen, atomic%atoms, tb)
     call electronicForces (atomic, gen, tb, sol, io)
 !
-! initialize the velocities    
+! initialize the velocities
     call InitVelocities (gen, atomic, sol)
-! now we are ready to start the dynamics,    
-! we have the forces, velocities, positions    
-! and rho at time t    
+! now we are ready to start the dynamics,
+! we have the forces, velocities, positions
+! and rho at time t
     st = cmplx (2.0_k_pr*dt, 0.0_k_pr, k_pr)
     gen%CurrSimTime = 0.0_k_pr
     if (gen%writeAnimation) then
@@ -602,7 +602,7 @@ contains
       end if
       penergy = eenergy + renergy + scfE
       kenergy = KineticEnergy (atomic)
-      write (eneunit, '(a1,a24,7a25)') "#", "Time", "Repuilsive Energy ", "Electronic Energy", "SCF Energy", "Kinetic Energy", "Tot&
+      write (eneunit, '(a1,a24,7a25)') "#", "Time", "Repulsive Energy ", "Electronic Energy", "SCF Energy", "Kinetic Energy", "Tot&
      &al Energy", "No of Electrons", "E field"
       write (eneunit, '(7f25.18)') gen%CurrSimTime, renergy, eenergy, scfE, kenergy, penergy + kenergy, real (trrho)
       call CalcExcessCharges (gen, atomic, sol)
@@ -623,20 +623,23 @@ contains
           call PrintBondCurrents (currUnit(i), atomic, sol, "T= 0.0 fs", 1.0_k_pr)
         end do
       end if
+      if (gen%scf) then
+        call CopyMatrix (sol%h, sol%hin, io)
+      endif
     end if
 !
-    call CopyMatrix (sol%h, sol%hin, io)
+
 !
     do istep = 1, gen%nsteps
-!set global time variable   
-      gen%CurrSimTime = (istep+1) * dt * k_time2SI
+!set global time variable
+      gen%CurrSimTime = istep * dt * k_time2SI
+      if ((istep > gen%TKillGamma).and.(gen%TKillGamma > 0)) then
+        gamma=0.0_k_pr
+      endif
       call BuildDensity (atomic, sol)
       if (( .not. gen%compElec) .and. (gen%electrostatics == k_electrostaticsMultipoles)) then
         call initQvs (atomic, gen, sol, tb, sol%density)
       end if
-!             if (.not.gen%comp_elec) then
-!                if (gen%electrostatics==tbu_multi) call init_qvs(density)
-!             endif
       if (gen%scf) then
         call AddH2 (gen, atomic, sol, tb, io)
       end if
@@ -656,33 +659,31 @@ contains
         ts = 2.0_k_pr * dt
       end if
       call MatrixCeaApbB (sol%rhonew, sol%rhonew, sol%deltaRho, k_cone, k_cone, io)
-! at this point rho contains the rho at time=t      
-! propagate the positions       
-! calculates positions at t+dt       
+! at this point rho contains the rho at time=t
+! propagate the positions
+! calculates positions at t+dt
       do k = 1, atomic%atoms%nmoving
         i = atomic%atoms%moving(k)
         mi = atomic%species%mass(atomic%atoms%sp(i))
         atomic%atoms%x (i) = atomic%atoms%x(i) + dt * atomic%atoms%vx(i) + 0.5_k_pr * dt * dt * atomic%atoms%fx(i) / mi
         atomic%atoms%y (i) = atomic%atoms%y(i) + dt * atomic%atoms%vy(i) + 0.5_k_pr * dt * dt * atomic%atoms%fy(i) / mi
         atomic%atoms%z (i) = atomic%atoms%z(i) + dt * atomic%atoms%vz(i) + 0.5_k_pr * dt * dt * atomic%atoms%fz(i) / mi
-      end do
-! store forces at t in fold       
-      do k = 1, atomic%atoms%nmoving
-        i = atomic%atoms%moving(k)
+! store forces at t in fold
         atomic%atoms%fxo (i) = atomic%atoms%fx(i)
         atomic%atoms%fyo (i) = atomic%atoms%fy(i)
         atomic%atoms%fzo (i) = atomic%atoms%fz(i)
       end do
-! shuffle the DMs, rho is now rho(t+dt)       
+
+! shuffle the DMs, rho is now rho(t+dt)
       call CopyMatrix (sol%rhoold, sol%rho, io)
       call CopyMatrix (sol%rho, sol%rhonew, io)
-! calculate forces at t+dt           
-      if ((atomic%atoms%nmoving == 0) .or. (gen%scf)) then
+! calculate forces at t+dt
+      if ((atomic%atoms%nmoving == 0) .and. (gen%scf)) then
         call CopyMatrix (sol%h, sol%hin, io)
       else
         call BuildHamiltonian (io, gen, atomic, tb, sol)
       end if
-! Ramp for the bias       
+! Ramp for the bias
       if ((gen%BiasRampSteps > 0) .and. ((istep) <= gen%BiasRampSteps)) then
         bfa = real (istep, k_pr) / real (gen%BiasRampSteps, k_pr)
         biasFactor = - (bfa-1) ** 3 * (1+3*bfa+6*bfa**2)
@@ -693,16 +694,14 @@ contains
       if (( .not. gen%compElec) .and. (gen%electrostatics == k_electrostaticsMultipoles)) then
         call initQvs (atomic, gen, sol, tb, sol%density)
       end if
-!             if (.not.gen%comp_elec) then
-!                if (gen%electrostatics==tbu_multi) call init_qvs(density)
-!             endif
+
       call ZeroForces (atomic)
       call RepulsiveForces (gen, atomic%atoms, tb)
       call electronicForces (atomic, gen, tb, sol, io)
       if (gen%scf) then
         call ScfForces (gen, atomic, sol, tb, io)
       end if
-! calculate velocities at t+dt       
+! calculate velocities at t+dt
       do k = 1, atomic%atoms%nmoving
         i = atomic%atoms%moving(k)
         mi = atomic%species%mass(atomic%atoms%sp(i))
@@ -710,7 +709,7 @@ contains
         atomic%atoms%vy (i) = atomic%atoms%vy(i) + 0.5_k_pr * dt * (atomic%atoms%fy(i)+atomic%atoms%fyo(i)) / mi
         atomic%atoms%vz (i) = atomic%atoms%vz(i) + 0.5_k_pr * dt * (atomic%atoms%fz(i)+atomic%atoms%fzo(i)) / mi
       end do
-! scale velocities       
+! scale velocities
       if (gen%scaleVelocities) then
         call scaleVelocities (gen, atomic)
       end if
@@ -742,9 +741,13 @@ contains
           if (atomic%atoms%nmoving /= 0) then
             call UpdateNeighboursList (atomic, sol, tb, io)
           end if
+          if ((atomic%atoms%nmoving /= 0)) then
+            call CopyMatrix (sol%hin, sol%h, io)
+          end if
           if (gen%scf) then
             call AddH2 (gen, atomic, sol, tb, io)
           end if
+          write(999,'(4g)')gen%CurrSimTime,PartialTrace(atomic%atoms%id(1), atomic, sol%h, gen%spin),PartialTrace(atomic%atoms%id(2), atomic, sol%h, gen%spin),PartialTrace(atomic%atoms%id(1), atomic, sol%h, gen%spin)-PartialTrace(atomic%atoms%id(2), atomic, sol%h, gen%spin)
           call Commutator (sol%rhodot, sol%h, sol%rho, io)
           call ScalarTMatrix (ihbar, sol%rhodot, io)
 !
@@ -757,12 +760,11 @@ contains
               call PrintBondCurrents (currUnit(i), atomic, sol, trim(saux), 1.0_k_pr)
             end do
           end if
+          if (gen%scf) then
+            call CopyMatrix (sol%h, sol%hin, io)
+          end if
         end if
-        if ((atomic%atoms%nmoving == 0) .or. (gen%scf)) then
-          call CopyMatrix (sol%h, sol%hin, io)
-        else
-          call BuildHamiltonian (io, gen, atomic, tb, sol)
-        end if
+
         write (eneunit, '(8f25.18)') gen%CurrSimTime, renergy, eenergy, scfE, kenergy, penergy + kenergy, real (trrho), efield * &
        & etd (gen)
       end if
@@ -797,7 +799,7 @@ contains
     a = 0.0_k_pr
     ci = 1
     cj = 1
-! read acceptor    
+! read acceptor
     open (unit=ua, file="rhoacceptor.dat", status="old", action="read")
     read (ua,*) n, m
     do i = 1, n

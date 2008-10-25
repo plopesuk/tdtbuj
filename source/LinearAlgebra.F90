@@ -36,10 +36,10 @@ module m_LinearAlgebra
   public :: aastar
 !
 contains
-!-------------------------------------------------!  
-! Allocates memory and posibly Initializes the !  
-! matrix a !  
-!-------------------------------------------------!  
+!-------------------------------------------------!
+! Allocates memory and posibly Initializes the !
+! matrix a !
+!-------------------------------------------------!
   subroutine CreateMatrix (a, m, zeroout)
     character (len=*), parameter :: myname = 'CreateMatrix'
     type (matrixType), intent (inout) :: a
@@ -70,10 +70,10 @@ contains
     end if
     a%created = .true.
   end subroutine CreateMatrix
-!-------------------------------------------------!  
-! Allocates memory and and Initializes the sparse !  
-! matrix a !  
-!-------------------------------------------------!  
+!-------------------------------------------------!
+! Allocates memory and and Initializes the sparse !
+! matrix a !
+!-------------------------------------------------!
 !
   subroutine CreateSparseMatrix (a, m, zeroout)
     character (len=*), parameter :: myname = 'CreateSparseMatrix'
@@ -107,9 +107,9 @@ contains
     end if
     a%created = .true.
   end subroutine CreateSparseMatrix
-!-------------------------------------------------!  
-! Resets the index arrays in the sparse matrix a !  
-!-------------------------------------------------!  
+!-------------------------------------------------!
+! Resets the index arrays in the sparse matrix a !
+!-------------------------------------------------!
   subroutine ResetSparseMatrix (a)
     character (len=*), parameter :: myname = 'ResetSparseMatrix'
     type (matrixType), intent (inout) :: a
@@ -132,20 +132,20 @@ contains
     a%nonZero = 0
   end subroutine ResetSparseMatrix
 !
-!-------------------------------------------------!  
-! Puts a new element into the sparse matrix a !  
-!-------------------------------------------------!  
+!-------------------------------------------------!
+! Puts a new element into the sparse matrix a !
+!-------------------------------------------------!
   subroutine SpmPut (a, i, j, aij)
     character (len=*), parameter :: myname = 'SpmPut'
     type (matrixType), intent (inout) :: a
     complex (k_pr), intent (in) :: aij
     integer, intent (in) :: i, j
 !
-    if ( .not. IsIn(a, i, j)) then
-      a%nonZero = a%nonZero + 1
-      a%indx (a%nonZero) = i
-      a%jndx (a%nonZero) = j
-    end if
+!     if ( .not. IsIn(a, i, j)) then
+!       a%nonZero = a%nonZero + 1
+!       a%indx (a%nonZero) = i
+!       a%jndx (a%nonZero) = j
+!     end if
     a%a (i, j) = aij
   end subroutine SpmPut
 !
@@ -166,9 +166,9 @@ contains
       end if
     end do
   end function IsIn
-!-------------------------------------------------!  
-! k_zeroes matrix a !  
-!-------------------------------------------------!  
+!-------------------------------------------------!
+! k_zeroes matrix a !
+!-------------------------------------------------!
   subroutine ZeroMatrix (a, io)
     character (len=*), parameter :: myname = 'ZeroMatrix'
     type (matrixType), intent (inout) :: a
@@ -216,9 +216,9 @@ contains
 !
   end subroutine ZeroDiagonalMatrix
 !
-!-------------------------------------------------!  
-! Diagonalize a (hermitian) matrix !  
-!-------------------------------------------------!  
+!-------------------------------------------------!
+! Diagonalize a (hermitian) matrix !
+!-------------------------------------------------!
   subroutine DiagonalizeMatrix (a, c, lambda, io)
     character (len=*), parameter :: myname = 'DiagonalizeMatrix'
     type (matrixType), intent (inout) :: a, c
@@ -236,9 +236,9 @@ contains
     end if
 !
   end subroutine DiagonalizeMatrix
-!-------------------------------------------------!  
-! Deallocates memory in the matrix a !  
-!-------------------------------------------------!  
+!-------------------------------------------------!
+! Deallocates memory in the matrix a !
+!-------------------------------------------------!
   subroutine DestroyMatrix (a, io)
     character (len=*), parameter :: myname = 'DestroyMatrix'
     type (matrixType), intent (inout) :: a
@@ -258,9 +258,9 @@ contains
     end if
   end subroutine DestroyMatrix
 !
-!-------------------------------------------------!  
-! calculate the trace of a matrix !  
-!-------------------------------------------------!  
+!-------------------------------------------------!
+! calculate the trace of a matrix !
+!-------------------------------------------------!
   function MatrixTrace (a, io)
     character (len=*), parameter :: myname = 'MatrixTrace'
     complex (kind=k_pr) :: MatrixTrace
@@ -285,9 +285,9 @@ contains
 #endif
 !
   end function MatrixTrace
-!-------------------------------------------------!  
-! Multiply scalar times matrix !  
-!-------------------------------------------------!  
+!-------------------------------------------------!
+! Multiply scalar times matrix !
+!-------------------------------------------------!
   subroutine ScalarTMatrix (s, a, io)
     character (len=*), parameter :: myname = 'ScalarTMatrix'
     type (matrixType), intent (inout) :: a
@@ -311,9 +311,9 @@ contains
 !
   end subroutine ScalarTMatrix
 !
-!-------------------------------------------------!  
-! Copy Matrix a into b !  
-!-------------------------------------------------!  
+!-------------------------------------------------!
+! Copy Matrix a into b !
+!-------------------------------------------------!
   subroutine CopyMatrix (b, a, io)
     character (len=*), parameter :: myname = 'CopyMatrix'
     type (matrixType), intent (in) :: a
@@ -360,9 +360,9 @@ contains
 #endif
   end subroutine CopyMatrix
 !
-!-------------------------------------------------!  
-! Commutator C=AB-BA !  
-!-------------------------------------------------!  
+!-------------------------------------------------!
+! Commutator C=AB-BA !
+!-------------------------------------------------!
   subroutine Commutator (c, a, b, io)
     character (len=*), parameter :: myname = 'commutator'
     type (matrixType), intent (in) :: a, b
@@ -434,9 +434,9 @@ contains
     end if
   end subroutine Commutator
 !
-!-------------------------------------------------!  
-! Calculate the trace of a matrix Product !  
-!-------------------------------------------------!  
+!-------------------------------------------------!
+! Calculate the trace of a matrix Product !
+!-------------------------------------------------!
   function ProductTrace (a, b, io)
     character (len=*), parameter :: myname = 'ProductTrace'
     complex (kind=k_pr) :: ProductTrace
@@ -628,7 +628,7 @@ contains
           c%a (i, j) = alpha * a%a(i, j) + beta * b%a(i, j)
         end do
       end do
-!!!   !$OMP END PARALLEL DO 
+!!!   !$OMP END PARALLEL DO
     end if
   end subroutine MatrixCeaApbB
 !> \brief perform a matrix-matrix operation using Hermitian matrices.
@@ -647,7 +647,7 @@ contains
     integer :: i
 !
     call herk (a, c, 'U', 'N', alpha, beta)
-! this fills in the lower triangle    
+! this fills in the lower triangle
 #if OPENMP
 !!!   !$OMP PARALLEL DO DEFAULT(shared) PRIVATE(i)  SCHEDULE(static)
     do i = 1, n - 1
