@@ -385,7 +385,7 @@ contains
       end if
       nfun = nfun + nfev
       npt = point * n
-!!!! potentially thread unsafe check that ispt/=iypt  
+!!!! potentially thread unsafe check that ispt/=iypt
       do i = 1, n
         w (ispt+npt+i) = stp * w (ispt+npt+i)
         w (iypt+npt+i) = g (i) - w (i)
@@ -431,11 +431,11 @@ contains
 !
   subroutine IterationReport (iprint, iter, nfun, gnorm, n, m, x, f, g, stp, finish, io)
 !
-!     ------------------------------------------------------------- 
-!     this routine prints monitoring information. the frequency and 
-!     amount of output are controlled by iprint. 
-!     ------------------------------------------------------------- 
-! 
+!     -------------------------------------------------------------
+!     this routine prints monitoring information. the frequency and
+!     amount of output are controlled by iprint.
+!     -------------------------------------------------------------
+!
     integer, intent (in) :: iprint (2), iter, nfun, n, m
     real (k_pr), intent (in) :: x (:), g (:), f, gnorm, stp
     type (ioType), intent (in) :: io

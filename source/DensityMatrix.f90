@@ -78,9 +78,9 @@ contains
         b = sol%eigenvals (sol%eigenvecs%dim) + Log (-1.0_k_pr+1.0_k_pr/gen%qTolerance*100.0_k_pr) / gen%mpW
       end select
       do i = 1, gen%maxit
-! update mu to the centre of the interval          
+! update mu to the centre of the interval
         gen%electronicMu = (b-a) / 2.0_k_pr + a
-! calculate total charge with current mu          
+! calculate total charge with current mu
         q = 0.0_k_pr
 !
         select case (gen%smearMethod)
@@ -98,12 +98,12 @@ contains
           end do
         end select
         if ((q-qtotal) > 0.0_k_pr) then
-! we have more electrons than we need             
-! set mu to be the right of the interval             
+! we have more electrons than we need
+! set mu to be the right of the interval
           b = gen%electronicMu
         else
-! we have less electrons             
-! set mu to be the left of the interval             
+! we have less electrons
+! set mu to be the left of the interval
           a = gen%electronicMu
         end if
         if (Abs(q-qtotal) < gen%qTolerance) exit
@@ -130,7 +130,7 @@ contains
     integer :: i, k
     real (k_pr) :: fa, fb, entropy, tiny
 !
-! set the occupations according to mu    
+! set the occupations according to mu
 !
     select case (gen%smearMethod)
     case (k_smFD)
@@ -147,18 +147,18 @@ contains
       end do
     end select
 !
-! The density matrix is built from the diagonal representation in the    
-! basis of the eigenstates of H (rho') by transforming with the    
-! matrix of eigenvectors that diagonalize H    
-! rho = U rho' U*    
-! this loop multiplies sqrt(rho') times U    
+! The density matrix is built from the diagonal representation in the
+! basis of the eigenstates of H (rho') by transforming with the
+! matrix of eigenvectors that diagonalize H
+! rho = U rho' U*
+! this loop multiplies sqrt(rho') times U
     sol%buff%a = sol%eigenvecs%a
     do k = 1, sol%eigenvecs%dim
       sol%buff%a (:, k) = Sqrt (sol%buff%f(k)) * sol%buff%a(:, k)
     end do
 !
-! this does (U sqrt(rho'))(U sqrt(rho'))* , only the upper triangle is calculated    
-! ----- ---- unnocupied vectors are not multiplied not tr    
+! this does (U sqrt(rho'))(U sqrt(rho'))* , only the upper triangle is calculated
+! ----- ---- unnocupied vectors are not multiplied not tr
     call ZeroMatrix (sol%rho, io)
     call aastar (sol%buff%a, sol%rho%a, 1.0_k_pr, 0.0_k_pr, sol%rho%dim)
     entropy = 0.0_k_pr
@@ -194,12 +194,12 @@ contains
 !> \param evals array eigenvalues
 !> \param tp, spin arrays keep the indeces
   subroutine order (evals, tp, spin)
-!--subroutine name--------------------------------!    
+!--subroutine name--------------------------------!
     character (len=*), parameter :: MyName = 'order'
     real (k_pr), intent (inout) :: evals (:)
     integer, intent (out) :: spin (:), tp (:)
 !
-!--internal variables ----------------------------!    
+!--internal variables ----------------------------!
     integer :: i, j, k, n
     n = size (evals)
     do i = 1, n
@@ -210,7 +210,7 @@ contains
     do i = 1, n - 1
       do j = i + 1, n
         if (evals(tp(i)) > evals(tp(j))) then
-! then swap them          
+! then swap them
           k = tp (i)
           tp (i) = tp (j)
           tp (j) = k
@@ -243,9 +243,9 @@ contains
     real (k_pr) :: qtotal, q
     real (k_pr) :: entropy, tiny, fa, fb
     integer :: upper_occ_state, upper_non_one
-!-------------------------------------------------!    
+!-------------------------------------------------!
     call ZeroMatrix (sol%rho, io)
-! calculate number of electrons   
+! calculate number of electrons
     qtotal = 0.0_k_pr
     do i = 1, atomic%atoms%natoms
       qtotal = qtotal + atomic%species%zval(atomic%atoms%sp(i))
@@ -255,13 +255,13 @@ contains
 !
     sol%buff%f = 0.0_k_pr
     if (gen%smearMethod /= k_smCMU) then
-! bisection to find the proper mu       !       
+! bisection to find the proper mu       !
       a = sol%eigenvals (1)
       b = sol%eigenvals (sol%rho%dim)
       do i = 1, gen%maxit
-! update mu to the centre of the interval          
+! update mu to the centre of the interval
         gen%electronicMu = (b-a) / 2.0_k_pr + a
-! calculate total charge with current mu          
+! calculate total charge with current mu
         q = 0.0_k_pr
         select case (gen%smearMethod)
         case (k_smFD)
@@ -278,16 +278,16 @@ contains
           end do
         end select
         if ((q-qtotal) > 0.0_k_pr) then
-! we have more electrons than we need             
-! set mu to be the right of the interval             
+! we have more electrons than we need
+! set mu to be the right of the interval
           b = gen%electronicMu
         else
-! we have less electrons             
-! set mu to be the left of the interval             
+! we have less electrons
+! set mu to be the left of the interval
           a = gen%electronicMu
         end if
-!            write(*,'(i4,4f13.6)')i,q-qtotal,gen%electronicMu,a,b          
-! if we are happy with the charge then exit          
+!            write(*,'(i4,4f13.6)')i,q-qtotal,gen%electronicMu,a,b
+! if we are happy with the charge then exit
         if (Abs(q-qtotal) < gen%qTolerance) exit
       end do
       if (i == (gen%maxit+1)) then
@@ -296,7 +296,7 @@ contains
       end if
     end if
 !
-! set the occupations according to mu     
+! set the occupations according to mu
     upper_occ_state = 1
     upper_non_one = 0
     do k = 1, sol%rho%dim
@@ -312,17 +312,17 @@ contains
       if (Abs(sol%buff%f(k)-2.0_k_pr) < gen%dmOccupationTolerance) upper_non_one = k
     end do
 !
-! The density matrix is built from the diagonal representation in the     
-! basis of the eigenstates of H (rho') by transforming with the     
-! matrix of eigenvectors that diagonalize H     
-! rho = U rho' U*     
-! this loop multiplies sqrt(rho') times U     
+! The density matrix is built from the diagonal representation in the
+! basis of the eigenstates of H (rho') by transforming with the
+! matrix of eigenvectors that diagonalize H
+! rho = U rho' U*
+! this loop multiplies sqrt(rho') times U
     do k = 1, upper_occ_state
       sol%eigenvecs%a (:, k) = Sqrt (sol%buff%f(k)) * sol%eigenvecs%a(:, k)
     end do
 !
-! this does (U sqrt(rho'))(U sqrt(rho'))* , only the upper triangle is calculated     
-! unnocupied vectors are not multiplied     
+! this does (U sqrt(rho'))(U sqrt(rho'))* , only the upper triangle is calculated
+! unnocupied vectors are not multiplied
 !
     call aastar (sol%eigenvecs%a(:, 1:upper_occ_state), sol%rho%a, 1.0_k_pr, 0.0_k_pr, sol%rho%dim)
     entropy = 0.0_k_pr
@@ -347,7 +347,7 @@ contains
       entropy = - 2.0_k_pr * entropy * gen%mpW
     end select
 !
-! now put it in the global variable    
+! now put it in the global variable
     sol%electronicEntropy = entropy
   end subroutine CreateDensityMatrixNoSpin
 !
@@ -405,9 +405,9 @@ contains
 !> \param sol type(solutionType) contains information about the solution space
 !
   real (k_pr) function getn0 (i, j, sol)
-!--subroutine name--------------------------------!    
+!--subroutine name--------------------------------!
     character (len=*), parameter :: MyName = 'Getn0'
-!--subroutine parameters -------------------------!    
+!--subroutine parameters -------------------------!
     integer, intent (in) :: i, j
     type (solutionType), intent (inout) :: sol
     if (i == j) then
@@ -426,12 +426,12 @@ contains
     type (atomicxType), intent (inout) :: atomic
     integer :: i, homo, extra
     real (k_pr) :: qtotal
-!-------------------------------------------------!    
+!-------------------------------------------------!
 !
     call ZeroMatrix (sol%rho, io)
 !
 !
-! calculate number of electrons    
+! calculate number of electrons
     qtotal = 0.0_k_pr
     do i = 1, atomic%atoms%natoms
       qtotal = qtotal + atomic%species%zval(atomic%atoms%sp(i))
@@ -462,11 +462,11 @@ contains
     type (solutionType), intent (inout) :: sol
     type (generalType), intent (inout) :: gen
     type (ioType), intent (inout) :: io
-!--internal variables ----------------------------!    
+!--internal variables ----------------------------!
     integer :: k
-!-------------------------------------------------!    
+!-------------------------------------------------!
 !
-! set the occupations according to mu        
+! set the occupations according to mu
     homoLevel = 1
 !
     select case (gen%smearMethod)
@@ -536,7 +536,7 @@ contains
     real (k_pr) :: fa, fb, entropy, tiny
 !
     n = sol%rho%dim
-! set the occupations according to mu    
+! set the occupations according to mu
 !
 !
     select case (gen%smearMethod)
@@ -567,19 +567,19 @@ contains
 !     enddo
 !     f(pos2(excite)+1)=1.0_k_pr-f(pos2(excite)+1)
 !
-! The density matrix is built from the diagonal representation in the    
-! basis of the eigenstates of H (rho') by transforming with the    
-! matrix of eigenvectors that diagonalize H    
-! rho = U rho' U*    
-! this loop multiplies sqrt(rho') times U    
+! The density matrix is built from the diagonal representation in the
+! basis of the eigenstates of H (rho') by transforming with the
+! matrix of eigenvectors that diagonalize H
+! rho = U rho' U*
+! this loop multiplies sqrt(rho') times U
     sol%buff%a = sol%eigenvecs%a
     do k = 1, n
       sol%buff%a (:, pos1(k)) = Sqrt (sol%buff%f(k)) * sol%buff%a(:, pos1(k))
     end do
 !
     call ZeroMatrix (sol%rho, io)
-! this does (U sqrt(rho'))(U sqrt(rho'))* , only the upper triangle is calculated    
-! ----- ---- unnocupied vectors are not multiplied not tr    
+! this does (U sqrt(rho'))(U sqrt(rho'))* , only the upper triangle is calculated
+! ----- ---- unnocupied vectors are not multiplied not tr
     call aastar (sol%buff%a, sol%rho%a, 1.0_k_pr, 0.0_k_pr, n)
     entropy = 0.0_k_pr
     select case (gen%smearMethod)

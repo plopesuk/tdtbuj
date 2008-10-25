@@ -99,12 +99,12 @@ contains
       lineno = lineno + 1
       if (lineaux(1:1) == "!" .or. lineaux(1:1) == "#" .or. lineaux(1:2) == "//") then
         ireport%comments = ireport%comments + 1
-! just count the comments nothing else    
+! just count the comments nothing else
       else if (len(trim(line)) == 0) then
         ireport%empty = ireport%empty + 1
-! just count empty lines    
+! just count empty lines
       else if (cstr(lineaux(1:7), "include")) then
-! defines the behaviour for an include statement        
+! defines the behaviour for an include statement
         ireport%includ = ireport%includ + 1
         read (lineaux(8:255),*, iostat=errno) filename
 !
@@ -134,7 +134,7 @@ contains
           lineaux = adjustl (line)
 ! take some action if we have a endblock
           if (cstr(lineaux(1:8), "endblock")) then
-! check the name            
+! check the name
             read (lineaux(9:k_ml),*, iostat=errno) endblockname
             if (errno /= 0) call ParseErr ("invalid name after endblock statement", myname, nam, lineno, ioLoc)
 ! closing the wrong block

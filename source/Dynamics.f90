@@ -85,11 +85,11 @@ contains
       do k = 1, atomic%atoms%nmoving
         i = atomic%atoms%moving(k)
         mi = atomic%species%mass(atomic%atoms%sp(i))
-! generate random vector              
+! generate random vector
         atomic%atoms%vx (i) = (ranmar(sol%seed)-0.5_k_pr) * Sqrt (kt/mi)
         atomic%atoms%vy (i) = (ranmar(sol%seed)-0.5_k_pr) * Sqrt (kt/mi)
         atomic%atoms%vz (i) = (ranmar(sol%seed)-0.5_k_pr) * Sqrt (kt/mi)
-! accumulate in centre of mass velocity              
+! accumulate in centre of mass velocity
         vcmx = vcmx + atomic%atoms%vx(i) * mi
         vcmy = vcmy + atomic%atoms%vy(i) * mi
         vcmz = vcmz + atomic%atoms%vz(i) * mi
@@ -99,7 +99,7 @@ contains
       vcmz = vcmz / mt
       do k = 1, atomic%atoms%nmoving
         i = atomic%atoms%moving(k)
-! substract centre of mass velocity                
+! substract centre of mass velocity
         atomic%atoms%vx (i) = atomic%atoms%vx(i) - vcmx
         atomic%atoms%vy (i) = atomic%atoms%vy(i) - vcmy
         atomic%atoms%vz (i) = atomic%atoms%vz(i) - vcmz
@@ -109,7 +109,7 @@ contains
       kez = 0.0_k_pr
       do k = 1, atomic%atoms%nmoving
         i = atomic%atoms%moving(k)
-! accumulate the kinetic energy              
+! accumulate the kinetic energy
         mi = atomic%species%mass(atomic%atoms%sp(i))
         kex = kex + 0.5_k_pr * mi * atomic%atoms%vx(i) ** 2
         key = key + 0.5_k_pr * mi * atomic%atoms%vy(i) ** 2

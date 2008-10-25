@@ -1054,7 +1054,7 @@ contains
 !       delta = PartialTrace (atomic%atoms%id(i), atomic, sol%deltaRho, .true.) / dt
       jc = sol%CurrentMatrix2 (i, i)
       write (unit, '(a2,1x,3f16.8,1g)') symbol (atomic%species%z(atomic%atoms%sp(i))), atomic%atoms%x(i), atomic%atoms%y(i), &
-     & atomic%atoms%z(i), jc!, - delta, comm, delta + comm, - jc + delta, comm + jc
+     & atomic%atoms%z(i), jc !, - delta, comm, delta + comm, - jc + delta, comm + jc
     end do
     write (unit, '(i0)') atomic%atoms%ncurrent
     do i = 1, atomic%atoms%ncurrent

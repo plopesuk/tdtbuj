@@ -80,7 +80,7 @@ module m_Constants
   integer, parameter, public :: k_lbfgs = 0
   integer, parameter, public :: k_bfgs = 1
 !> geometry optimisation algorithms
-! mathematics 
+! mathematics
   real (k_pr), parameter, public :: k_pi = 3.14159265358979323846264338327950_k_pr !< \f$ \pi \f$
   real (k_pr), parameter, public :: k_infinity = huge (1.0_k_pr)!< infinity
   real (k_pr), parameter, public :: k_zero = 0.0_k_pr !< _zero
@@ -105,7 +105,7 @@ module m_Constants
   real (k_pr), parameter, public :: k_chargeSI = 1.60217653D-19 !< charge in SI (C)
   integer, parameter :: k_nz = 110 !< no of atomic elements that have info associated with
 !
-! error messages codes for Trust region algorithm  
+! error messages codes for Trust region algorithm
   integer, parameter, public :: TR_SUCCESS = 1501
   integer, parameter, public :: TR_INVALID_OPTION = 1502
   integer, parameter, public :: TR_OUT_OF_MEMORY = 1503
@@ -184,9 +184,9 @@ contains
 !> \date 29/10/07, 23:19:04
 !> \param iz integer Z of the atom
   character (len=2) function Symbol (iz)
-!--subroutine name--------------------------------!    
+!--subroutine name--------------------------------!
     character (len=*), parameter :: myname = 'Symbol'
-!--subroutine parameters--------------------------!    
+!--subroutine parameters--------------------------!
     integer, intent (in) :: iz
     character (len=2) :: dummy (1:k_nz)
 !
@@ -210,9 +210,9 @@ contains
 !> \date 29/10/07, 23:18:26
 !> \param iz integer Z of the atom
   character (len=k_mw) function ElName (iz)
-!--subroutine name--------------------------------!    
+!--subroutine name--------------------------------!
     character (len=*), parameter :: myname = 'ElName'
-!--subroutine parameters--------------------------!    
+!--subroutine parameters--------------------------!
     integer, intent (in) :: iz
     character (len=k_mw) :: dummy (1:k_nz)
 !
@@ -241,9 +241,9 @@ data dummy / "Hydrogen", "Helium", "Lithium", "Beryllium", "Boron", "Carbon", "N
 !> \param iz integer Z of the atom
 !
   character (len=4) function Period (iz)
-!--subroutine name--------------------------------!    
+!--subroutine name--------------------------------!
     character (len=*), parameter :: myname = 'Period'
-!--subroutine parameters--------------------------!    
+!--subroutine parameters--------------------------!
     integer, intent (in) :: iz
     character (len=4) :: dummy (1:k_nz)
 !
@@ -268,9 +268,9 @@ data dummy / "Hydrogen", "Helium", "Lithium", "Beryllium", "Boron", "Carbon", "N
 !> \param iz integer Z of the atom
 !
   integer function group (iz)
-!--subroutine name--------------------------------!    
+!--subroutine name--------------------------------!
     character (len=*), parameter :: myname = 'group'
-!--subroutine parameters--------------------------!    
+!--subroutine parameters--------------------------!
     integer, intent (in) :: iz
     integer :: dummy (1:k_nz)
 !
@@ -293,9 +293,9 @@ data dummy / "Hydrogen", "Helium", "Lithium", "Beryllium", "Boron", "Carbon", "N
 !> \param iz integer Z of the atom
 !> \internal complete the electronic configuration
   character (len=k_mw) function ElConfig (iz)
-!--subroutine name--------------------------------!    
+!--subroutine name--------------------------------!
     character (len=*), parameter :: myname = 'ElConfig'
-!--subroutine parameters--------------------------!    
+!--subroutine parameters--------------------------!
     integer, intent (in) :: iz
     character (len=k_mw) :: dummy (1:k_nz)
 !
@@ -319,9 +319,9 @@ data dummy / "Hydrogen", "Helium", "Lithium", "Beryllium", "Boron", "Carbon", "N
 !> \param iz integer Z of the atom
 !
   real (k_pr) function weight (iz)
-!--subroutine name--------------------------------!    
+!--subroutine name--------------------------------!
     character (len=*), parameter :: myname = 'weight'
-!--subroutine parameters--------------------------!    
+!--subroutine parameters--------------------------!
     integer, intent (in) :: iz
     real (k_pr) :: dummy (1:k_nz)
 !
@@ -347,9 +347,9 @@ data dummy / "Hydrogen", "Helium", "Lithium", "Beryllium", "Boron", "Carbon", "N
 !> \param iz integer Z of the atom
 !
   real (k_pr) function CovalentRadius (iz)
-!--subroutine name--------------------------------!    
+!--subroutine name--------------------------------!
     character (len=*), parameter :: myname = 'CovalentRadius'
-!--subroutine parameters--------------------------!    
+!--subroutine parameters--------------------------!
     integer, intent (in) :: iz
     real (k_pr) :: dummy (1:k_nz)
 !
@@ -374,9 +374,9 @@ data dummy / "Hydrogen", "Helium", "Lithium", "Beryllium", "Boron", "Carbon", "N
 !> \param iz integer Z of the atom
 !
   real (k_pr) function VdWRadius (iz)
-!--subroutine name--------------------------------!    
+!--subroutine name--------------------------------!
     character (len=*), parameter :: myname = 'VdWRadius'
-!--subroutine parameters--------------------------!    
+!--subroutine parameters--------------------------!
     integer, intent (in) :: iz
 !
     real (k_pr) :: dummy (1:k_nz)

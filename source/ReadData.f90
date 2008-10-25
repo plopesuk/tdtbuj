@@ -441,7 +441,8 @@ contains
       genLoc%gamma = GetReal (ioLoc, "Gamma", 0.5_k_pr)
       write (ioLoc%uout, '(a,ES12.4)') "damping factor in Ehrenfest Equation(Gamma): ", genLoc%gamma
       genLoc%tKillGamma = GetInteger (ioLoc, "TKillGamma", 0)
-      write (ioLoc%uout, '(a,ES12.4)') "# of steps after which we remove damping factor in Ehrenfest Equation(TKillGamma): ", genLoc%TKillGamma
+      write (ioLoc%uout, '(a,ES12.4)') "# of steps after which we remove damping factor in Ehrenfest Equation(TKillGamma): ", &
+     & genLoc%tKillGamma
       saux = GetString (ioLoc, "WhatDensity", "SCF")
       write (ioLoc%uout, '(a,a)') "What Density (WhatDensity) = ", trim (saux)
       if (cstr(trim(saux), "SCF")) then
@@ -2411,7 +2412,7 @@ contains
         deallocate (Sol%vs(i)%a)
       end do
     end if
-    deallocate(sol%sk%wignerD)
+    deallocate (Sol%sk%wignerD)
     call MKL_FreeBuffers ()
   end subroutine CleanMemory
 end module m_ReadData

@@ -60,10 +60,10 @@ contains
       call CreateMatrix (sol%forceOpY, sol%h%dim, .true.)
       call CreateMatrix (sol%forceOpZ, sol%h%dim, .true.)
     end if
-    call ZeroMatrix (sol%h,ioLoc)
-    call ZeroMatrix (sol%forceOpX,ioLoc)
-    call ZeroMatrix (sol%forceOpY,ioLoc)
-    call ZeroMatrix (sol%forceOpZ,ioLoc)
+    call ZeroMatrix (sol%h, ioLoc)
+    call ZeroMatrix (sol%forceOpX, ioLoc)
+    call ZeroMatrix (sol%forceOpY, ioLoc)
+    call ZeroMatrix (sol%forceOpZ, ioLoc)
     n = atomic%basis%norbitals
     if ( .not. sol%eigenvecs%created) then
       allocate (sol%eigenvals(1:atomic%basis%norbitals))
@@ -79,8 +79,8 @@ contains
         allocate (sol%potential(1:atomic%atoms%natoms))
         allocate (sol%field(1:atomic%atoms%natoms, 1:3))
       end if
-      call ZeroMatrix (sol%hin,ioLoc)
-      call ZeroMatrix (sol%h2,ioLoc)
+      call ZeroMatrix (sol%hin, ioLoc)
+      call ZeroMatrix (sol%h2, ioLoc)
       sol%potential (1:atomic%atoms%natoms) = 0.0_k_pr
       sol%field (1:atomic%atoms%natoms, 1:3) = 0.0_k_pr
     end if
@@ -238,12 +238,12 @@ contains
         end do
       end if
     end if
-
-    if (.not. allocated(sol%sk%wignerD)) then
-      l= maxval (atomic%speciesBasis(:, :)%l)
-      allocate(sol%sk%wignerD(0:l,-l:l,0:l))
-    endif
-      sol%sk%wignerD=0.0_k_pr
+!
+    if ( .not. allocated(sol%sk%wignerD)) then
+      l = maxval (atomic%speciesBasis(:, :)%l)
+      allocate (sol%sk%wignerD(0:l,-l:l, 0:l))
+    end if
+    sol%sk%wignerD = 0.0_k_pr
 !
   end subroutine SetSolutionSpace
 !
@@ -512,7 +512,7 @@ contains
     character (len=*), parameter :: myname = 'RadP'
 !--subroutine parameters -------------------------!
     real (k_pr), intent (inout) :: r
-    integer :: sp1, sp2!, alpha
+    integer :: sp1, sp2 !, alpha
     integer, intent (in) :: l1, l2, m
     type (modelType), intent (inout) :: tb
     type (generalType), intent (inout) :: gen
@@ -540,7 +540,7 @@ contains
 !--subroutine parameters -------------------------!
     real (k_pr), intent (inout) :: r
     integer, intent (inout) :: sp1, sp2
-    !integer, intent (in) :: alpha
+!integer, intent (in) :: alpha    
     type (modelType), intent (inout) :: tb
     type (generalType), intent (inout) :: gen
     real (k_pr) :: RadPNoTail
@@ -1097,7 +1097,7 @@ contains
     integer :: i, j, at, atp
     real (k_pr) :: inpn, aux, aux2
 !
-
+!
     do i = 1, atomic%atoms%ncurrent
       atp = atomic%atoms%current(i)
       aux = 0.0_k_pr

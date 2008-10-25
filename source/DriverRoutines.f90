@@ -442,8 +442,8 @@ contains
 !
     write (io%uout, '(/a/)') 'End Velocity Verlet-------------------------------------------------------------'
   end subroutine EhrenfestDynamics
-
-
+!
+!
 !> \brief driver routine for verlet velocity Ehrenfest molecular dynamics
 !> damped
 !> \details numerical instabilities in time propragation of density matrix are handled using the scheme proposed in
@@ -602,8 +602,8 @@ contains
       end if
       penergy = eenergy + renergy + scfE
       kenergy = KineticEnergy (atomic)
-      write (eneunit, '(a1,a24,7a25)') "#", "Time", "Repulsive Energy ", "Electronic Energy", "SCF Energy", "Kinetic Energy", "Tot&
-     &al Energy", "No of Electrons", "E field"
+      write (eneunit, '(a1,a24,7a25)') "#", "Time", "Repulsive Energy ", "Electronic Energy", "SCF Energy", "Kinetic Energy", "Tota&
+     &l Energy", "No of Electrons", "E field"
       write (eneunit, '(7f25.18)') gen%CurrSimTime, renergy, eenergy, scfE, kenergy, penergy + kenergy, real (trrho)
       call CalcExcessCharges (gen, atomic, sol)
       call CalcDipoles (gen, atomic, sol, tb)
@@ -625,17 +625,17 @@ contains
       end if
       if (gen%scf) then
         call CopyMatrix (sol%h, sol%hin, io)
-      endif
+      end if
     end if
 !
-
+!
 !
     do istep = 1, gen%nsteps
 !set global time variable
       gen%CurrSimTime = istep * dt * k_time2SI
-      if ((istep > gen%TKillGamma).and.(gen%TKillGamma > 0)) then
-        gamma=0.0_k_pr
-      endif
+      if ((istep > gen%TKillGamma) .and. (gen%TKillGamma > 0)) then
+        gamma = 0.0_k_pr
+      end if
       call BuildDensity (atomic, sol)
       if (( .not. gen%compElec) .and. (gen%electrostatics == k_electrostaticsMultipoles)) then
         call initQvs (atomic, gen, sol, tb, sol%density)
@@ -673,7 +673,7 @@ contains
         atomic%atoms%fyo (i) = atomic%atoms%fy(i)
         atomic%atoms%fzo (i) = atomic%atoms%fz(i)
       end do
-
+!
 ! shuffle the DMs, rho is now rho(t+dt)
       call CopyMatrix (sol%rhoold, sol%rho, io)
       call CopyMatrix (sol%rho, sol%rhonew, io)
@@ -694,7 +694,7 @@ contains
       if (( .not. gen%compElec) .and. (gen%electrostatics == k_electrostaticsMultipoles)) then
         call initQvs (atomic, gen, sol, tb, sol%density)
       end if
-
+!
       call ZeroForces (atomic)
       call RepulsiveForces (gen, atomic%atoms, tb)
       call electronicForces (atomic, gen, tb, sol, io)
@@ -747,7 +747,9 @@ contains
           if (gen%scf) then
             call AddH2 (gen, atomic, sol, tb, io)
           end if
-          write(999,'(4g)')gen%CurrSimTime,PartialTrace(atomic%atoms%id(1), atomic, sol%h, gen%spin),PartialTrace(atomic%atoms%id(2), atomic, sol%h, gen%spin),PartialTrace(atomic%atoms%id(1), atomic, sol%h, gen%spin)-PartialTrace(atomic%atoms%id(2), atomic, sol%h, gen%spin)
+          write (999, '(4g)') gen%CurrSimTime, PartialTrace (atomic%atoms%id(1), atomic, sol%h, gen%spin), PartialTrace &
+         & (atomic%atoms%id(2), atomic, sol%h, gen%spin), PartialTrace (atomic%atoms%id(1), atomic, sol%h, gen%spin) - PartialTrace &
+         & (atomic%atoms%id(2), atomic, sol%h,
           call Commutator (sol%rhodot, sol%h, sol%rho, io)
           call ScalarTMatrix (ihbar, sol%rhodot, io)
 !
@@ -764,7 +766,7 @@ contains
             call CopyMatrix (sol%h, sol%hin, io)
           end if
         end if
-
+!
         write (eneunit, '(8f25.18)') gen%CurrSimTime, renergy, eenergy, scfE, kenergy, penergy + kenergy, real (trrho), efield * &
        & etd (gen)
       end if

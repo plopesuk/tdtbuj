@@ -44,7 +44,7 @@ contains
     real (kind=k_pr) :: rij, hij, l, m, n
 !-------------------------------------------------!
 !
-    call ZeroMatrix (sol%h,io)
+    call ZeroMatrix (sol%h, io)
     if ( .not. gen%spin) then
 !!!!!   !$OMP PARALLEL DO DEFAULT(shared) PRIVATE(i,j,k,o,hij,rij,l,m,n)  SCHEDULE(static)
       do i = 1, atomic%atoms%natoms - 1
@@ -322,11 +322,11 @@ contains
 !> \param tb type(modelType) contains information about the tight binding model parameters
 !> \param sol type(solutionType) contains information about the solution space
 !> \param io type(ioType) contains all the info about I/O files
-  subroutine ForceOperator (j, atomic, gen, tb, sol,io)
+  subroutine ForceOperator (j, atomic, gen, tb, sol, io)
 !--subroutine name--------------------------------!
     character (len=*), parameter :: myname = 'ForceOperator'
 !--subroutine parameters -------------------------!
-    integer, intent (inout) ::  j
+    integer, intent (inout) :: j
     type (generalType), intent (inout) :: gen
     type (atomicxType), intent (inout) :: atomic
     type (modelType), intent (inout) :: tb
@@ -335,12 +335,12 @@ contains
 !--internal variables ----------------------------!
     real (k_pr) :: rij
     integer :: i, k, o
-    real (k_pr) :: fact(3), l, m, n !,fact2,ff2,
+    real (k_pr) :: fact (3), l, m, n !,fact2,ff2,
 !-------------------------------------------------!
 !
-    call ZeroMatrix (sol%forceOpX,io)
-    call ZeroMatrix (sol%forceOpY,io)
-    call ZeroMatrix (sol%forceOpZ,io)
+    call ZeroMatrix (sol%forceOpX, io)
+    call ZeroMatrix (sol%forceOpY, io)
+    call ZeroMatrix (sol%forceOpZ, io)
     do i = 1, atomic%atoms%natoms
       if (i /= j) then
         call AtomDistance (atomic%atoms, j, i, rij, l, m, n)
@@ -380,7 +380,7 @@ contains
 !
     do k = 1, atomic%atoms%nmoving
       i = atomic%atoms%moving(k)
-      call ForceOperator (i, atomic, gen, tb, sol,io)
+      call ForceOperator (i, atomic, gen, tb, sol, io)
       atomic%atoms%fx (i) = atomic%atoms%fx(i) + ProductTrace (sol%rho, sol%forceOpX, io)
       atomic%atoms%fy (i) = atomic%atoms%fy(i) + ProductTrace (sol%rho, sol%forceOpY, io)
       atomic%atoms%fz (i) = atomic%atoms%fz(i) + ProductTrace (sol%rho, sol%forceOpZ, io)
