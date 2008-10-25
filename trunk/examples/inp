@@ -1,12 +1,12 @@
-OutputFile output.out
+OutputFile outputeh.out
 DebugFile  output.dbg
-OutputLevel 0
+OutputLevel 0 
 DebugLevel  1
 OnScreen   No
 
 JobName test
 RanSeed 0.142
-Units  RY
+Units  ARU
 MaxOrbsPerAtom 10
 
 
@@ -16,38 +16,54 @@ MaxOrbsPerAtom 10
 RunType EhrenfestDamped
 #RunType Fit
 #RunType GeometryOptimization
+#RunType ForceTest
+#RunType ForceTestZ
 
 NetCharge 0.0
 VBias 1.0
 
-Spin Yes 
+Spin Yes
 CollinearSpins Yes
 Electrostatics PointCharges
 
-SmearingMethod           FD
+#SmearingMethod           FD
+SmearingMethod           MP
+#SmearingMethod CS
 ElectronicTemperature    50.1
+ElectronicW 0.0001
+MPN 0
+MaxIt 1000
 
-SCF yes	 
-SCFSteps 100
-SCFTolerance          0.000000000010
-SCFMixing             0.7500
-SCFMixIterations      4
+
+SCF Yes
+SCFType TB+UJ
+SCFSteps 500
+SCFTol          1.0e-10
+SCFMix             0.75
+SCFMixN     6 
 
 #Time evolution
-DeltaT 0.001
-Nsteps 200000
+DeltaT 0.002
+Nsteps 100
 WriteAnimation Yes
+AniFile eh_dyn.mxz
 
 ScaleVelocities  No
 IonicTemperature 550.0
 
-Gamma 0.05
+#herenfest damped
+Gamma 0.0001
 EulerSteps 100
+AnimationSteps 2500 
+WhatDensity SCF
+#WhatDensity NonSCF
+#WhatDensity Tailored
+
 # excitation
 Excite Yes
-HoleState 3
+HoleState 24
 HoleSpin  U
-ExciteState 4
+ExciteState 26
 ExciteSpin U
 
 ### Fit
@@ -81,29 +97,35 @@ HElTres 1.0e-10
 
 
 # Geometry Optimisation
+GeomOptAlg          BFGS
+EnergyTolerance     1.0e-4
+ForceTolerance      1.0e-4
+XTolerance          1.0e-10
+EpsilonE            1.0e-10
+EpsilonG            1.0e-10
+EpsilonX            1.0e-10
+MaxFEval            50000 
+GeometryNSteps      1000 
+HessianM            7
 
-EnergyTolerance                0.0001
-ForceTolerance 0.9
-XTolerance                1.0e-10
-EpsilonE                1.0e-10
-EpsilonG                1.0e-10
-EpsilonX                1.0e-10
-MaxFEval  20 
-GeometryNSteps  100 
-HessianM   7
-
+### Testing
+DerivStep 0.001
+ForceSteps 100
+ForceOnAtom 1
+ForceStart -0.25
 
 ###################
 block DeltaPol
 1
 0.1
 0.2
+
 2
 endblock DeltaPol
 ###############
 
-include coords.dat
-include species.dat
-include basis.dat
-include gsp.dat
+include coords.inp
+include species.inp
+include basis.inp
+include gsp.inp
 
