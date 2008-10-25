@@ -45,7 +45,7 @@ contains
 !
     integer :: at
     real (k_pr) :: aux
-! spin down    
+! spin down
     do at = 1, atomic%atoms%natoms
       aux = PartialTrace (atomic%atoms%id(at), atomic, sol%rho, gen%spin)
       atomic%atoms%chrg (at) = aux - atomic%species%zval(atomic%atoms%sp(at))
@@ -118,7 +118,7 @@ contains
     type (generalType), intent (inout) :: gen
     integer :: i, j, k
     real (k_pr) :: ua, ub, rij, uv
-!-------------------------------------------------!    
+!-------------------------------------------------!
     sol%potential = 0.0_k_pr
     if (gen%screened) then
       do k = 1, atomic%atoms%nscf
@@ -170,11 +170,11 @@ contains
     aux = 0.0_k_pr
     m = atomic%basis%norbitals * (atomic%basis%norbitals-1) / 2
     if (gen%spin) then
-! spin down    
+! spin down
       from = m + atomic%atoms%orbs(at, 1)
       to = - 1 + from + atomic%species%norbs(atomic%atoms%sp(at)) / 2
       aux = sum (sol%density(from:to))
-!spin up    
+!spin up
       from = m + atomic%atoms%orbs(at, 1) + atomic%basis%norbitals / 2
       to = - 1 + from + atomic%species%norbs(atomic%atoms%sp(at)) / 2
       aux = aux + sum (sol%density(from:to))
@@ -208,7 +208,7 @@ contains
     do i = from, to
       qld = qld + real (sol%rho%a(i, i), k_pr)
     end do
-!spin up   
+!spin up
     from = m + atomic%basis%norbitals / 2 + j
     to = - 1 + from + 2 * l + 1
     do i = from, to
@@ -255,7 +255,7 @@ contains
     integer :: i, j, k
     real (k_pr) :: rijx, rijy, rijz, rij
     real (k_pr) :: fact, ua, ub, uv
-!-------------------------------------------------!    
+!-------------------------------------------------!
 !
     sol%field = 0.0_k_pr
     if (gen%screened) then

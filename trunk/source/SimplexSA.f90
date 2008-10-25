@@ -105,7 +105,7 @@ contains
             do i = 1, ndim + 1
               if (i /= ilo) then
                 y (i) = func (p(i, :), gen, atomic, tb, sol, io)
-!check the bounds                
+!check the bounds
                 do iii = 1, ndim
                   if ((p(i, iii) < bounds(iii, 1)) .or. (p(i, iii) > bounds(iii, 2))) then
                     y (i) = k_infinity

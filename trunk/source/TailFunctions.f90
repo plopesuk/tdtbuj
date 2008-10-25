@@ -39,18 +39,18 @@ contains
 !> \param rIn,rOut reals inner and outer cuttoff
 !> \param io type(ioType) i/o units
   function makeTailType (f, fp, fpp, rIn, rOut, io)
-!--subroutine name--------------------------------!  
+!--subroutine name--------------------------------!
     character (len=*), parameter :: myname = 'makeTailType'
-!--subroutine parameters -------------------------!  
+!--subroutine parameters -------------------------!
     type (tailType) :: makeTailType
     real (k_pr) :: f, fp, fpp
     real (k_pr) :: rIn, rOut
     real (k_pr) :: x, x2, a, b, c
     type (ioType), intent (inout) :: io
-!--internal variables ----------------------------!  
+!--internal variables ----------------------------!
     logical :: status
     character (len=k_ml) :: saux
-!-------------------------------------------------!  
+!-------------------------------------------------!
 !
     makeTailType%rIn = rIn
 !
@@ -89,7 +89,7 @@ contains
     logical :: CheckTailParam
     real (k_pr) :: f, fp, fpp
     real (k_pr) :: ri, rc
-!--internal variables ----------------------------!    
+!--internal variables ----------------------------!
     real (k_pr) :: aux1, aux2, x1, x2, sw, aux3
 !-------------------------------------------------!
 !
@@ -141,7 +141,7 @@ contains
 !> \param r real the point where the function is evaluated
 !> \param tailp the tail parameters
   function tailFunction (r, tailp)
-!--subroutine name--------------------------------!  
+!--subroutine name--------------------------------!
     character (len=*), parameter :: myname = 'tailFunction'
 !--subroutine parameters -------------------------!
     real (k_pr) :: tailFunction
@@ -162,7 +162,7 @@ contains
 !> \param r real the point where the function is evaluated
 !> \param tailp the tail parameters
   function TailFunctionP (r, tailp)
-!--subroutine name--------------------------------!  
+!--subroutine name--------------------------------!
     character (len=*), parameter :: myname = 'TailFunctionP'
 !--subroutine parameters -------------------------!
     real (k_pr) :: TailFunctionP
@@ -183,7 +183,7 @@ contains
 !> \param r real the point where the function is evaluated
 !> \param tailp the tail parameters
   function TailFunctionPp (r, tailp)
-!--subroutine name--------------------------------!  
+!--subroutine name--------------------------------!
     character (len=*), parameter :: myname = 'TailFunctionPp'
 !--subroutine parameters -------------------------!
     real (k_pr) :: TailFunctionPp

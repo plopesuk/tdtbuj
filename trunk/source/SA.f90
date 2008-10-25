@@ -46,7 +46,7 @@ contains
       end function func
     end interface
 !
-!c  type all internal variables.      
+!c  type all internal variables.
     real (k_pr) :: f, fp, p, pp, ratio
     integer :: nup, ndown, nrej, nnew, lnobds, h, i, j, m
     logical :: quit
@@ -74,7 +74,7 @@ contains
       end if
     end do
 !
-!  evaluate the function with input x and return value as f.  
+!  evaluate the function with input x and return value as f.
     f = func (x, gen, atomic, tb, sol, io)
     if ( .not. Max) f = - f
     nfcnev = nfcnev + 1
@@ -96,7 +96,7 @@ contains
       do m = 1, nt
         do j = 1, ns
           do h = 1, n
-!  generate xp, the trial value of x. note use of vm to choose xp.            
+!  generate xp, the trial value of x. note use of vm to choose xp.
             do i = 1, n
               if (i == h) then
                 xp (i) = x (i) + (ranmar(sol%seed)*2._k_pr-1._k_pr) * vm (i)
@@ -104,7 +104,7 @@ contains
                 xp (i) = x (i)
               end if
 !
-!  if xp is out of bounds, select a point in bounds for the trial.            
+!  if xp is out of bounds, select a point in bounds for the trial.
               if ((xp(i) < lb(i)) .or. (xp(i) > ub(i))) then
                 xp (i) = lb (i) + (ub(i)-lb(i)) * ranmar (sol%seed)
                 lnobds = lnobds + 1
@@ -112,13 +112,13 @@ contains
                 call prt3 (Max, xp, x, f, io)
               end if
             end do
-!  evaluate the function with the trial point xp and return as fp.      
+!  evaluate the function with the trial point xp and return as fp.
             fp = func (xp, gen, atomic, tb, sol, io)
             if ( .not. Max) fp = - fp
             nfcnev = nfcnev + 1
             call prt4 (Max, xp, x, fp, f, io)
 !
-!  if too many function evaluations occur, terminate the algorithm.        
+!  if too many function evaluations occur, terminate the algorithm.
             if (nfcnev >= maxevl) then
               write (io%uout, '(a)') "/  too many function evaluations; consider  /,  increasing maxevl or "" eps, or decreasing  /&
              &,  nt or rt. these results are likely to be  /,  poor./"
@@ -127,7 +127,7 @@ contains
               return
             end if
 !
-!  accept the new point if the function value increases.        
+!  accept the new point if the function value increases.
             if (fp >= f) then
               write (io%uout, '(''  point accepted'')')
               x (:) = xp (:)
@@ -136,7 +136,7 @@ contains
               nacp (h) = nacp (h) + 1
               nup = nup + 1
 !
-!  if greater than any other point, record as new optimum.        
+!  if greater than any other point, record as new optimum.
               if (fp > fopt) then
                 write (io%uout, '(''  new optimum'')')
                 xopt (:) = xp (:)
@@ -144,8 +144,8 @@ contains
                 nnew = nnew + 1
               end if
 !
-!  if the point is lower, use the metropolis criteria to decide on          
-!  acceptance or rejection.          
+!  if the point is lower, use the metropolis criteria to decide on
+!  acceptance or rejection.
             else
               p = exprep ((fp-f)/t)
               pp = ranmar (sol%seed)
@@ -173,7 +173,7 @@ contains
           end do
         end do
 !
-!  adjust vm so that approximately half of all evaluations are accepted.      
+!  adjust vm so that approximately half of all evaluations are accepted.
         do i = 1, n
           ratio = real (nacp(i), k_pr) / real (ns, k_pr)
           if (ratio > .6_k_pr) then
@@ -198,7 +198,7 @@ contains
         if (Abs(f-fstar(i)) > eps) quit = .false.
       end do
 !
-!  terminate sa if appropriate.    
+!  terminate sa if appropriate.
       if (quit) then
         x (:) = xopt (:)
         ier = 0
@@ -207,7 +207,7 @@ contains
         return
       end if
 !
-! if termination criteria is not met, prepare for another loop.    
+! if termination criteria is not met, prepare for another loop.
       t = rt * t
       do i = neps, 2, - 1
         fstar (i) = fstar (i-1)
@@ -220,7 +220,7 @@ contains
         write (io%uout,*) "temperature has reached machine precision !!!"
         exit
       end if
-!  loop again.    
+!  loop again.
     end do
   end subroutine SimulAnnealing
 !

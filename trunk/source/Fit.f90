@@ -406,16 +406,16 @@ contains
     allocate (tol(1:gen%fit%neps))
     select case (gen%fit%fitMethod)
     case (k_simplex)
-! simplex fit                 
+! simplex fit
       call InitSimplex (gen, atomic, tb, sol, io)
-!print on the screen initial p and y          
+!print on the screen initial p and y
       write (io%uout,*) "---------------------------------------------------"
       write (io%uout,*) "initial values of parameters on first line last value the cost"
       do i = 1, gen%fit%iNoParams + 1
         write (io%uout, '(11f16.8,f20.8)') (p(i, j), j=1, gen%fit%iNoParams), y (i)
       end do
       write (io%uout,*) "---------------------------------------------------"
-! end print        
+! end print
       allocate (best(1:gen%fit%iNoParams), tol(1:gen%fit%neps))
       tol (1:gen%fit%neps) = 1.0e25_k_pr
       call amoeba (p, y, gen%fit%fitTol, UpdateCost, kk, bounds, gen%fit%iter, gen, atomic, tb, sol, io)
@@ -469,8 +469,8 @@ contains
         write (2,*) best (i)
       end do
       close (2)
-!     call print_gsp(trim(cFdfFile))  
-! end simplex fit          
+!     call print_gsp(trim(cFdfFile))
+! end simplex fit
       deallocate (y, p, best)
     case (k_SimplexSA)
       allocate (best(1:gen%fit%iNoParams))
@@ -600,7 +600,7 @@ contains
       do j = 1, gen%fit%iNoParams
         if (i-1 == j) then
           p (i, j) = bounds (j, 1) + Abs (bounds(j, 2)-bounds(j, 1)) * ranmar (sol%seed)
-!generate a  new vertex in the box           
+!generate a  new vertex in the box
         else
           p (i, j) = p (1, j)
         end if
@@ -636,7 +636,7 @@ contains
     allocate (x(1:gen%fit%iNoParams), xopt(1:gen%fit%iNoParams), c(1:gen%fit%iNoParams), vm(1:gen%fit%iNoParams), &
    & xp(1:gen%fit%iNoParams), nacp(1:gen%fit%iNoParams))
 !
-!  set input parameters.      
+!  set input parameters.
     Max = .false.
     neps = gen%fit%neps
     eps = gen%fit%fitTol
@@ -714,14 +714,14 @@ contains
     integer :: i, iter, k
     logical :: quit
     real (k_pr), allocatable :: tol (:)
-!init simplex        
+!init simplex
     call InitSimplex (gen, atomic, tb, sol, io)
     yb = huge (yb)
     allocate (tol(1:gen%fit%neps))
     do i = 1, gen%fit%neps
       tol (i) = 1.0e20_k_pr
     end do
-!end init simplex        
+!end init simplex
     temperature = gen%fit%temp
     write (io%uout,*) "simulated annealing stage"
     write (io%uout,*) "initial values:"
@@ -814,17 +814,17 @@ contains
     m = fitData%n - 1
     allocate (lw(1:n), up(1:n), fvec(1:m), fjac(1:m, 1:n))
     allocate (f1(1:m), f2(1:m))
-!! set precisions for stop-criteria    
+!! set precisions for stop-criteria
     eps (1:6) = gen%fit%fitTol
-!! set maximum number of iterations    
+!! set maximum number of iterations
     iter1 = gen%fit%iter
-!! set maximum number of iterations of calculation of trial-step    
+!! set maximum number of iterations of calculation of trial-step
     iter2 = iter1 / 100
-!! set initial step bound    
+!! set initial step bound
     rs = gen%fit%step
-!! precisions for jacobi calculation    
+!! precisions for jacobi calculation
     jac_eps = gen%fit%fitTol
-!! set the initial guess    
+!! set the initial guess
     if (gen%fit%RestartFit) then
       un = GetUnit ()
       open (un, file=trim(cRestart), status="old", action="read", iostat=errno)
@@ -839,96 +839,96 @@ contains
     else
       call SetInitialParams (best, atomic, tb)
     end if
-!! set lower and upper bounds    
+!! set lower and upper bounds
     call ReadBounds (gen, io)
     lw (:) = bounds (:, 1)
     up (:) = bounds (:, 2)
-!! set initial values    
+!! set initial values
     do i = 1, m
       fvec (i) = 0.0_k_pr
       do j = 1, n
         fjac (i, j) = 0.0_k_pr
       end do
     end do
-!! initialize solver (allocate memory, set initial values)    
-!! handle in/out: tr solver handle    
-!! n in: number of function variables    
-!! m in: dimension of function value    
-!! x in: solution vector. contains values x for f(x)    
-!! bounds(:,1) in: lower bound    
-!! bounds(:,2) in: upper bound    
-!! eps in: precisions for stop-criteria    
-!! iter1 in: maximum number of iterations    
-!! iter2 in: maximum number of iterations of calculation of trial-step    
-!! rs in: initial step bound    
+!! initialize solver (allocate memory, set initial values)
+!! handle in/out: tr solver handle
+!! n in: number of function variables
+!! m in: dimension of function value
+!! x in: solution vector. contains values x for f(x)
+!! bounds(:,1) in: lower bound
+!! bounds(:,2) in: upper bound
+!! eps in: precisions for stop-criteria
+!! iter1 in: maximum number of iterations
+!! iter2 in: maximum number of iterations of calculation of trial-step
+!! rs in: initial step bound
     if (dtrnlspbc_init(handle, n, m, best, lw, up, eps, iter1, iter2, rs) /= tr_success) then
-!! if function does not complete successfully then print error message    
+!! if function does not complete successfully then print error message
       call error ("Initialization of optimizer failed!!", myname, .true., io)
     end if
-!! set initial rci cycle variables    
+!! set initial rci cycle variables
     rci_request = 0
     successful = 0
-!! rci cycle    
+!! rci cycle
     do while (successful ==  0)
-!! call tr solver    
-!! handle in/out: tr solver handle    
-!! fvec in: vector    
-!! fjac in: jacobi matrix    
-!! rci_request in/out: return number that denotes next step for performing    
+!! call tr solver
+!! handle in/out: tr solver handle
+!! fvec in: vector
+!! fjac in: jacobi matrix
+!! rci_request in/out: return number that denotes next step for performing
       if (dtrnlspbc_solve(handle, fvec, fjac, rci_request) /= tr_success) then
-!! if function does not complete successfully then print error message      
+!! if function does not complete successfully then print error message
         call error ("Optimizer failed!!", myname, .true., io)
       end if
-!! rci_request in/out: return number that denotes next step for performing      
-!! according to rci_request value we do next step      
+!! rci_request in/out: return number that denotes next step for performing
+!! according to rci_request value we do next step
       select case (rci_request)
       case (-1,-2,-3,-4,-5,-6)
-!! stop rci cycle          
+!! stop rci cycle
         successful = 1
       case (1)
-!! recalculate function value        
-!! m in: dimension of function value        
-!! n in: number of function variables        
-!! best in: solution vector        
-!! fvec out: function value f(x)        
+!! recalculate function value
+!! m in: dimension of function value
+!! n in: number of function variables
+!! best in: solution vector
+!! fvec out: function value f(x)
         call ObjectiveFunctions (m, n, best, fvec, gen, atomic, tb, sol, io)
       case (2)
-!! compute jacobi matrix        
-!! ObjectiveFunctions in: external objective function        
-!! n in: number of function variables        
-!! m in: dimension of function value        
-!! fjac out: jacobi matrix        
-!! x in: solution vector        
-!! jac_eps in: jacobi calculation precision        
+!! compute jacobi matrix
+!! ObjectiveFunctions in: external objective function
+!! n in: number of function variables
+!! m in: dimension of function value
+!! fjac out: jacobi matrix
+!! x in: solution vector
+!! jac_eps in: jacobi calculation precision
 !
         if (ComputeJacobi(n, m, fjac, best, jac_eps, f1, f2, gen, atomic, tb, sol, io) /= tr_success) then
-!! if function does not complete successfully then print error message        
+!! if function does not complete successfully then print error message
           call error ("Jacobian calculation failed!!", myname, .true., io)
         end if
       end select
     end do
-!! get solution statuses    
-!! handle in: tr solver handle    
-!! iter out: number of iterations    
-!! st_cr out: number of stop criterion    
-!! r1 out: initial residuals    
-!! r2 out: final residuals    
+!! get solution statuses
+!! handle in: tr solver handle
+!! iter out: number of iterations
+!! st_cr out: number of stop criterion
+!! r1 out: initial residuals
+!! r2 out: final residuals
     if (dtrnlspbc_get(handle, iter, st_cr, r1, r2) /= tr_success) then
-!! if function does not complete successfully then print error message    
+!! if function does not complete successfully then print error message
       call error ("getting status of optimizer failed!!", myname, .true., io)
     end if
 !
-!! free handle memory    
+!! free handle memory
     if (dtrnlspbc_delete(handle) /= tr_success) then
-!! if function does not complete successfully then print error message      
+!! if function does not complete successfully then print error message
       call error ("Cleaning the memory of optimizer failed!!", myname, .true., io)
     end if
 !
-!! if final residual is less than required precision then print pass    
+!! if final residual is less than required precision then print pass
     if (r2 < gen%fit%fitTol) then
       write (io%uout, '(a,i0,a,f16.8)') "Optimizer was successfull in ", iter, " iterations with a final residual of", r2
       write (io%uout, '(a,i0)') "Termination criteria ", st_cr
-!! else print failed      
+!! else print failed
     else
       write (io%uout, '(a,f16.8)') "Optimizer failed with a final residual of ", r2
       write (io%uout, '(a,i0)') "Termination criteria ", st_cr
@@ -966,7 +966,7 @@ contains
         f (i-1) = fitData%exper(i) - fitData%exper(i+1) - (sol%eigenvals(i)-sol%eigenvals(i+1))
       end do
       f (ilevels-1) = fitData%exper(1+ilevels/2) - fitData%exper(1) - (sol%eigenvals(1+ilevels/2)-sol%eigenvals(1))
-! add charges in the objective functions  
+! add charges in the objective functions
       fitData%fit (ilevels+1:ilevels+atomic%atoms%natoms) = atomic%atoms%chrg(1:atomic%atoms%natoms)
       do i = 1, atomic%atoms%natoms
         f (i+ilevels-1) = fitData%exper(i+ilevels) - atomic%atoms%chrg(i)
@@ -992,30 +992,30 @@ contains
     ComputeJacobi = tr_success - 1
 !
     if (djacobi_init(handle, n, m, x, fjac, jac_eps) /= tr_success) then
-! if function does not complete successfully then print error message    
+! if function does not complete successfully then print error message
       call error ("allocating memory for the jacobian failed!!", myname, .true., io)
     end if
 !
-!! rci cycle    
+!! rci cycle
     do while (successful ==  0)
-!! call solver    
+!! call solver
       if (djacobi_solve(handle, f1, f2, rci_request) /= tr_success) then
-!! if function does not complete successfully then print error message      
+!! if function does not complete successfully then print error message
         call error ("computation of jacobian failed!!", myname, .true., io)
       end if
       if (rci_request == 1) then
-!! calculate function value f1 = f(x+eps)      
+!! calculate function value f1 = f(x+eps)
         call ObjectiveFunctions (m, n, x, f1, gen, atomic, tb, sol, io)
       else if (rci_request == 2) then
-!! calculate function value f1 = f(x-eps)        
+!! calculate function value f1 = f(x-eps)
         call ObjectiveFunctions (m, n, x, f2, gen, atomic, tb, sol, io)
       else if (rci_request == 0) then
-!! exit rci cycle        
+!! exit rci cycle
         successful = 1
       end if
     end do
     if (djacobi_delete(handle) /= tr_success) then
-!! if function does not complete successfully then print error message    
+!! if function does not complete successfully then print error message
       call error ("Cleaning the memory of jacobian failed!!", myname, .true., io)
     end if
     ComputeJacobi = tr_success

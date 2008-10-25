@@ -85,8 +85,8 @@ contains
         inhi = imaxloc (y(:))
         y (ihi) = ytmp
         rtol = 2.0_k_pr * Abs (y(ihi)-y(ilo)) / (Abs(y(ihi))+Abs(y(ilo))+tiny)
-!  rtol=abs(y(ihi)-y(ilo))        
-!compute the fractional range from highest to lowest and return if satisfactory.  
+!  rtol=abs(y(ihi)-y(ilo))
+!compute the fractional range from highest to lowest and return if satisfactory.
         if (rtol < ftol) then !if returning, put best point and value in slot 1
           call swap (y(1), y(ilo))
           call swap (p(1, :), p(ilo, :))
@@ -96,28 +96,28 @@ contains
           call error ("itmax achieved in amoeba", myname, .false., io)
           return
         end if
-! begin a new iteration. first extrapolate by a factor ?1 through the face of the simplex  
-! across from the high point, i.e., reflect the simplex from the high point.  
+! begin a new iteration. first extrapolate by a factor ?1 through the face of the simplex
+! across from the high point, i.e., reflect the simplex from the high point.
         ytry = amotry (-1.0_k_pr)
         iter = iter + 1
         if (ytry <= y(ilo)) then
-!gives a result better than the best point, so  
-!try an additional extrapolation by a factor of 2.  
+!gives a result better than the best point, so
+!try an additional extrapolation by a factor of 2.
           ytry = amotry (2.0_k_pr)
           iter = iter + 1
         else if (ytry >= y(inhi)) then
-!the reflected point is worse than the second  
-!highest, so look for an intermediate lower point, i.e., do a one-dimensional contraction.  
+!the reflected point is worse than the second
+!highest, so look for an intermediate lower point, i.e., do a one-dimensional contraction.
           ysave = y (ihi)
           ytry = amotry (0.5_k_pr)
           iter = iter + 1
           if (ytry >= ysave) then
-!can't seem to get rid of that high point. better contract around the lowest (best) point.  
+!can't seem to get rid of that high point. better contract around the lowest (best) point.
             p (:, :) = 0.5_k_pr * (p(:, :)+spread(p(ilo, :), 1, size(p, 1)))
             do i = 1, ndim + 1
               if (i /= ilo) then
                 y (i) = func (p(i, :), gen, atomic, tb, sol, io)
-!!! check the bounds                
+!!! check the bounds
                 do iii = 1, ndim
                   if ((p(i, iii) < bounds(iii, 1)) .or. (p(i, iii) > bounds(iii, 2))) then
                     y (i) = k_infinity
@@ -149,7 +149,7 @@ contains
       fac2 = fac1 - fac
       ptry (:) = psum (:) * fac1 - p (ihi, :) * fac2
       ytry = func (ptry, gen, atomic, tb, sol, io)!evaluate the function at the trial point.
-!!! check the bounds  
+!!! check the bounds
       do ii = 1, ndim
         if ((ptry(ii) < bounds(ii, 1)) .or. (ptry(ii) > bounds(ii, 2))) then
           ytry = k_infinity

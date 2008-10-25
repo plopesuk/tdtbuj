@@ -46,9 +46,9 @@ module m_Types
     real (k_pr) :: Int !< interk_mediate time
   end type timeType
   type :: skType
-    real(k_pr), allocatable :: wignerD(:,:,:),S(:,:,:),T(:,:,:)
+    real (k_pr), allocatable :: wignerD (:, :, :), S (:, :, :), T (:, :, :)
     integer :: ls
-    logical :: precompute=.true.
+    logical :: precompute = .true.
   end type skType
 !
 !> \brief fitting data type
@@ -315,6 +315,6 @@ module m_Types
     real (k_pr), allocatable :: CurrentMatrix2 (:, :)!< bond currents matrix by atoms, the diagonal term contains the total bond current, only specified atoms entries will be computed and populated
     type (matrixType) :: rhodot, deltaRho, rhonew, rhoold, rho0 !< used for Ehrenfest dynamic
     type (qvs), allocatable :: delq (:), vs (:)
-    type(skType) :: sk !< Slater-Koster precomputed quantities
+    type (skType) :: sk !< Slater-Koster precomputed quantities
   end type solutionType
 end module m_Types

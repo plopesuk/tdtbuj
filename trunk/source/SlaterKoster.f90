@@ -57,14 +57,14 @@ contains
     l2 = orbb%l
     mp = 0
     if (sol%sk%precompute) then
-      sol%sk%ls=ls
-      call PrecomputeSk(orba%m,orbb%m,m1,m2,l1,l2,sg1, cg1, sg2, cg2,n,sol)
-    endif
+      sol%sk%ls = ls
+      call PrecomputeSk (orba%m, orbb%m, m1, m2, l1, l2, sg1, cg1, sg2, cg2, n, sol)
+    end if
 !
     am1 = am (cg1, sg1, orba%m)
     am2 = am (cg2, sg2, orbb%m)
-    d1 = sol%sk%wignerD (m1, 0, l1)
-    d2 = sol%sk%wignerD (m2, 0, l2)
+    d1 = sol%sk%wignerD(m1, 0, l1)
+    d2 = sol%sk%wignerD(m2, 0, l2)
     h1 = rad (r, ss, sb, gen, tb, l1, l2, mp)
 !
     auxs = 2.0_k_pr * am1 * am2 * d1 * d2 * h1
@@ -79,63 +79,63 @@ contains
 !
   end function hmn
 !
-  function HmnP (r, l, m, n, orba, orbb, ls,m1,m2,cg1,cg2,sg1,sg2, gen, tb, sol)
+  function HmnP (r, l, m, n, orba, orbb, ls, m1, m2, cg1, cg2, sg1, sg2, gen, tb, sol)
 !--subroutine name--------------------------------!
     character (len=*), parameter :: myname = 'sppna_HmnP'
 !--subroutine parameters -------------------------!
-    real (k_pr) :: HmnP(1:3)
+    real (k_pr) :: HmnP (1:3)
     real (k_pr), intent (inout) :: r, l, m, n
     type (orbitalType), intent (in) :: orba, orbb
     type (modelType), intent (inout) :: tb
     type (solutionType), intent (inout) :: sol
     type (generalType), intent (inout) :: gen
 !--internal variables ----------------------------!
-    real (k_pr) :: cg1, cg2, sg1, sg2, auxs,auxs2,auxs3
+    real (k_pr) :: cg1, cg2, sg1, sg2, auxs, auxs2, auxs3
     integer :: mp, ls, ss, sb, m1, m2, l1, l2
     real (k_pr) :: am1, am2, d1, d2, s1, s2, t1, t2, h1
-    real (k_pr) :: am1a, am2a, d1a, d2a, s1a(1:2), s2a(1:2), t1a(1:2), t2a(1:2), h1a
+    real (k_pr) :: am1a, am2a, d1a, d2a, s1a (1:2), s2a (1:2), t1a (1:2), t2a (1:2), h1a
 !-------------------------------------------------!
-
+!
     ss = orba%sp
     sb = orbb%sp
     l1 = orba%l
     l2 = orbb%l
     mp = 0
 !
-
-      am1 = am (cg1, sg1, orba%m)
-      am2 = am (cg2, sg2, orbb%m)
-      am1a = AmP (cg1, sg1, orba%m)
-      am2a = AmP (cg2, sg2, orbb%m)
-      d1 = sol%sk%wignerD (m1, 0, l1)
-      d2 = sol%sk%wignerD (m2, 0, l2)
-      d1a = RotmmplP (m1, 0, l1, n, sol)
-      d2a = RotmmplP (m2, 0, l2, n, sol)
-
-      h1 = rad (r, ss, sb, gen, tb, l1, l2, mp)
-      h1a = RadP (r, ss, sb, gen, tb, l1, l2, mp)
-
-      auxs3 = 2.0_k_pr * am1 * am2 * d1 * d2 * h1a
-      auxs2 = 2.0_k_pr * am1 * am2 * d1a * d2 * h1 + 2.0_k_pr * am1 * am2 * d1 * d2a * h1
-      auxs = 2.0_k_pr * am1a * am2 * d1 * d2 * h1 + 2.0_k_pr * am1 * am2a * d1 * d2 * h1
-      do mp = 1, ls
-        s1 = smmpl (orba%m, mp, l1, n, cg1, sg1, sol)
-        s2 = smmpl (orbb%m, mp, l2, n, cg2, sg2, sol)
-        t1 = tmmpl (orba%m, mp, l1, n, cg1, sg1, sol)
-        t2 = tmmpl (orbb%m, mp, l2, n, cg2, sg2, sol)
-        s1a = SmmplP (orba%m, mp, l1, n, cg1, sg1, sol)
-        s2a = SmmplP (orbb%m, mp, l2, n, cg2, sg2, sol)
-        t1a = TmmplP (orba%m, mp, l1, n, cg1, sg1, sol)
-        t2a = TmmplP (orbb%m, mp, l2, n, cg2, sg2, sol)
-        auxs = auxs + (s1a(1)*s2+s1*s2a(1)+t1a(1)*t2+t1*t2a(1)) * rad (r, ss, sb, gen, tb, l1, l2, mp)
-        auxs2 = auxs2 + (s1a(2)*s2+s1*s2a(2)+t1a(2)*t2+t1*t2a(2)) * rad (r, ss, sb, gen, tb, l1, l2, mp)
-        auxs3 = auxs3 + (s1*s2+t1*t2) * RadP (r, ss, sb, gen, tb, l1, l2, mp)
-      end do
-      HmnP(1) = auxs
-      HmnP(2) = auxs2
-      HmnP(3) = auxs3
 !
-
+    am1 = am (cg1, sg1, orba%m)
+    am2 = am (cg2, sg2, orbb%m)
+    am1a = AmP (cg1, sg1, orba%m)
+    am2a = AmP (cg2, sg2, orbb%m)
+    d1 = sol%sk%wignerD(m1, 0, l1)
+    d2 = sol%sk%wignerD(m2, 0, l2)
+    d1a = RotmmplP (m1, 0, l1, n, sol)
+    d2a = RotmmplP (m2, 0, l2, n, sol)
+!
+    h1 = rad (r, ss, sb, gen, tb, l1, l2, mp)
+    h1a = RadP (r, ss, sb, gen, tb, l1, l2, mp)
+!
+    auxs3 = 2.0_k_pr * am1 * am2 * d1 * d2 * h1a
+    auxs2 = 2.0_k_pr * am1 * am2 * d1a * d2 * h1 + 2.0_k_pr * am1 * am2 * d1 * d2a * h1
+    auxs = 2.0_k_pr * am1a * am2 * d1 * d2 * h1 + 2.0_k_pr * am1 * am2a * d1 * d2 * h1
+    do mp = 1, ls
+      s1 = smmpl (orba%m, mp, l1, n, cg1, sg1, sol)
+      s2 = smmpl (orbb%m, mp, l2, n, cg2, sg2, sol)
+      t1 = tmmpl (orba%m, mp, l1, n, cg1, sg1, sol)
+      t2 = tmmpl (orbb%m, mp, l2, n, cg2, sg2, sol)
+      s1a = SmmplP (orba%m, mp, l1, n, cg1, sg1, sol)
+      s2a = SmmplP (orbb%m, mp, l2, n, cg2, sg2, sol)
+      t1a = TmmplP (orba%m, mp, l1, n, cg1, sg1, sol)
+      t2a = TmmplP (orbb%m, mp, l2, n, cg2, sg2, sol)
+      auxs = auxs + (s1a(1)*s2+s1*s2a(1)+t1a(1)*t2+t1*t2a(1)) * rad (r, ss, sb, gen, tb, l1, l2, mp)
+      auxs2 = auxs2 + (s1a(2)*s2+s1*s2a(2)+t1a(2)*t2+t1*t2a(2)) * rad (r, ss, sb, gen, tb, l1, l2, mp)
+      auxs3 = auxs3 + (s1*s2+t1*t2) * RadP (r, ss, sb, gen, tb, l1, l2, mp)
+    end do
+    HmnP (1) = auxs
+    HmnP (2) = auxs2
+    HmnP (3) = auxs3
+!
+!
   end function HmnP
 !
   function vsg (mp, l, m, n, sol)
@@ -236,7 +236,7 @@ contains
     real (k_pr) :: AmP
 !
 !
-     AmP = Abs (m) * bm (cg, sg, m)
+    AmP = Abs (m) * bm (cg, sg, m)
 !
   end function AmP
 !
@@ -281,7 +281,7 @@ contains
     real (k_pr), intent (in) :: cg, sg
     real (k_pr) :: BmP
 !
-      BmP = - Abs (m) * am (cg, sg, m)
+    BmP = - Abs (m) * am (cg, sg, m)
   end function BmP
 !
   function rotmmpl (m, mp, l, n, sol)
@@ -333,13 +333,13 @@ contains
 !
     real (k_pr) :: t1, t2
 !       integer ::t
-
-      t1 = 0.0_k_pr
-      t2 = 0.0_k_pr
-      if (Abs(mp-1) <= l) t1 = Sqrt (real((l+mp)*(l-mp+1), k_pr)) * sol%sk%wignerD (m, mp-1, l)
-      if (Abs(mp+1) <= l) t2 = - Sqrt (real((l-mp)*(l+mp+1), k_pr)) * sol%sk%wignerD (m, mp+1, l)
-      RotmmplP = 0.5_k_pr * (t1+t2)
-
+!
+    t1 = 0.0_k_pr
+    t2 = 0.0_k_pr
+    if (Abs(mp-1) <= l) t1 = Sqrt (real((l+mp)*(l-mp+1), k_pr)) * sol%sk%wignerD(m, mp-1, l)
+    if (Abs(mp+1) <= l) t2 = - Sqrt (real((l-mp)*(l+mp+1), k_pr)) * sol%sk%wignerD(m, mp+1, l)
+    RotmmplP = 0.5_k_pr * (t1+t2)
+!
   end function RotmmplP
 !
 !
@@ -386,20 +386,20 @@ contains
     integer, intent (in) :: m, mp, l
     real (k_pr), intent (in) :: n, cg, sg
     type (solutionType), intent (inout) :: sol
-    real (k_pr) :: TmmplP(1:2)
+    real (k_pr) :: TmmplP (1:2)
 !
     integer :: absm
 !
 !
     absm = Abs (m)
-
-      if (m == 0) then
-        TmmplP(1) = 0.0_k_pr
-        TmmplP(2) = 0.0_k_pr
-      else
-        TmmplP(1) = - absm * am (cg, sg, m) * (((-1)**mp)*sol%sk%wignerD(absm, mp, l)-sol%sk%wignerD(absm,-mp, l))
-        TmmplP(2) = bm (cg, sg, m) * (((-1)**mp)*RotmmplP(absm, mp, l, n, sol)-RotmmplP(absm,-mp, l, n, sol))
-      end if
+!
+    if (m == 0) then
+      TmmplP (1) = 0.0_k_pr
+      TmmplP (2) = 0.0_k_pr
+    else
+      TmmplP (1) = - absm * am (cg, sg, m) * (((-1)**mp)*sol%sk%wignerD(absm, mp, l)-sol%sk%wignerD(absm,-mp, l))
+      TmmplP (2) = bm (cg, sg, m) * (((-1)**mp)*RotmmplP(absm, mp, l, n, sol)-RotmmplP(absm,-mp, l, n, sol))
+    end if
 !
   end function TmmplP
 !
@@ -445,15 +445,15 @@ contains
     integer, intent (in) :: m, mp, l
     real (k_pr), intent (in) :: n, sg, cg
     type (solutionType), intent (inout) :: sol
-    real (k_pr) :: SmmplP(1:2)
+    real (k_pr) :: SmmplP (1:2)
     integer :: absm
 !
     absm = Abs (m)
-
-
-    SmmplP(1) = absm * bm (cg, sg, m) * (((-1)**mp)*sol%sk%wignerD(absm, mp, l)+sol%sk%wignerD(absm,-mp, l))
-    SmmplP(2) = am (cg, sg, m) * (((-1)**mp)*RotmmplP(absm, mp, l, n, sol)+RotmmplP(absm,-mp, l, n, sol))
-
+!
+!
+    SmmplP (1) = absm * bm (cg, sg, m) * (((-1)**mp)*sol%sk%wignerD(absm, mp, l)+sol%sk%wignerD(absm,-mp, l))
+    SmmplP (2) = am (cg, sg, m) * (((-1)**mp)*RotmmplP(absm, mp, l, n, sol)+RotmmplP(absm,-mp, l, n, sol))
+!
   end function SmmplP
 !
 !==hoppings==========================================================
@@ -464,51 +464,51 @@ contains
     real (k_pr) :: r, l, m, n
     type (orbitalType) :: orba, orbb
     integer :: alpha
-    real (k_pr) :: dj(1:3)
+    real (k_pr) :: dj (1:3)
     type (modelType), intent (inout) :: tb
     type (generalType), intent (inout) :: gen
     type (solutionType), intent (inout) :: sol
-    real (k_pr) :: DhmnXYZ(1:3)
-    real (k_pr) :: cg1,cg2,sg1,sg2
-    integer :: one, two, three,j,ls,m1,m2
+    real (k_pr) :: DhmnXYZ (1:3)
+    real (k_pr) :: cg1, cg2, sg1, sg2
+    integer :: one, two, three, j, ls, m1, m2
     one = 1
     two = 2
     three = 3
     ls = Min (orba%l, orbb%l)
     m1 = Abs (orba%m)
     m2 = Abs (orbb%m)
-
-
+!
+!
     if (Abs(Abs(n)-1.0_k_pr) > epsilon(n)) then
       cg1 = vcg (m1, l, m, n, sol)
       cg2 = vcg (m2, l, m, n, sol)
       sg1 = vsg (m1, l, m, n, sol)
       sg2 = vsg (m2, l, m, n, sol)
-      sol%sk%ls=ls
-      call PrecomputeSk(orba%m,orbb%m,m1,m2,orba%l,orbb%l,sg1, cg1, sg2, cg2,n,sol)
-      dj = HmnP (r, l, m, n, orba, orbb,ls,m1,m2,cg1,cg2,sg1,sg2, gen, tb, sol)
+      sol%sk%ls = ls
+      call PrecomputeSk (orba%m, orbb%m, m1, m2, orba%l, orbb%l, sg1, cg1, sg2, cg2, n, sol)
+      dj = HmnP (r, l, m, n, orba, orbb, ls, m1, m2, cg1, cg2, sg1, sg2, gen, tb, sol)
 !
-      do j=1,3
-        DhmnXYZ(j) = dj(1) * jx (j, r, l, m, n) - dj(2) * jy (j, r, l, m, n) + dj(3) * jz (j, l, m, n)
-      enddo
+      do j = 1, 3
+        DhmnXYZ (j) = dj (1) * jx (j, r, l, m, n) - dj (2) * jy (j, r, l, m, n) + dj (3) * jz (j, l, m, n)
+      end do
     else
 ! the north-south pole case
       cg1 = 0.0_k_pr
       cg2 = 0.0_k_pr
       sg1 = Sin (m1*k_pi/2.0_k_pr)
       sg2 = Sin (m2*k_pi/2.0_k_pr)
-      sol%sk%ls=ls
-      call PrecomputeSk(orba%m,orbb%m,m1,m2,orba%l,orbb%l,sg1, cg1, sg2, cg2,n,sol)
-      dj=HmnP (r, l, m, n, orba, orbb,ls,m1,m2,cg1,cg2,sg1,sg2, gen, tb, sol)
-      DhmnXYZ(2) = sign (1.0_k_pr, n) * dj(2) / r
+      sol%sk%ls = ls
+      call PrecomputeSk (orba%m, orbb%m, m1, m2, orba%l, orbb%l, sg1, cg1, sg2, cg2, n, sol)
+      dj = HmnP (r, l, m, n, orba, orbb, ls, m1, m2, cg1, cg2, sg1, sg2, gen, tb, sol)
+      DhmnXYZ (2) = sign (1.0_k_pr, n) * dj (2) / r
       cg1 = 1.0_k_pr
       cg2 = 1.0_k_pr
       sg1 = 0.0_k_pr
       sg2 = 0.0_k_pr
-      call PrecomputeSk(orba%m,orbb%m,m1,m2,orba%l,orbb%l,sg1, cg1, sg2, cg2,n,sol)
-      dj=HmnP (r, l, m, n, orba, orbb, ls,m1,m2,cg1,cg2,sg1,sg2, gen, tb, sol)
-      DhmnXYZ(1) = sign (1.0_k_pr, n) *  dj(2)/ r
-      DhmnXYZ(3) = sign (1.0_k_pr, n) * dj(3)
+      call PrecomputeSk (orba%m, orbb%m, m1, m2, orba%l, orbb%l, sg1, cg1, sg2, cg2, n, sol)
+      dj = HmnP (r, l, m, n, orba, orbb, ls, m1, m2, cg1, cg2, sg1, sg2, gen, tb, sol)
+      DhmnXYZ (1) = sign (1.0_k_pr, n) * dj (2) / r
+      DhmnXYZ (3) = sign (1.0_k_pr, n) * dj (3)
 !
     end if
   end function DhmnXYZ
@@ -565,24 +565,24 @@ contains
     end select
 !
   end function jz
-
-
-  subroutine PrecomputeSk(m1,m2,mm1,mm2,l1,l2,sg1,cg1,sg2,cg2,n,sol)
-    character(len=*), parameter :: myname="PrecomputeSk"
-    real(k_pr), intent(inout) :: n,sg1,cg1,sg2,cg2
-    type(solutionType), intent(inout) :: sol
-    integer :: m1,m2,l1,l2,mm1,mm2
+!
+!
+  subroutine PrecomputeSk (m1, m2, mm1, mm2, l1, l2, sg1, cg1, sg2, cg2, n, sol)
+    character (len=*), parameter :: myname = "PrecomputeSk"
+    real (k_pr), intent (inout) :: n, sg1, cg1, sg2, cg2
+    type (solutionType), intent (inout) :: sol
+    integer :: m1, m2, l1, l2, mm1, mm2
 !
     integer :: j
 !
-    do j=-sol%sk%ls,sol%sk%ls
-      sol%sk%wignerD(mm1,j,l1)=rotmmpl(mm1,j,l1,n,sol)
-      sol%sk%wignerD(mm2,j,l2)=rotmmpl(mm2,j,l2,n,sol)
-    enddo
+    do j = - sol%sk%ls, sol%sk%ls
+      sol%sk%wignerD (mm1, j, l1) = rotmmpl (mm1, j, l1, n, sol)
+      sol%sk%wignerD (mm2, j, l2) = rotmmpl (mm2, j, l2, n, sol)
+    end do
 !
   end subroutine PrecomputeSk
-
-
+!
+!
 !
 !==end hoppings======================================================
 !

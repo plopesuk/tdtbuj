@@ -99,12 +99,12 @@ contains
 !
 !
 !
-!> \remarks code for info at exit  
-!> info = -2 error in lineSearch  
-!>        -1 unexpected error  
-!>         0 maximum number of iterations has been reached  
-!>         1 xtol criteria has been satisfied  
-!>         2 gtol criteria has been satisfied  
+!> \remarks code for info at exit
+!> info = -2 error in lineSearch
+!>        -1 unexpected error
+!>         0 maximum number of iterations has been reached
+!>         1 xtol criteria has been satisfied
+!>         2 gtol criteria has been satisfied
 !
   subroutine bfgs (n, x, itermax, stpmx, eps, xtol, gtol, info, func, gen, atomic, tb, sol, io)
     character (len=*), parameter :: myname = "BFGS"
@@ -133,7 +133,7 @@ contains
       end function func
     end interface
 !
-!! local variables now   
+!! local variables now
     real (k_pr) :: den, fac, fad, fae, fp, stpmax, sum, sumdg, sumxi, temp, test, fret, f
     real (k_pr), allocatable :: dg (:), g (:), hdg (:), xnew (:), xi (:), hessin (:, :)
     integer :: i, j, iters, res, infoLine
