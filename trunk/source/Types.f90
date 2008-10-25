@@ -45,6 +45,11 @@ module m_Types
     real (k_pr) :: end !< end time
     real (k_pr) :: Int !< interk_mediate time
   end type timeType
+  type :: skType
+    real(k_pr), allocatable :: wignerD(:,:,:),S(:,:,:),T(:,:,:)
+    integer :: ls
+    logical :: precompute=.true.
+  end type skType
 !
 !> \brief fitting data type
 !> \internal point to more explanations
@@ -102,7 +107,8 @@ module m_Types
     integer :: mpN
     real (k_pr) :: mpW
     integer :: smearMethod
-    real (k_pr) :: gamma
+    real (k_pr) :: gamma ! damping constant in the Ehrenfest Dynamics
+    integer :: tKillGamma ! no of steps after which we remove damping in Ehrenfest Dynamics
 ! ! create excitation
     logical :: lIsExcited
     integer :: holeState
@@ -129,11 +135,11 @@ module m_Types
     integer :: maxFEval
     integer :: HessianM
     integer :: geomAlg !< the geometry optimisation algorithm
-    integer :: wdensity !< what kind of density shloud be used for Eherenfest Damped
+    integer :: wdensity !< what kind of density shloud be used for Ehernfest Damped
     logical :: hasElectricField !< do we apply an external electric field?
     real (k_pr) :: E (1:3)!< the components of the electric field
     integer :: etd !< selects the type of function that gives time dependent
-!< part for the electric field                   
+!< part for the electric field
     real (k_pr) :: freq !< frequency of the electric field
     real (k_pr) :: phi0 !< initial phase of the electric field
     real (k_pr) :: t0 !< time t0 at which we apply the electric field
@@ -287,7 +293,9 @@ module m_Types
     type (matrixType) :: hdown !< spin down hamiltonian
     type (matrixType) :: hup !< spin up hamiltonian
     type (matrixType) :: eigenvecs !< eigenvectors of h
-    type (matrixType) :: forceOp !< force operator matrix
+    type (matrixType) :: forceOpX !< force_x operator matrix
+    type (matrixType) :: forceOpY !< force_y operator matrix
+    type (matrixType) :: forceOpZ !< force_z operator matrix
     real (k_pr), allocatable :: eigenvals (:)!< eigenvalues of h
     real (k_pr), allocatable :: n0 (:)!< n0 initial density matrix in vector representation
     real (k_pr), allocatable :: potential (:)!< electrostatic potential on each atom
@@ -307,5 +315,6 @@ module m_Types
     real (k_pr), allocatable :: CurrentMatrix2 (:, :)!< bond currents matrix by atoms, the diagonal term contains the total bond current, only specified atoms entries will be computed and populated
     type (matrixType) :: rhodot, deltaRho, rhonew, rhoold, rho0 !< used for Ehrenfest dynamic
     type (qvs), allocatable :: delq (:), vs (:)
+    type(skType) :: sk !< Slater-Koster precomputed quantities
   end type solutionType
 end module m_Types

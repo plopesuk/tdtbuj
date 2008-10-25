@@ -462,7 +462,7 @@ contains
     to = - 1 + from + 2 * l + 1
     q0down = sum (sol%density(from:to))
 !
-!spin up   
+!spin up
     from = m + atomic%basis%norbitals / 2 + j
     to = - 1 + from + 2 * l + 1
     q0up = sum (sol%density(from:to))
@@ -541,7 +541,7 @@ contains
     integer :: l1, l2, l3, l4, m1, m2, m3, m4, o1, o2, o3, o4, sp, shift, m, n
     real (k_pr) :: v_tmp, elecEn, aux
     real (k_pr) :: q0, q0up, q0down
-!-------------------------------------------------!  
+!-------------------------------------------------!
 !
     scfe = 0.0_k_pr
     elecEn = 0.0_k_pr

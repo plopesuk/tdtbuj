@@ -55,11 +55,15 @@ contains
 !
     call cpu_time (cr)
     if ( .not. sol%h%created) then
-      call CreateSparseMatrix (sol%h, atomic%basis%norbitals, .true.)
-      call CreateSparseMatrix (sol%forceOp, sol%h%dim, .true.)
+      call CreateMatrix (sol%h, atomic%basis%norbitals, .true.)
+      call CreateMatrix (sol%forceOpX, sol%h%dim, .true.)
+      call CreateMatrix (sol%forceOpY, sol%h%dim, .true.)
+      call CreateMatrix (sol%forceOpZ, sol%h%dim, .true.)
     end if
-    call ResetSparseMatrix (sol%h)
-    call ResetSparseMatrix (sol%forceOp)
+    call ZeroMatrix (sol%h,ioLoc)
+    call ZeroMatrix (sol%forceOpX,ioLoc)
+    call ZeroMatrix (sol%forceOpY,ioLoc)
+    call ZeroMatrix (sol%forceOpZ,ioLoc)
     n = atomic%basis%norbitals
     if ( .not. sol%eigenvecs%created) then
       allocate (sol%eigenvals(1:atomic%basis%norbitals))
@@ -70,13 +74,13 @@ contains
 !
     if (genLoc%scf) then
       if ( .not. sol%hin%created) then
-        call CreateSparseMatrix (sol%hin, atomic%basis%norbitals, .true.)
-        call CreateSparseMatrix (sol%h2, atomic%basis%norbitals, .true.)
+        call CreateMatrix (sol%hin, atomic%basis%norbitals, .true.)
+        call CreateMatrix (sol%h2, atomic%basis%norbitals, .true.)
         allocate (sol%potential(1:atomic%atoms%natoms))
         allocate (sol%field(1:atomic%atoms%natoms, 1:3))
       end if
-      call ResetSparseMatrix (sol%hin)
-      call ResetSparseMatrix (sol%h2)
+      call ZeroMatrix (sol%hin,ioLoc)
+      call ZeroMatrix (sol%h2,ioLoc)
       sol%potential (1:atomic%atoms%natoms) = 0.0_k_pr
       sol%field (1:atomic%atoms%natoms, 1:3) = 0.0_k_pr
     end if
@@ -234,6 +238,12 @@ contains
         end do
       end if
     end if
+
+    if (.not. allocated(sol%sk%wignerD)) then
+      l= maxval (atomic%speciesBasis(:, :)%l)
+      allocate(sol%sk%wignerD(0:l,-l:l,0:l))
+    endif
+      sol%sk%wignerD=0.0_k_pr
 !
   end subroutine SetSolutionSpace
 !
@@ -279,7 +289,7 @@ contains
 !               trim(ccnlm(i,j,k,k1,k2)),tbMod%hopping(i,j)%a(k,k1,k2)
               f = tbMod%hopping(i, j)%a(k, k1, k2) * RadNoTail (tbMod%hopping(i, j)%r1, atomic%species%id(i), atomic%species%id(j), &
              & genLoc, tbMod)
-              fp = tbMod%hopping(i, j)%a(k, k1, k2) * RadPNoTail (3, tbMod%hopping(i, j)%r1, atomic%species%id(i), &
+              fp = tbMod%hopping(i, j)%a(k, k1, k2) * RadPNoTail (tbMod%hopping(i, j)%r1, atomic%species%id(i), &
              & atomic%species%id(j), genLoc, tbMod)
               fpp = tbMod%hopping(i, j)%a(k, k1, k2) * RadPpNoTail (3, 3, tbMod%hopping(i, j)%r1, atomic%species%id(i), &
              & atomic%species%id(j), genLoc, tbMod)
@@ -495,14 +505,14 @@ contains
   end function RadNoTail
 !
 !
-  function RadP (alpha, r, sp1, sp2, gen, tb, l1, l2, m)
+  function RadP (r, sp1, sp2, gen, tb, l1, l2, m)
 !Gives you the radial dependence for elemental overlaps
 ! for specie sp1, sp2
 !--subroutine name--------------------------------!
     character (len=*), parameter :: myname = 'RadP'
 !--subroutine parameters -------------------------!
     real (k_pr), intent (inout) :: r
-    integer, intent (inout) :: sp1, sp2, alpha
+    integer :: sp1, sp2!, alpha
     integer, intent (in) :: l1, l2, m
     type (modelType), intent (inout) :: tb
     type (generalType), intent (inout) :: gen
@@ -511,13 +521,9 @@ contains
 !
 !
     if (r <= tb%hopping(sp1, sp2)%r1) then
-      RadP = tb%hopping(sp1, sp2)%a(l1, l2, m) * RadPNoTail (alpha, r, sp1, sp2, gen, tb)
+      RadP = tb%hopping(sp1, sp2)%a(l1, l2, m) * RadPNoTail (r, sp1, sp2, gen, tb)
     else if (r <= tb%hopping(sp1, sp2)%rcut) then
-      if (alpha == 3) then
-        RadP = TailFunctionP (r, tb%hopping(sp1, sp2)%hmnTail(l1, l2, m))
-      else
-        RadP = 0.0_k_pr
-      end if
+      RadP = TailFunctionP (r, tb%hopping(sp1, sp2)%hmnTail(l1, l2, m))
     else
       RadP = 0.0_k_pr
     end if
@@ -526,7 +532,7 @@ contains
   end function RadP
 !
 !
-  function RadPNoTail (alpha, r, sp1, sp2, gen, tb)
+  function RadPNoTail (r, sp1, sp2, gen, tb)
 !Gives you the radial dependence for elemental overlaps
 ! for specie sp1, sp2
 !--subroutine name--------------------------------!
@@ -534,7 +540,7 @@ contains
 !--subroutine parameters -------------------------!
     real (k_pr), intent (inout) :: r
     integer, intent (inout) :: sp1, sp2
-    integer, intent (in) :: alpha
+    !integer, intent (in) :: alpha
     type (modelType), intent (inout) :: tb
     type (generalType), intent (inout) :: gen
     real (k_pr) :: RadPNoTail
@@ -547,20 +553,10 @@ contains
       n = tb%hopping(sp1, sp2)%n
       nc = tb%hopping(sp1, sp2)%nc
       rc = tb%hopping(sp1, sp2)%rc
-      select case (alpha)
-      case (3)
-        RadPNoTail = - RadNoTail (r, sp1, sp2, gen, tb) * (1.0_k_pr+nc*(r/rc)**nc) * (n/r)
-      case default
-        RadPNoTail = 0.0_k_pr
-      end select
+      RadPNoTail = - RadNoTail (r, sp1, sp2, gen, tb) * (1.0_k_pr+nc*(r/rc)**nc) * (n/r)
     case (k_bondHarrison)
-      select case (alpha)
-      case (3)
-        n = tb%hopping(sp1, sp2)%n
-        RadPNoTail = - n / r ** (n+1) * k_hbar ** 2 / k_me
-      case default
-        RadPNoTail = 0.0_k_pr
-      end select
+      n = tb%hopping(sp1, sp2)%n
+      RadPNoTail = - n / r ** (n+1) * k_hbar ** 2 / k_me
     end select
   end function RadPNoTail
 !

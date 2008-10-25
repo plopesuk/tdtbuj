@@ -44,7 +44,7 @@ contains
     real (kind=k_pr) :: rij, hij, l, m, n
 !-------------------------------------------------!
 !
-    call ResetSparseMatrix (sol%h)
+    call ZeroMatrix (sol%h,io)
     if ( .not. gen%spin) then
 !!!!!   !$OMP PARALLEL DO DEFAULT(shared) PRIVATE(i,j,k,o,hij,rij,l,m,n)  SCHEDULE(static)
       do i = 1, atomic%atoms%natoms - 1
@@ -321,34 +321,39 @@ contains
 !> \param atomic type(atomicType) contains all info about the atoms and basis set and some parameters
 !> \param tb type(modelType) contains information about the tight binding model parameters
 !> \param sol type(solutionType) contains information about the solution space
-  subroutine ForceOperator (alpha, j, atomic, gen, tb, sol)
+!> \param io type(ioType) contains all the info about I/O files
+  subroutine ForceOperator (j, atomic, gen, tb, sol,io)
 !--subroutine name--------------------------------!
     character (len=*), parameter :: myname = 'ForceOperator'
 !--subroutine parameters -------------------------!
-    integer, intent (inout) :: alpha, j
+    integer, intent (inout) ::  j
     type (generalType), intent (inout) :: gen
     type (atomicxType), intent (inout) :: atomic
     type (modelType), intent (inout) :: tb
     type (solutionType), intent (inout) :: sol
+    type (ioType), intent (inout) :: io
 !--internal variables ----------------------------!
     real (k_pr) :: rij
     integer :: i, k, o
-    real (k_pr) :: fact, l, m, n !,fact2,ff2,
+    real (k_pr) :: fact(3), l, m, n !,fact2,ff2,
 !-------------------------------------------------!
 !
-    call ResetSparseMatrix (sol%forceOp)
+    call ZeroMatrix (sol%forceOpX,io)
+    call ZeroMatrix (sol%forceOpY,io)
+    call ZeroMatrix (sol%forceOpZ,io)
     do i = 1, atomic%atoms%natoms
       if (i /= j) then
         call AtomDistance (atomic%atoms, j, i, rij, l, m, n)
-!           print *,gen%CurrSimTime,atomic%atoms%x(i),atomic%atoms%y(i),atomic%atoms%z(i)
-!           print *,gen%CurrSimTime,atomic%atoms%x(j),atomic%atoms%y(j),atomic%atoms%z(j)
         do k = 1, atomic%species%norbs(atomic%atoms%sp(i))
           do o = 1, atomic%species%norbs(atomic%atoms%sp(j))
-            fact = - DhmnXYZ (alpha, rij, l, m, n, atomic%basis%orbitals(atomic%atoms%orbs(i, k)), &
+            fact = - DhmnXYZ (rij, l, m, n, atomic%basis%orbitals(atomic%atoms%orbs(i, k)), &
            & atomic%basis%orbitals(atomic%atoms%orbs(j, o)), gen, tb, sol)
-!                   print *,gen%CurrSimTime,alpha,l,m,n,fact
-            call SpmPut (sol%forceOp, atomic%atoms%orbs(i, k), atomic%atoms%orbs(j, o), cmplx(fact, 0.0_k_pr, k_pr))
-            call SpmPut (sol%forceOp, atomic%atoms%orbs(j, o), atomic%atoms%orbs(i, k), cmplx(fact, 0.0_k_pr, k_pr))
+            call SpmPut (sol%forceOpX, atomic%atoms%orbs(i, k), atomic%atoms%orbs(j, o), cmplx(fact(1), 0.0_k_pr, k_pr))
+            call SpmPut (sol%forceOpX, atomic%atoms%orbs(j, o), atomic%atoms%orbs(i, k), cmplx(fact(1), 0.0_k_pr, k_pr))
+            call SpmPut (sol%forceOpY, atomic%atoms%orbs(i, k), atomic%atoms%orbs(j, o), cmplx(fact(2), 0.0_k_pr, k_pr))
+            call SpmPut (sol%forceOpY, atomic%atoms%orbs(j, o), atomic%atoms%orbs(i, k), cmplx(fact(2), 0.0_k_pr, k_pr))
+            call SpmPut (sol%forceOpZ, atomic%atoms%orbs(i, k), atomic%atoms%orbs(j, o), cmplx(fact(3), 0.0_k_pr, k_pr))
+            call SpmPut (sol%forceOpZ, atomic%atoms%orbs(j, o), atomic%atoms%orbs(i, k), cmplx(fact(3), 0.0_k_pr, k_pr))
           end do
         end do
       end if
@@ -371,20 +376,14 @@ contains
     type (solutionType), intent (inout) :: sol
     type (ioType), intent (inout) :: io
     integer :: i, k
-    integer :: one, two, three
-    one = 1
-    two = 2
-    three = 3
 !
 !
     do k = 1, atomic%atoms%nmoving
       i = atomic%atoms%moving(k)
-      call ForceOperator (one, i, atomic, gen, tb, sol)
-      atomic%atoms%fx (i) = atomic%atoms%fx(i) + ProductTrace (sol%rho, sol%forceOp, io)
-      call ForceOperator (two, i, atomic, gen, tb, sol)
-      atomic%atoms%fy (i) = atomic%atoms%fy(i) + ProductTrace (sol%rho, sol%forceOp, io)
-      call ForceOperator (three, i, atomic, gen, tb, sol)
-      atomic%atoms%fz (i) = atomic%atoms%fz(i) + ProductTrace (sol%rho, sol%forceOp, io)
+      call ForceOperator (i, atomic, gen, tb, sol,io)
+      atomic%atoms%fx (i) = atomic%atoms%fx(i) + ProductTrace (sol%rho, sol%forceOpX, io)
+      atomic%atoms%fy (i) = atomic%atoms%fy(i) + ProductTrace (sol%rho, sol%forceOpY, io)
+      atomic%atoms%fz (i) = atomic%atoms%fz(i) + ProductTrace (sol%rho, sol%forceOpZ, io)
     end do
 !
   end subroutine ElectronicForces

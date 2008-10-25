@@ -306,7 +306,7 @@ contains
 !
     genLoc%scf = GetLogical (ioLoc, "SCF", .false.)
     write (ioLoc%uout, '(a,l1)') "Is SCF?(SCF): ", genLoc%scf
-!comm_gen SCFType & TB+UJ & TB+UJ & SCF method\\ 
+!comm_gen SCFType & TB+UJ & TB+UJ & SCF method\\
     saux = GetString (ioLoc, "SCFType", "TB+UJ")
     write (ioLoc%uout, '(a,a)') "SCF type(SCFType): ", trim (saux)
     if (cstr(trim(saux), 'TB+UJ')) then
@@ -440,6 +440,8 @@ contains
       write (ioLoc%uout, '(a,i0)') "Euler steps (EulerSteps): ", genLoc%eulerSteps
       genLoc%gamma = GetReal (ioLoc, "Gamma", 0.5_k_pr)
       write (ioLoc%uout, '(a,ES12.4)') "damping factor in Ehrenfest Equation(Gamma): ", genLoc%gamma
+      genLoc%tKillGamma = GetInteger (ioLoc, "TKillGamma", 0)
+      write (ioLoc%uout, '(a,ES12.4)') "# of steps after which we remove damping factor in Ehrenfest Equation(TKillGamma): ", genLoc%TKillGamma
       saux = GetString (ioLoc, "WhatDensity", "SCF")
       write (ioLoc%uout, '(a,a)') "What Density (WhatDensity) = ", trim (saux)
       if (cstr(trim(saux), "SCF")) then
@@ -546,14 +548,14 @@ contains
     write (ioLoc%uout, '(a,l1)') "Create excitation(Excite): ", genLoc%lIsExcited
 !
     if (genLoc%lIsExcited) then
-! !comm_gen HoleState & integer & 0 & no of level where we create the hole\\  
+! !comm_gen HoleState & integer & 0 & no of level where we create the hole\\
       genLoc%holeState = GetInteger (ioLoc, "HoleState", 0)
       write (ioLoc%uout, '(a,i0)') "Hole level(HoleState): ", genLoc%holeState
 !
-! !comm_gen Excite & integer & 0 & no of level to create excitation\\  
+! !comm_gen Excite & integer & 0 & no of level to create excitation\\
       genLoc%exciteState = GetInteger (ioLoc, "ExciteState", 0)
       write (ioLoc%uout, '(a,i0)') "Excitation level(ExciteState): ", genLoc%exciteState
-! !comm_gen HoleSpin & D,U & D & spin of the hole\\  
+! !comm_gen HoleSpin & D,U & D & spin of the hole\\
       saux = GetString (ioLoc, "HoleSpin", "D")
       write (ioLoc%uout, '(a,a)') "Spin of the Hole (HoleSpin): ", trim (saux)
       if (cstr(trim(saux), 'D')) then
@@ -564,7 +566,7 @@ contains
         call error ("The requested spin type is not implemented", name, .true., ioLoc)
       end if
 !
-!comm_gen ExciteSpin & D,U & D & spin of the excitation\\  
+!comm_gen ExciteSpin & D,U & D & spin of the excitation\\
       saux = GetString (ioLoc, "ExciteSpin", "D")
       write (ioLoc%uout, '(a,a)') "Spin of the excitation (ExciteSpin): ", trim (saux)
       if (cstr(trim(saux), 'D')) then
@@ -1146,7 +1148,7 @@ contains
     type (ioType), intent (inout) :: io
     type (generalType), intent (in) :: general
     type (atomicxType), intent (inout) :: atomix
-! arguments of the subroutine    
+! arguments of the subroutine
     integer :: nt, errno, i, k, atomId
     character (len=k_ml) :: saux
     integer, allocatable :: ids (:)
@@ -1401,50 +1403,50 @@ contains
     end if
   end subroutine ReadAtoms
 !
-!> \page atoms Atoms data  
-!> The strucure of a typical block will be  
-!> \verbatim  
-!> NumberOfAtoms 1  
-!> block AtomsData  
-!> 1 0.0 0.0 0.0 0.0 T F  
-!> endblock AtomsData  
-!> \endverbatim  
-!> NumberOfAtoms specifies the number of Atoms to be read from the block AtomsData\n  
-!> each atom has a line with 7 entities\n  
-!> <1> is the id of the specie of the atom (integer)\n  
-!> <2-4> carteasian coordinates (reals)\n  
-!> <5> local bias (real) gets multiplied internal with the values speciefied by \c Bias \n  
-!> <6> should the atom be treated scf in a scf calculation (logical)\n  
-!> <7> should the atom move in a molecular dynamics simulation (logical)\n  
-!> The velocities block  
-!> \verbatim  
-!> block VelocitiesData  
-!> 1 0.0 0.0 3.0  
-!> endblock VelocitiesData  
-!> \endverbatim  
-!> VelocitiesData block allows to specify initial velocties for atoms. Not all the atoms have to be present.  
-!> The missing ones have the velocities Initialized with k_zero. Each atom has a line\n  
-!> <1> the id of the atom (integer) \n  
-!> <2-4> the carteasian components of the velocity (reals) \n  
-!> AcceptorAtoms and DonorAtoms blocks specify which atoms belong to the acceptor and which to the donor.  
-!> The rest of the atoms are considered to be part of the spacer. Each block waits for a line with a  
-!> list of atoms in between the \c block \c endblock. \c Ndonor and \c NAcceptor specify how many atoms to be  
-!> expected in each list  
-!>\verbatim  
-!> NDonor 1  
-!> block DonorAtoms  
-!> 3  
-!> endblock DonorAtoms  
-!>  
-!> NAcceptor 2  
-!> block AcceptorAtoms  
-!> 2 1  
-!> endblock AcceptorAtoms  
-!>\endverbatim  
-!> - if you read the VelocitiesData block not all the exceptions are caught.  
-!> check the output to be sure that it read the proper stuff. (fortran will automatically convert an integer to real  
-!> so will generate a valid entry when is not the case)  
-!> - atoms ids are set according to their position in the AtomsData block  
+!> \page atoms Atoms data
+!> The strucure of a typical block will be
+!> \verbatim
+!> NumberOfAtoms 1
+!> block AtomsData
+!> 1 0.0 0.0 0.0 0.0 T F
+!> endblock AtomsData
+!> \endverbatim
+!> NumberOfAtoms specifies the number of Atoms to be read from the block AtomsData\n
+!> each atom has a line with 7 entities\n
+!> <1> is the id of the specie of the atom (integer)\n
+!> <2-4> carteasian coordinates (reals)\n
+!> <5> local bias (real) gets multiplied internal with the values speciefied by \c Bias \n
+!> <6> should the atom be treated scf in a scf calculation (logical)\n
+!> <7> should the atom move in a molecular dynamics simulation (logical)\n
+!> The velocities block
+!> \verbatim
+!> block VelocitiesData
+!> 1 0.0 0.0 3.0
+!> endblock VelocitiesData
+!> \endverbatim
+!> VelocitiesData block allows to specify initial velocties for atoms. Not all the atoms have to be present.
+!> The missing ones have the velocities Initialized with k_zero. Each atom has a line\n
+!> <1> the id of the atom (integer) \n
+!> <2-4> the carteasian components of the velocity (reals) \n
+!> AcceptorAtoms and DonorAtoms blocks specify which atoms belong to the acceptor and which to the donor.
+!> The rest of the atoms are considered to be part of the spacer. Each block waits for a line with a
+!> list of atoms in between the \c block \c endblock. \c Ndonor and \c NAcceptor specify how many atoms to be
+!> expected in each list
+!>\verbatim
+!> NDonor 1
+!> block DonorAtoms
+!> 3
+!> endblock DonorAtoms
+!>
+!> NAcceptor 2
+!> block AcceptorAtoms
+!> 2 1
+!> endblock AcceptorAtoms
+!>\endverbatim
+!> - if you read the VelocitiesData block not all the exceptions are caught.
+!> check the output to be sure that it read the proper stuff. (fortran will automatically convert an integer to real
+!> so will generate a valid entry when is not the case)
+!> - atoms ids are set according to their position in the AtomsData block
 !
 !> \brief reads and allocates the info about species of atoms
 !> \details this is all that should be done in this module.
@@ -1461,7 +1463,7 @@ contains
     type (generalType), intent (in) :: general
     type (speciesType), intent (inout) :: specs
     type (orbitalType), intent (inout), optional :: specBasis (:, :)
-!internal variables    
+!internal variables
     integer :: nt, i, j, errno, sp, maxL, shift
     character (len=k_ml) :: saux
 !
@@ -1692,23 +1694,23 @@ contains
     end if
   end subroutine ReadSpecies
 !
-!> \page species "Atomic Species Data"  
-!> The structure of the SpeciesData block  
-!> \verbatim  
-!> NumberOfSpecies 2  
-!> block SpeciesData  
-!> 1 2 0.0 1.0 2.0 3.0  
-!> 3 3 4.0 2.0 3.0 4.0  
-!> endblock SpeciesData  
-!> \endverbatim  
-!> It expects to read a number NumberofSpecies lines in beetween the \c block \c endblock  
-!> The structue of a line is\n  
-!> <1> id of the specie (integer). It has to be unique. \n  
-!> <2> Z the atomic number (integer) \n  
-!> <3> atomic mass (in a.m.u.) it gets converted internally to the chosen system of units \n  
-!> <4-5> U J (reals) U,J for the SCF calculation \n  
-!> <6> the screening factor for tha electrostatic interaction if the option is chosen. \n  
-!> \f[ V_I=\frac{e^2}{4\pi\epsilon_0}\cfrac{q_J}{\sqrt{r_{IJ}^2+\left ( \cfrac{1}{U_I}+\cfrac{1}{U_J}\right )^2}} \f]  
+!> \page species "Atomic Species Data"
+!> The structure of the SpeciesData block
+!> \verbatim
+!> NumberOfSpecies 2
+!> block SpeciesData
+!> 1 2 0.0 1.0 2.0 3.0
+!> 3 3 4.0 2.0 3.0 4.0
+!> endblock SpeciesData
+!> \endverbatim
+!> It expects to read a number NumberofSpecies lines in beetween the \c block \c endblock
+!> The structue of a line is\n
+!> <1> id of the specie (integer). It has to be unique. \n
+!> <2> Z the atomic number (integer) \n
+!> <3> atomic mass (in a.m.u.) it gets converted internally to the chosen system of units \n
+!> <4-5> U J (reals) U,J for the SCF calculation \n
+!> <6> the screening factor for tha electrostatic interaction if the option is chosen. \n
+!> \f[ V_I=\frac{e^2}{4\pi\epsilon_0}\cfrac{q_J}{\sqrt{r_{IJ}^2+\left ( \cfrac{1}{U_I}+\cfrac{1}{U_J}\right )^2}} \f]
 !
 !
 !> \brief reads and Initializes the basis set
@@ -1826,7 +1828,7 @@ contains
 !     ! build the basis
       k = 0
       if (gen%spin) then
-! spin down        
+! spin down
         do i = 1, atomix%atoms%natoms
           sp = atomix%atoms%sp(i)
           atomix%atoms%norbs (i) = atomix%species%norbs(sp)
@@ -2245,21 +2247,21 @@ contains
     end if
   end subroutine ReadDelta
 !
-!> \page delta DeltaPol Block  
-!> Note that: delta (l,l1,l2) with |l1-l2|<=l<=|l1+l2| \n  
-!>  we read delta(l,l1,l2) \n  
-!> the rules are that we read only l1<l2 if l1=l2 then we read only if l/=0 \n  
-!> for each specie we have \n  
-!>  we start with a line specifying the specie then first line is delta(1,0,1) second delta(2,1,1) (for a sp specie) \n  
-!> if one specie has no element to be read it is mandatory to be present  
-!> \verbatim  
-!>      block DeltaPol  
-!>      1  
-!>      1.0  
-!>      0.0  
-!>      2  
-!>      endblock DeltaPol  
-!> \endverbatim  
+!> \page delta DeltaPol Block
+!> Note that: delta (l,l1,l2) with |l1-l2|<=l<=|l1+l2| \n
+!>  we read delta(l,l1,l2) \n
+!> the rules are that we read only l1<l2 if l1=l2 then we read only if l/=0 \n
+!> for each specie we have \n
+!>  we start with a line specifying the specie then first line is delta(1,0,1) second delta(2,1,1) (for a sp specie) \n
+!> if one specie has no element to be read it is mandatory to be present
+!> \verbatim
+!>      block DeltaPol
+!>      1
+!>      1.0
+!>      0.0
+!>      2
+!>      endblock DeltaPol
+!> \endverbatim
 !
 !> \brief deallocates the memory
 !> \author Alin M Elena
@@ -2349,7 +2351,9 @@ contains
     end if
 !
     call DestroyMatrix (Sol%h, io)
-    call DestroyMatrix (Sol%forceOp, io)
+    call DestroyMatrix (Sol%forceOpX, io)
+    call DestroyMatrix (Sol%forceOpY, io)
+    call DestroyMatrix (Sol%forceOpZ, io)
     call DestroyMatrix (Sol%eigenvecs, io)
     deallocate (Sol%eigenvals)
 !
@@ -2407,6 +2411,7 @@ contains
         deallocate (Sol%vs(i)%a)
       end do
     end if
+    deallocate(sol%sk%wignerD)
     call MKL_FreeBuffers ()
   end subroutine CleanMemory
 end module m_ReadData

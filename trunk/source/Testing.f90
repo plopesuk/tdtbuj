@@ -173,19 +173,19 @@ contains
     real (k_pr) :: fa_x, fa_y, fa_z, fn_x, fn_y, fn_z
     real (k_pr) :: eenergy, renergy, scfenergy, minusts
     real (k_pr) :: ep, em, dx, totnx, totny, totnz
-!-------------------------------------------------!    
+!-------------------------------------------------!
 !
     totnx = 0.0_k_pr
     totny = 0.0_k_pr
     totnz = 0.0_k_pr
     dx = gen%fdx
     do i = 1, atomic%atoms%natoms
-! Analytic forces       
+! Analytic forces
       call SinglePoint (io, gen, atomic, tb, sol)
       fa_x = atomic%atoms%fx(i)
       fa_y = atomic%atoms%fy(i)
       fa_z = atomic%atoms%fz(i)
-! Numeric x force       
+! Numeric x force
       atomic%atoms%x (i) = atomic%atoms%x(i) + dx
       call SinglePoint (io, gen, atomic, tb, sol)
       ep = sol%totalEnergy
@@ -195,7 +195,7 @@ contains
       atomic%atoms%x (i) = atomic%atoms%x(i) + dx
       fn_x = - (ep-em) / (dx+dx)
       totnx = totnx + fn_x
-! Numeric y force       
+! Numeric y force
       atomic%atoms%y (i) = atomic%atoms%y(i) + dx
       call SinglePoint (io, gen, atomic, tb, sol)
       ep = sol%totalEnergy
@@ -205,7 +205,7 @@ contains
       atomic%atoms%y (i) = atomic%atoms%y(i) + dx
       fn_y = - (ep-em) / (dx+dx)
       totny = totny + fn_y
-! Numeric z force       
+! Numeric z force
       atomic%atoms%z (i) = atomic%atoms%z(i) + dx
       call SinglePoint (io, gen, atomic, tb, sol)
       ep = sol%totalEnergy
@@ -265,7 +265,7 @@ contains
               write (z,*) "# r ", trim (ccnlm(i, j, k, k1, k2))
               do y = 50, 1000
                 r = y * 0.01_k_pr
-                write (z,*) r, rad (r, atomic%species%id(i), atomic%species%id(j), gen, tb, k, k1, k2), radp (three, r, &
+                write (z,*) r, rad (r, atomic%species%id(i), atomic%species%id(j), gen, tb, k, k1, k2), radp (r, &
                & atomic%species%id(i), atomic%species%id(j), gen, tb, k, k1, k2)
               end do
               close (z)
