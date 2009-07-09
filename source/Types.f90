@@ -265,7 +265,7 @@ module m_Types
   type, public :: matrixType
     logical :: isSparse !< is it sparse?
     logical :: created !< is it created?
-    integer :: dim !< dik_mesion of the matrix
+    integer :: dim !< dimesion of the matrix
     integer :: nonZero !< no of non zero elements in a sparse matrix
     integer, allocatable :: indx (:), jndx (:)!< the indeces of the non zero elements for sparse
     complex (kind=k_pr), allocatable :: a (:, :)!< keeps the data

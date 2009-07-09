@@ -360,6 +360,7 @@ contains
     end do
 !
   end subroutine InitFact
+
 !> \brief implements delta function for integers
 !> \details \f[ \delta_{ab}= \begin{cases} 1 & a=b \\
 !> 0 & a\neq b

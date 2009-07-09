@@ -15,6 +15,7 @@
 !> \section tb Tight Binding Parameters
 !>
 !>  A pdf version of this documentation can be found at http://titus.phy.qub.ac.uk/Programs/TDTB_UJ/refman.pdf
+!>  source from http://code.google.com/p/tdtbuj/
 !> \page code Coding Style Document
 !> \section general General Style
 !>- You \em SHOULD use the Object Oriented features of Fotran as much as possible.
@@ -82,6 +83,7 @@
 !> rather than: \n
 !> if (SomeLogicalExpression) call PrintMe() \n
 !>- When using select case statements, you \em SHOULD explicitly comment any deliberate fall-through behaviour (where you deliberate
+!> omit the break from the end of a case clause).
 !> \section comment Comments
 !>- You \em SHOULD use exclamation sign (!) for comments. You \em SHOULD put comments on lines starting in the 0 column and
 !> avoid long lines. Use comments to explain why an action/procedure is required. What you are doing

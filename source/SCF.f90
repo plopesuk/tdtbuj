@@ -198,8 +198,9 @@ contains
           nmix = genLoc%scfMixn
           do while ((genLoc%scfMixn >=  1) .and. (ierr /= 0))
             call InitMix (sol%buff%dins, sol%buff%douts, sol%buff%res, sol%buff%densityin, sol%buff%densityout, genLoc%scfMixn)
-            call MixDensity (sol%buff%dins, sol%buff%douts, sol%buff%res, sol%buff%densitynext, residual, dmax, genLoc%scfMix, n+m, &
-           & genLoc%scfMixn, nit, ierr)
+            call MixDensity (sol%buff%dins, sol%buff%douts, sol%buff%res, sol%buff%densitynext, &
+              residual, dmax, genLoc%scfMix, n+m, &
+              genLoc%scfMixn, nit, ierr,ioLoc)
             if (ierr /= 0) then
               genLoc%scfMixn = genLoc%scfMixn - 1
               call error ("Singularity in mixing matrix, no of iterations mixed reduced by one ", sMyName, .false., ioLoc)

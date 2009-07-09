@@ -350,7 +350,7 @@ if (BLA_VENDOR MATCHES "Intel*" OR BLA_VENDOR STREQUAL "All")
         BLAS
         sgemm
         ""
-        "mkl_blas95"
+        "mkl_blas95_lp64"
         "mkl_intel_lp64"
         "mkl_intel_thread"
         "mkl_core"

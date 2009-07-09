@@ -209,6 +209,7 @@ contains
       else
         call CreateDensityMatrixSpin (gen, atomic, sol, io)
       end if
+
     else
       sol%eigenvals = 0.0_k_pr
       call ZeroMatrix (sol%eigenvecs, io)
