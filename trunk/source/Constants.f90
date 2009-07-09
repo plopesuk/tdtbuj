@@ -83,8 +83,9 @@ module m_Constants
 ! mathematics
   real (k_pr), parameter, public :: k_pi = 3.14159265358979323846264338327950_k_pr !< \f$ \pi \f$
   real (k_pr), parameter, public :: k_infinity = huge (1.0_k_pr)!< infinity
-  real (k_pr), parameter, public :: k_zero = 0.0_k_pr !< _zero
-  real (k_pr), parameter, public :: k_one = 1.0_k_pr !< _one
+  real (k_pr), parameter, public :: k_zero = 0.0_k_pr !< double zero
+  real (k_pr), parameter, public :: k_one = 1.0_k_pr !< double one
+  integer, parameter, public     :: k_ione=1 !< integer one
   complex (k_pr), parameter, public :: k_cOne = (1.0_k_pr, 0.0_k_pr)!< complex one
 ! physics
   real (k_pr), public :: k_amuToInternal !< atomic mass units to internal mass units

@@ -18,7 +18,7 @@ endif(SVN)
 
 set(AUTHOR "Alin M Elena")
 set(AUTHOR_DETAILS "alin.elena@qub.ac.uk")
-set(DESCRIPTION "Time dependent tight binding +UJ for finite systems")
+set(DESCRIPTION "Time dependent tight binding + UJ for finite systems")
 
 cmake_minimum_required(VERSION 2.6)
 #if(COMMAND cmake_policy)
@@ -103,15 +103,15 @@ ${src_dir}/Electrostatics.f90
 ${src_dir}/SlaterKoster.f90
 ${src_dir}/DensityMatrix.f90
 ${src_dir}/Hamiltonian.f90
-${src_dir}/Mixing.f90
+${src_dir}/Mixing.F90
 ${src_dir}/SCF.f90
 ${src_dir}/Simplex.f90
 ${src_dir}/SA.f90
 ${src_dir}/SimplexSA.f90
 ${src_dir}/Fit.f90
 ${src_dir}/Dynamics.f90
-${src_dir}/LBFGS.f90
-${src_dir}/BFGS.f90
+${src_dir}/LBFGS.F90
+${src_dir}/BFGS.F90
 ${src_dir}/DriverRoutines.f90
 ${src_dir}/Testing.f90
 ${src_dir}/main.f90
@@ -139,7 +139,7 @@ if(NOT ${PREFIX})
   set(CMAKE_INSTALL_PREFIX "${PREFIX}")
 endif(NOT ${PREFIX})
 
-install(TARGETS ${target_name} parser linalg 
+install(TARGETS ${target_name} parser linalg
             RUNTIME DESTINATION bin
             LIBRARY DESTINATION lib/${target_name}
 	    ARCHIVE DESTINATION lib/${target_name}
@@ -203,5 +203,30 @@ SET(CPACK_GENERATOR "TGZ;TBZ2;ZIP;RPM;DEB")
 SET(CPACK_CMAKE_GENERATOR ${CMAKE_GENERATOR})
 SET(CPACK_SOURCE_GENERATOR "TGZ;TBZ2;ZIP;RPM;DEB")
 SET(CPACK_SOURCE_IGNORE_FILES "/thesis/;/\\\\.svn/")
-
+#
+# - Define a toplevel package_source_backup target
+#   which build a dated tarball
+#
+# Those CMake macros are provided by the TSP Developer Team
+# https://savannah.nongnu.org/projects/tsp
+#
+IF (UNIX)
+# get the date
+EXECUTE_PROCESS(COMMAND whoami
+    TIMEOUT 5
+    RESULT_VARIABLE WHO_RES
+    OUTPUT_VARIABLE WHO_OUT
+    ERROR_VARIABLE  WHO_ERR
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+MESSAGE(STATUS "Package Backup got ${WHO_OUT}.")
+# get the date
+EXECUTE_PROCESS(COMMAND date +%d%b%Y-%Hh%M
+    TIMEOUT 5
+    RESULT_VARIABLE DATE_RES
+    OUTPUT_VARIABLE DATE_OUT
+    ERROR_VARIABLE  DATE_ERR
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+MESSAGE(STATUS "Package Backup got ${DATE_OUT}.")
+SET(CPACK_SOURCE_PACKAGE_FILE_NAME "${target_name}-${VERSION_MAJOR}.${VERSION_MINOR}-${VERSION_PATCH}_${WHO_OUT}_${DATE_OUT}")
+ENDIF(UNIX)
 INCLUDE(CPack)

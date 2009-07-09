@@ -7,7 +7,9 @@ module m_LBFGS
   use m_Useful
   use m_Types
   use m_Gutenberg
+#ifdef MKL95
   use mkl95_BLAS, only: dot, axpy
+#endif
   implicit none
 !
   private
@@ -283,6 +285,10 @@ contains
     real (k_pr) :: f, fold, tf, txnorm, v
     integer :: res
     real (k_pr) :: stpmin, stpmax
+#ifndef MKL95
+    real(k_pr),external :: ddot
+#endif
+
 !
     allocate (g(1:n))
     allocate (diag(1:n))
@@ -317,7 +323,11 @@ contains
     do i = 1, n
       w (ispt+i) = - g (i) * diag (i)
     end do
+#ifdef MKL95
     gnorm = Sqrt (dot(g, g))
+#else
+   gnorm = Sqrt (ddot(n,g,k_ione, g,k_ione))
+#endif
     stp1 = 1 / gnorm
 !
     do while (.true.)
@@ -329,8 +339,13 @@ contains
         if (iter > m) then
           bound = m
         end if
+#ifdef MKL95
         ys = dot (w(iypt+npt+1:iypt+npt+n), w(ispt+npt+1:ispt+npt+n))
         yy = dot (w(iypt+npt+1:iypt+npt+n), w(iypt+npt+1:iypt+npt+n))
+#else
+        ys = ddot (n,w(iypt+npt+1:iypt+npt+n),k_ione, w(ispt+npt+1:ispt+npt+n),k_ione)
+        yy = ddot (n,w(iypt+npt+1:iypt+npt+n),k_ione, w(iypt+npt+1:iypt+npt+n),k_ione)
+#endif
         diag = ys / yy
         cp = point
         if (point == 0) then
@@ -344,22 +359,38 @@ contains
           if (cp ==-1) then
             cp = m - 1
           end if
+#ifdef MKL95
           sq = dot (w(ispt+cp*n+1:ispt+cp*n+n), w(1:n))
+#else
+          sq = ddot (n,w(ispt+cp*n+1:ispt+cp*n+n),k_ione, w(1:n),k_ione)
+#endif
           inmc = n + m + cp + 1
           iycn = iypt + cp * n
           w (inmc) = w (n+cp+1) * sq
+#ifdef MKL95
           call axpy (w(iycn+1:iycn+n), w(1:n),-w(inmc))
+#else
+          call daxpy (n,w(iycn+1:iycn+n), w(1:n),k_ione,-w(inmc),k_ione)
+#endif
         end do
         do i = 1, n
           w (i) = diag (i) * w (i)
         end do
         do i = 1, bound
+#ifdef MKL95
           yr = dot (w(iypt+cp*n+1:iypt+cp*n+n), w(1:n))
+#else
+          yr = ddot (n,w(iypt+cp*n+1:iypt+cp*n+n),k_ione, w(1:n),k_ione)
+#endif
           beta = w (n+cp+1) * yr
           inmc = n + m + cp + 1
           beta = w (inmc) - beta
           iscn = ispt + cp * n
+#ifdef MKL95
           call axpy (w(iscn+1:iscn+n), w(1:n), beta)
+#else
+          call daxpy (n,w(iscn+1:iscn+n), w(1:n),k_ione, beta,k_ione)
+#endif
           cp = cp + 1
           if (cp == m) then
             cp = 0
@@ -399,7 +430,11 @@ contains
         return
       end if
       call IterationReport (iprint, iter, nfun, gnorm, n, m, x, f, g, stp, finish, io)
+#ifdef MKL95
       gnorm = Sqrt (dot(g, g))
+#else
+      gnorm = Sqrt (ddot(n,g,k_ione, g,k_ione))
+#endif
       if (gnorm <= epsg) then
         info = 4
         return
@@ -412,10 +447,16 @@ contains
 !
       tx = xold
       tx = tx - x
+#ifdef MKL95
       xnorm = Sqrt (dot(x, x))
       txnorm = Max (xnorm, Sqrt(dot(xold, xold)))
-      txnorm = Max (txnorm, 1.0_k_pr)
       v = Sqrt (dot(tx, tx))
+#else
+      xnorm = Sqrt (ddot(n,x,k_ione, x,k_ione))
+      txnorm = Max (xnorm, Sqrt(ddot(n,xold,k_ione, xold,k_ione)))
+      v = Sqrt (ddot(n,tx,k_ione, tx,k_ione))
+#endif
+      txnorm = Max (txnorm, 1.0_k_pr)
       if (v <= epsx) then
         info = 2
         return

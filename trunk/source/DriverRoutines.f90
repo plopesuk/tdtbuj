@@ -747,9 +747,6 @@ contains
           if (gen%scf) then
             call AddH2 (gen, atomic, sol, tb, io)
           end if
-          write (999, '(4g)') gen%CurrSimTime, PartialTrace (atomic%atoms%id(1), atomic, sol%h, gen%spin), PartialTrace &
-         & (atomic%atoms%id(2), atomic, sol%h, gen%spin), PartialTrace (atomic%atoms%id(1), atomic, sol%h, gen%spin) - PartialTrace &
-         & (atomic%atoms%id(2), atomic, sol%h, gen%spin)
           call Commutator (sol%rhodot, sol%h, sol%rho, io)
           call ScalarTMatrix (ihbar, sol%rhodot, io)
 !

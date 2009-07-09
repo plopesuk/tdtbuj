@@ -7,7 +7,9 @@ module m_BFGS
   use m_Useful
   use m_Types
   use m_Gutenberg
+#ifdef MKL95
   use mkl95_BLAS, only: dot
+#endif
   implicit none
 !
   private
@@ -25,6 +27,7 @@ contains
 !> \param atomic type(atomicxType) contains all info about the atoms and basis set and some parameters
 !> \param tb type(modelType) contains information about the tight binding model parameters
 !> \param sol type(solutionType) contains information about the solution space
+!> \param func function the function that evaluates the cost
   subroutine driverBFGS (io, gen, atomic, tb, sol, func)
     character (len=*), parameter :: myname = 'driverBFGS'
     type (ioType), intent (inout) :: io
@@ -262,6 +265,9 @@ contains
     real (k_pr) :: rhs1, rhs2, slope, sum, temp, test, tmplam
     integer :: i, res
     logical :: check
+#ifndef MKL95
+    real(k_pr),external :: ddot
+#endif
     alf = 1.0e-4_k_pr
     info = 0
     alam2 = 0.0_k_pr
@@ -269,11 +275,19 @@ contains
     slope = 0.0_k_pr
     sum = 0.0_k_pr
     check = .false.
+#ifdef MKL95
     sum = Sqrt (dot(p, p))
+#else
+    sum = Sqrt (ddot(n,p,k_ione, p,k_ione))
+#endif
     if (sum > stpmax) then
       p = p * stpmax / sum
     end if
+#ifdef MKL95
     slope = dot (g, p)
+#else
+    slope = ddot (n,g, k_ione,p,k_ione)
+#endif
     if (slope >= 0.0_k_pr) then
       call error ("Roundoff problem in "//trim(myname), myname, .false., io)
       info = - 1

@@ -216,7 +216,7 @@ endif (BLA_VENDOR STREQUAL "Generic" OR BLA_VENDOR STREQUAL "All")
       LAPACK
       cheev
       ""
-      "mkl_lapack95;mkl_blas95"
+      "mkl_lapack95_lp64;mkl_blas95_lp64"
       "mkl_intel_lp64"
       "mkl_intel_thread"
       "mkl_lapack;mkl_core"

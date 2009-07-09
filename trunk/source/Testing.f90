@@ -236,7 +236,7 @@ contains
 !> \author Alin M. Elena (Belfast)
 !> \date 3rd of June, 2008
 !> \param io type(ioType) contains all the info about I/O files
-!> \param gen type(generalType) contains the info needed by the program to k_run
+!> \param gen type(generalType) contains the info needed by the program to run
 !> \param atomic type(atomicxType) contains all info about the atoms and basis set and some parameters
 !> \param tb type(modelType) contains information about the tight binding model parameters
 !> \param sol type(solutionType) contains information about the solution space
