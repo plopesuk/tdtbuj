@@ -11,9 +11,7 @@
 #  MKLSOLVER_LINKER_FLAGS - uncached list of required linker flags (excluding -l
 #    and -L).
 #  MKLSOLVER_LIBRARIES - uncached list of libraries (using full path name) to
-#    link against to use MKLSOLVER
-#  MKLSOLVER95_LIBRARIES - uncached list of libraries (using full path name) to
-#    link against to use MKLSOLVER95 interface
+#    link against to use MKLSOLVER, if BLA_F95 is TRUE f90/f95 interfaces would be added
 #  BLA_STATIC  if set on this determines what kind of linkage we do (static)
 #  BLA_F95     if set on tries to find the f95 interfaces for BLAS/LAPACK
 #  BLA_VENDOR  if set checks only the specified vendor, if not set checks
@@ -99,7 +97,6 @@ endmacro(Check_MKLSOLVER_Libraries)
 
 set(MKLSOLVER_LINKER_FLAGS)
 set(MKLSOLVER_LIBRARIES)
-set(MKLSOLVER95_LIBRARIES)
 
 if(MKLSOLVER_FIND_QUIETLY OR NOT MKLSOLVER_FIND_REQUIRED)
   find_package(LAPACK)
@@ -121,17 +118,17 @@ if(LAPACK_FOUND)
   endif ($ENV{BLA_VENDOR} MATCHES ".+")
   if (BLA_VENDOR STREQUAL "Intel10_64lp")
     if(BLA_F95)
-      if ( NOT MKLSOLVER95_LIBRARIES )
+      if ( NOT MKLSOLVER_LIBRARIES )
         check_MKLSOLVER_libraries(
-        MKLSOLVER95_LIBRARIES
+        MKLSOLVER_LIBRARIES
         MKLSOLVER
         djacobi_solve
         ""
         "mkl_solver_lp64"
-        "${LAPACK95_LIBRARIES}"
+        "${LAPACK_LIBRARIES}"
         "${CMAKE_THREAD_LIBS_INIT}"
         )
-      endif (NOT MKLSOLVER95_LIBRARIES)
+      endif (NOT MKLSOLVER_LIBRARIES)
     else(BLA_F95)
       if ( NOT MKLSOLVER_LIBRARIES )
         check_MKLSOLVER_libraries(
@@ -147,17 +144,17 @@ if(LAPACK_FOUND)
     endif(BLA_F95)
   else(BLA_VENDOR STREQUAL "Intel10_64lp")
     if(BLA_F95)
-      if ( NOT MKLSOLVER95_LIBRARIES )
+      if ( NOT MKLSOLVER_LIBRARIES )
         check_MKLSOLVER_libraries(
-        MKLSOLVER95_LIBRARIES
+        MKLSOLVER_LIBRARIES
         MKLSOLVER
         djacobi_solve
         ""
         "mkl_solver"
-        "${LAPACK95_LIBRARIES}"
+        "${LAPACK_LIBRARIES}"
         "${CMAKE_THREAD_LIBS_INIT}"
         )
-      endif (NOT MKLSOLVER95_LIBRARIES)
+      endif (NOT MKLSOLVER_LIBRARIES)
     else(BLA_F95)
       if ( NOT MKLSOLVER_LIBRARIES )
         check_MKLSOLVER_libraries(
@@ -176,49 +173,23 @@ else(LAPACK_FOUND)
   message(STATUS "MKLSOLVE requires LAPACK")
 endif(LAPACK_FOUND)
 
-if(BLA_F95)
- if(MKLSOLVER95_LIBRARIES)
-  set(MKLSOLVER95_FOUND TRUE)
- else(MKLSOLVER95_LIBRARIES)
-  set(MKLSOLVER95_FOUND FALSE)
- endif(MKLSOLVER95_LIBRARIES)
- if(NOT MKLSOLVER_FIND_QUIETLY)
-    if(MKLSOLVER95_FOUND)
-      message(STATUS "A library with MKLSOLVER95 API found.")
-    else(MKLSOLVER95_FOUND)
-      if(MKLSOLVER_FIND_REQUIRED)
-        message(FATAL_ERROR
-        "A required library with MKLSOLVER95 API not found. Please specify library location."
-        )
-      else(MKLSOLVER_FIND_REQUIRED)
-        message(STATUS
-        "A library with MKLSOLVER95 API not found. Please specify library location."
-        )
-      endif(MKLSOLVER_FIND_REQUIRED)
-    endif(MKLSOLVER95_FOUND)
-  endif(NOT MKLSOLVER_FIND_QUIETLY)
+if(MKLSOLVER_LIBRARIES)
   set(MKLSOLVER_FOUND TRUE)
-  set(MKLSOLVER_LIBRARIES "${MKLSOLVER95_LIBRARIES}")
-else(BLA_F95)
-  if(MKLSOLVER_LIBRARIES)
-    set(MKLSOLVER_FOUND TRUE)
-  else(MKLSOLVER_LIBRARIES)
-    set(MKLSOLVER_FOUND FALSE)
-  endif(MKLSOLVER_LIBRARIES)
+endif(MKLSOLVER_LIBRARIES)
 
-  if(NOT MKLSOLVER_FIND_QUIETLY)
-    if(MKLSOLVER_FOUND)
-      message(STATUS "A library with MKLSOLVER API found.")
-    else(MKLSOLVER_FOUND)
-      if(MKLSOLVER_FIND_REQUIRED)
-        message(FATAL_ERROR
-        "A required library with MKLSOLVER API not found. Please specify library location."
-        )
-      else(MKLSOLVER_FIND_REQUIRED)
-        message(STATUS
-        "A library with MKLSOLVER API not found. Please specify library location."
-        )
-      endif(MKLSOLVER_FIND_REQUIRED)
-    endif(MKLSOLVER_FOUND)
-  endif(NOT MKLSOLVER_FIND_QUIETLY)
-endif(BLA_F95)
+if(NOT MKLSOLVER_FIND_QUIETLY)
+  if(MKLSOLVER_FOUND)
+    message(STATUS "A library with MKLSOLVER API found.")
+  else(MKLSOLVER_FOUND)
+    if(MKLSOLVER_FIND_REQUIRED)
+      message(FATAL_ERROR
+      "A required library with MKLSOLVER API not found. Please specify library location."
+      )
+    else(MKLSOLVER_FIND_REQUIRED)
+      message(STATUS
+      "A library with MKLSOLVER API not found. Please specify library location."
+      )
+    endif(MKLSOLVER_FIND_REQUIRED)
+  endif(MKLSOLVER_FOUND)
+endif(NOT MKLSOLVER_FIND_QUIETLY)
+
