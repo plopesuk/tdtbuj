@@ -16,8 +16,7 @@
 !> \section tb Tight Binding Parameters
 !> \subpage code "Coding Style Document"
 !>
-!>  A pdf version of this documentation can be found at http://titus.phy.qub.ac.uk/Programs/TDTB_UJ/refman.pdf
-!>  source from http://code.google.com/p/tdtbuj/
+!> Source code can be obatined from http://code.google.com/p/tdtbuj/
 !> \brief main program Time-Dependent Tight-Binding+UJ
 !> \author Alin M Elena
 program tbuj
