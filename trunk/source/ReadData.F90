@@ -2278,7 +2278,7 @@ contains
     type (atomicxType), intent (inout) :: atomic
     type (generalType), intent (inout) :: general
     type (modelType), intent (inout) :: tbMod
-    type (solutionType), intent (inout) :: Sol
+    type (solutionType), intent (inout) :: sol
     integer :: i, j, ierr
 !
     deallocate (atomic%speciesBasis)

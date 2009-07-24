@@ -528,6 +528,7 @@ contains
 !> \param io type(ioType) contains all the info about I/O files
 !> \param gen type(generalType) contains the info needed by the program to run
 !> \param atomic type(atomicxType) contains all info about the atoms and basis set and some parameters
+!> \param tb type(modelType) contains information about the tight binding model parameters
 !> \param sol type(solutionType) contains information about the solution space
   real (k_pr) function ScfEnergy (gen, atomic, sol, tb, io)
     character (len=*), parameter :: myname = 'ScfEnergy'
@@ -648,6 +649,7 @@ contains
 !> \param gen type(generalType) contains the info needed by the program to run
 !> \param atomic type(atomicxType) contains all info about the atoms and basis set and some parameters
 !> \param sol type(solutionType) contains information about the solution space
+!> \param tb type(modelType) contains information about the tight binding model parameters
   subroutine ScfForces (gen, atomic, sol, tb, io)
     character (len=*), parameter :: myname = 'ScfForces'
     type (ioType), intent (inout) :: io
