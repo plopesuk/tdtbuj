@@ -3,7 +3,8 @@
 !>  \section intro Introduction
 !>  The tight binding method is implemented in the spirit of Mike Finnis' book\n
 !>  \em Interatomic \em forces \em in \em condensed \em matter, Oxford University Press, 2003\n
-!> \section run Run methods
+!> \subpage build "Notes on building"\n
+!> \subpage run "Run methods"
 !> \section inp Input Variables
 !> - \subpage ioVars "I/O Variables"
 !> - \subpage control "Program Flow Control Variables"
@@ -13,9 +14,127 @@
 !> - \subpage basis "Basis Set"
 !> - \subpage delta "Multipoles parameters(Delta Block)"
 !> \section tb Tight Binding Parameters
+!> \subpage code "Coding Style Document"
 !>
 !>  A pdf version of this documentation can be found at http://titus.phy.qub.ac.uk/Programs/TDTB_UJ/refman.pdf
 !>  source from http://code.google.com/p/tdtbuj/
+!> \brief main program Time-Dependent Tight-Binding+UJ
+!> \author Alin M Elena
+program tbuj
+  use m_Constants
+  use m_Types
+  use m_ReadData
+  use m_Useful, only: DateAndTime, error
+  use m_TightBinding
+  use m_DriverRoutines
+  use m_Fit
+  use m_Testing
+  implicit none
+!
+!
+  integer :: narguments
+  character (len=k_mw) :: arg
+  character (len=10) :: dt
+  character (len=12) :: tm
+!
+!
+  type (ioType) :: ioInfo
+  type (generalType) :: general
+  type (atomicxType) :: atomicx
+  type (modelType) :: tbModel
+! solution spece variable
+  type (solutionType) :: SolSpace
+!
+  call DateAndTime (dt, tm)
+  narguments = iargc ()
+  call cpu_time (general%time%start)
+!
+! it reads the name of the input as inline argument
+! if there is none the default name is inp
+!
+  if (narguments == 1) then
+    call getarg (1, arg)
+    ioInfo%inpFile = arg
+  else
+    ioInfo%inpFile = "inp"
+  end if
+!
+  call Initialize (ioInfo, general, atomicx, tbModel)
+  call SetSolutionSpace (ioInfo, general, atomicx, tbModel, SolSpace)
+!
+  if (general%runType == k_runSp) then
+    call SinglePoint (ioInfo, general, atomicx, tbModel, SolSpace)
+  else if (general%runType == k_runGeometryOptimisation) then
+    call Geometry (ioInfo, general, atomicx, tbModel, SolSpace)
+  else if (general%runType == k_runBO) then
+    call BornOppenheimerDynamics (ioInfo, general, atomicx, tbModel, SolSpace)
+  else if (general%runType == k_runEhrenfest) then
+    call EhrenfestDynamics (ioInfo, general, atomicx, tbModel, SolSpace)
+  else if (general%runType == k_runFit) then
+    call Fitting (ioInfo, general, atomicx, tbModel, SolSpace)
+  else if (general%runType == k_runForceTest) then
+    call ForceTest (ioInfo, general, atomicx, tbModel, SolSpace)
+  else if (general%runType == k_runForceTestx) then
+    call forceTestx (ioInfo, general, atomicx, tbModel, SolSpace)
+  else if (general%runType == k_runForceTesty) then
+    call forceTesty (ioInfo, general, atomicx, tbModel, SolSpace)
+  else if (general%runType == k_runForceTestz) then
+    call forceTestz (ioInfo, general, atomicx, tbModel, SolSpace)
+  else if (general%runType == k_runtestTails) then
+    call testTails (ioInfo, general, atomicx, tbModel, SolSpace)
+  else if (general%runType == k_runEhrenfestDamped) then
+    call EhrenfestDynamicsDamped (ioInfo, general, atomicx, tbModel, SolSpace)
+  else if (general%runType == k_runFragments) then
+!     call fragments_k_run
+  else if (general%runType == k_runSpecial) then
+    call centerMolecule (ioInfo, general, atomicx, tbModel, SolSpace)
+  else
+    call error ("RunType not implemented", 'TDTB+UJ', .true., ioInfo)
+  end if
+!
+!!!!!! closes all the units associated with blocks and deallocated the trees for tokens and blocks
+  call CleanMemory (ioInfo, atomicx, general, tbModel, SolSpace)
+  call cpu_time (general%time%end)
+  write (ioInfo%uout, '(a,a,a,a)', advance="no") "Program TDTB+UJ has started at ", dt, " ", tm
+  call DateAndTime (dt, tm)
+  write (ioInfo%uout, '(a,a,a,a)') " ended at ", dt, " ", tm
+  write (ioInfo%udeb, '(a,f16.6,a)') "Program TDTB+UJ has run for ", general%time%end - general%time%start, " seconds"
+  write (ioInfo%uout, '(a,f0.6,a)') "Program TDTB+UJ has run for ", general%time%end - general%time%start, " seconds"
+  call CloseIoGeneral (ioInfo)
+!
+end program tbuj
+
+!> \page build Notes on building
+!> To build tdtb+uj you will need a fortan compiler, blas/lapack implementations and cmake build system\n
+!> Out-of-tree builds are prefered but is not a must to\n
+!> Once you have got the source code we should generate the binaries. let us say the code is in folder tdtbuj, at the same level with this folder we do\n
+!> \verbatim
+!> mkdir build; cd build
+!> cmake ../
+!> \endverbatim
+!> this should compile and link the program correcly with generic blas/lapack\n
+!>  you can specify a special implementation of blas/lapack with BLA_VENDOR variable\n
+!>  eg cmake ../ -DBLA_VENDOR="Intel10_64lp"   for Intel 64 implementation with small arrays\n
+!>  -DBLA_STATIC:BOOL=ON  sets static linkage as opposite to dynamic one\n
+!>  -DBLA_F95:BOOL=ON  tries to use f90/95 interfaces for blas/lapack\n
+!>  -DMKLSOLVER:BOOL=ON would use intel mkl solver routines.\n
+!>  make docs should generate documentation (latex/html) if doxygen > 1.5.6 present\n
+!>  make install should install the program, -DPREFIX, controls the path\n
+!>  make uninstall self explanatory\n
+!>  make package should generate an archive with the binaries\n
+!>  make package_source should generate an archive with the source files of the project
+
+!> \page run Run methods
+!> Here are the type of calculations that TDTB+UJ is able to perform. They get selected using RunType token in the input file\n
+!> - SinglePoint -- computes the energy of the system
+!> - BODynamics -- Born-Oppenheimer Dynamics
+!> - Ehrenfest -- Ehrenfest dynamics
+!> - EhrenfestDamped -- Damped Ehrenfest Dynamics
+!> - GeometryOptimization -- Geometry optimisation
+!> - ForceTest -- checks if the forces and energy are consistent for the current model
+!> - Fit  -- advanced feature that may fit the parameters of your model in order to minimize a user specified cost function. You will have to dirty your hands with some coding
+!> for a good result.
+
 !> \page code Coding Style Document
 !> \section general General Style
 !>- You \em SHOULD use the Object Oriented features of Fotran as much as possible.
@@ -118,89 +237,4 @@
 !> enddo
 !> a=5
 !> \endverbatim
-!
-!> \brief main program Time-Dependent Tight-Binding+UJ
-!> \author Alin M Elena
-program tbuj
-  use m_Constants
-  use m_Types
-  use m_ReadData
-  use m_Useful, only: DateAndTime, error
-  use m_TightBinding
-  use m_DriverRoutines
-  use m_Fit
-  use m_Testing
-  implicit none
-!
-!
-  integer :: narguments
-  character (len=k_mw) :: arg
-  character (len=10) :: dt
-  character (len=12) :: tm
-!
-!
-  type (ioType) :: ioInfo
-  type (generalType) :: general
-  type (atomicxType) :: atomicx
-  type (modelType) :: tbModel
-! solution spece variable
-  type (solutionType) :: SolSpace
-!
-  call DateAndTime (dt, tm)
-  narguments = iargc ()
-  call cpu_time (general%time%start)
-!
-! it reads the name of the input as inline argument
-! if there is none the default name is inp
-!
-  if (narguments == 1) then
-    call getarg (1, arg)
-    ioInfo%inpFile = arg
-  else
-    ioInfo%inpFile = "inp"
-  end if
-!
-  call Initialize (ioInfo, general, atomicx, tbModel)
-  call SetSolutionSpace (ioInfo, general, atomicx, tbModel, SolSpace)
-!
-  if (general%runType == k_runSp) then
-    call SinglePoint (ioInfo, general, atomicx, tbModel, SolSpace)
-  else if (general%runType == k_runGeometryOptimisation) then
-    call Geometry (ioInfo, general, atomicx, tbModel, SolSpace)
-  else if (general%runType == k_runBO) then
-    call BornOppenheimerDynamics (ioInfo, general, atomicx, tbModel, SolSpace)
-  else if (general%runType == k_runEhrenfest) then
-    call EhrenfestDynamics (ioInfo, general, atomicx, tbModel, SolSpace)
-  else if (general%runType == k_runFit) then
-    call Fitting (ioInfo, general, atomicx, tbModel, SolSpace)
-  else if (general%runType == k_runForceTest) then
-    call ForceTest (ioInfo, general, atomicx, tbModel, SolSpace)
-  else if (general%runType == k_runForceTestx) then
-    call forceTestx (ioInfo, general, atomicx, tbModel, SolSpace)
-  else if (general%runType == k_runForceTesty) then
-    call forceTesty (ioInfo, general, atomicx, tbModel, SolSpace)
-  else if (general%runType == k_runForceTestz) then
-    call forceTestz (ioInfo, general, atomicx, tbModel, SolSpace)
-  else if (general%runType == k_runtestTails) then
-    call testTails (ioInfo, general, atomicx, tbModel, SolSpace)
-  else if (general%runType == k_runEhrenfestDamped) then
-    call EhrenfestDynamicsDamped (ioInfo, general, atomicx, tbModel, SolSpace)
-  else if (general%runType == k_runFragments) then
-!     call fragments_k_run
-  else if (general%runType == k_runSpecial) then
-    call centerMolecule (ioInfo, general, atomicx, tbModel, SolSpace)
-  else
-    call error ("RunType not implemented", 'TDTB+UJ', .true., ioInfo)
-  end if
-!
-!!!!!! closes all the units associated with blocks and deallocated the trees for tokens and blocks
-  call CleanMemory (ioInfo, atomicx, general, tbModel, SolSpace)
-  call cpu_time (general%time%end)
-  write (ioInfo%uout, '(a,a,a,a)', advance="no") "Program TDTB+UJ has started at ", dt, " ", tm
-  call DateAndTime (dt, tm)
-  write (ioInfo%uout, '(a,a,a,a)') " ended at ", dt, " ", tm
-  write (ioInfo%udeb, '(a,f16.6,a)') "Program TDTB+UJ has run for ", general%time%end - general%time%start, " seconds"
-  write (ioInfo%uout, '(a,f0.6,a)') "Program TDTB+UJ has run for ", general%time%end - general%time%start, " seconds"
-  call CloseIoGeneral (ioInfo)
-!
-end program tbuj
+
