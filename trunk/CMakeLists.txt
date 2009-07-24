@@ -34,13 +34,17 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/Util")
 
 ##########################
 ## external libs
-set(BLA_STATIC OFF)
-if (UNIX)
-  set(BLA_VENDOR "Intel10_64lp")
-endif(UNIX)
-if (WIN32)
-  set(BLA_VENDOR "Intel10_32")
-endif(WIN32)
+if ( NOT BLA_STATIC)
+  set(BLA_STATIC OFF)
+endif(NOT BLA_STATIC)
+if (NOT BLA_VENDOR)
+  if (UNIX)
+    set(BLA_VENDOR "Intel10_64lp")
+  endif(UNIX)
+  if (WIN32)
+    set(BLA_VENDOR "Intel10_32")
+  endif(WIN32)
+endif (NOT BLA_VENDOR)
 
 if(BLA_F95)
   ADD_DEFINITIONS(-DMKL95)
@@ -103,7 +107,7 @@ ${src_dir}/Constants.f90
 ${src_dir}/Types.f90
 ${src_dir}/Useful.f90
 ${src_dir}/Gutenberg.f90
-${src_dir}/ReadData.f90
+${src_dir}/ReadData.F90
 ${src_dir}/TailFunctions.f90
 ${src_dir}/TightBinding.f90
 ${src_dir}/Electrostatics.f90

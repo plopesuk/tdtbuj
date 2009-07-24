@@ -2413,6 +2413,8 @@ contains
       end do
     end if
     deallocate (Sol%sk%wignerD)
-    call MKL_FreeBuffers ()
+#ifdef MKL95
+   call MKL_FreeBuffers ()
+#endif
   end subroutine CleanMemory
 end module m_ReadData
