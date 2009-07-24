@@ -12,10 +12,8 @@
 #    and -L).
 #  LAPACK_LIBRARIES - uncached list of libraries (using full path name) to
 #    link against to use LAPACK
-#  LAPACK95_LIBRARIES - uncached list of libraries (using full path name) to
-#    link against to use LAPACK95
-#  LAPACK95_FOUND - set to true if a library implementing the LAPACK f95
-#    interface is found
+#  LAPACK_LIBRARIES - uncached list of libraries (using full path name) to
+#    link against to use LAPACK, if BLA_f95 is TRUE the f90/95 interface would be added too
 #  BLA_STATIC  if set on this determines what kind of linkage we do (static)
 #  BLA_VENDOR  if set checks only the specified vendor, if not set checks
 #     all the posibilities
@@ -35,7 +33,6 @@ endif(NOT _LANGUAGES_ MATCHES Fortran)
 
 include(CheckFortranFunctionExists)
 set(LAPACK_FOUND FALSE)
-set(LAPACK95_FOUND FALSE)
 
 macro(Check_Lapack_Libraries LIBRARIES _prefix _name _flags _list _blas _threads)
 # This macro checks for the existence of the combination of fortran libraries
@@ -124,7 +121,7 @@ endmacro(Check_Lapack_Libraries)
 
 set(LAPACK_LINKER_FLAGS)
 set(LAPACK_LIBRARIES)
-set(LAPACK95_LIBRARIES)
+set(LAPACK_LIBRARIES)
 
 
 if(LAPACK_FIND_QUIETLY OR NOT LAPACK_FIND_REQUIRED)
@@ -210,9 +207,9 @@ endif (BLA_VENDOR STREQUAL "Generic" OR BLA_VENDOR STREQUAL "All")
    endif(LAPACK_FIND_QUIETLY OR NOT LAPACK_FIND_REQUIRED)
    if (BLA_VENDOR STREQUAL "Intel10_64lp")
     if (BLA_F95)
-      if(NOT LAPACK95_LIBRARIES)
+      if(NOT LAPACK_LIBRARIES)
       check_mkl_libraries(
-      LAPACK95_LIBRARIES
+      LAPACK_LIBRARIES
       LAPACK
       cheev
       ""
@@ -220,15 +217,15 @@ endif (BLA_VENDOR STREQUAL "Generic" OR BLA_VENDOR STREQUAL "All")
       "mkl_intel_lp64"
       "mkl_intel_thread"
       "mkl_lapack;mkl_core"
-      "guide"
+      "iomp5"
       "${CMAKE_THREAD_LIBS_INIT}"
       ""
       )
-      endif(NOT LAPACK95_LIBRARIES)
+      endif(NOT LAPACK_LIBRARIES)
     else(BLA_F95)
       if(NOT LAPACK_LIBRARIES)
       check_mkl_libraries(
-      LAPACK95_LIBRARIES
+      LAPACK_LIBRARIES
       LAPACK
       cheev
       ""
@@ -236,7 +233,7 @@ endif (BLA_VENDOR STREQUAL "Generic" OR BLA_VENDOR STREQUAL "All")
       "mkl_intel_lp64"
       "mkl_intel_thread"
       "mkl_lapack;mkl_core"
-      "guide"
+      "iomp5"
       "${CMAKE_THREAD_LIBS_INIT}"
       ""
       )
@@ -248,37 +245,12 @@ endif (BLA_VENDOR STREQUAL "Generic" OR BLA_VENDOR STREQUAL "All")
 else(BLAS_FOUND)
   message(STATUS "LAPACK requires BLAS")
 endif(BLAS_FOUND)
-if(BLA_F95)
- if(LAPACK95_LIBRARIES)
-  set(LAPACK95_FOUND TRUE)
- else(LAPACK95_LIBRARIES)
-  set(LAPACK95_FOUND FALSE)
- endif(LAPACK95_LIBRARIES)
- if(NOT LAPACK_FIND_QUIETLY)
-  if(LAPACK95_FOUND)
-    message(STATUS "A library with LAPACK95 API found.")
-  else(LAPACK95_FOUND)
-    if(LAPACK_FIND_REQUIRED)
-      message(FATAL_ERROR
-      "A required library with LAPACK95 API not found. Please specify library location."
-      )
-    else(LAPACK_FIND_REQUIRED)
-      message(STATUS
-      "A library with LAPACK95 API not found. Please specify library location."
-      )
-    endif(LAPACK_FIND_REQUIRED)
-  endif(LAPACK95_FOUND)
- endif(NOT LAPACK_FIND_QUIETLY)
- set(LAPACK_FOUND "${LAPACK95_FOUND}")
- set(LAPACK_LIBRARIES "${LAPACK95_LIBRARIES}")
-else(BLA_F95)
- if(LAPACK_LIBRARIES)
-  set(LAPACK_FOUND TRUE)
- else(LAPACK_LIBRARIES)
-  set(LAPACK_FOUND FALSE)
- endif(LAPACK_LIBRARIES)
 
- if(NOT LAPACK_FIND_QUIETLY)
+if(LAPACK_LIBRARIES)
+  set(LAPACK_FOUND TRUE)
+endif(LAPACK_LIBRARIES)
+
+if(NOT LAPACK_FIND_QUIETLY)
   if(LAPACK_FOUND)
     message(STATUS "A library with LAPACK API found.")
   else(LAPACK_FOUND)
@@ -292,5 +264,5 @@ else(BLA_F95)
       )
     endif(LAPACK_FIND_REQUIRED)
   endif(LAPACK_FOUND)
- endif(NOT LAPACK_FIND_QUIETLY)
-endif(BLA_F95)
+endif(NOT LAPACK_FIND_QUIETLY)
+

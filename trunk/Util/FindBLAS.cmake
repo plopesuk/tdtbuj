@@ -11,11 +11,7 @@
 #  BLAS_LINKER_FLAGS - uncached list of required linker flags (excluding -l
 #    and -L).
 #  BLAS_LIBRARIES - uncached list of libraries (using full path name) to
-#    link against to use BLAS
-#  BLAS95_LIBRARIES - uncached list of libraries (using full path name)
-#    to link against to use BLAS95 interface
-#  BLAS95_FOUND - set to true if a library implementing the BLAS f95 interface
-#    is found
+#    link against to use BLAS, if BLA_F95 is TRUE the f90/95 interface would be added too
 #  BLA_STATIC  if set on this determines what kind of linkage we do (static)
 #  BLA_VENDOR  if set checks only the specified vendor, if not set checks
 #     all the posibilities
@@ -105,7 +101,6 @@ endmacro(Check_Fortran_Libraries)
 
 set(BLAS_LINKER_FLAGS)
 set(BLAS_LIBRARIES)
-set(BLAS95_LIBRARIES)
 if ($ENV{BLA_VENDOR} MATCHES ".+")
   set(BLA_VENDOR $ENV{BLA_VENDOR})
 else ($ENV{BLA_VENDOR} MATCHES ".+")
@@ -294,16 +289,16 @@ if (BLA_VENDOR MATCHES "Intel*" OR BLA_VENDOR STREQUAL "All")
   endif(BLAS_FIND_QUIETLY OR NOT BLAS_FIND_REQUIRED)
   if (WIN32)
     if(BLA_F95)
-      if(NOT BLAS95_LIBRARIES)
+      if(NOT BLAS_LIBRARIES)
       check_fortran_libraries(
-      BLAS95_LIBRARIES
+      BLAS_LIBRARIES
       BLAS
       sgemm
       ""
       "mkl_blas95;mkl_intel_c;mkl_intel_thread;mkl_core;libguide40"
       ""
       )
-      endif(NOT BLAS95_LIBRARIES)
+      endif(NOT BLAS_LIBRARIES)
     else(BLA_F95)
       if(NOT BLAS_LIBRARIES)
       check_fortran_libraries(
@@ -319,16 +314,16 @@ if (BLA_VENDOR MATCHES "Intel*" OR BLA_VENDOR STREQUAL "All")
   else(WIN32)
     if (BLA_VENDOR STREQUAL "Intel10_32" OR BLA_VENDOR STREQUAL "All")
       if(BLA_F95)
-        if(NOT BLAS95_LIBRARIES)
+        if(NOT BLAS_LIBRARIES)
         check_fortran_libraries(
-        BLAS95_LIBRARIES
+        BLAS_LIBRARIES
         BLAS
         sgemm
         ""
-        "mkl_blas95;mkl_intel;mkl_intel_thread;mkl_core;guide"
+        "mkl_blas95;mkl_intel;mkl_intel_thread;mkl_core;iomp5"
         "${CMAKE_THREAD_LIBS_INIT}"
         )
-        endif(NOT BLAS95_LIBRARIES)
+        endif(NOT BLAS_LIBRARIES)
       else(BLA_F95)
       if(NOT BLAS_LIBRARIES)
         check_fortran_libraries(
@@ -336,7 +331,7 @@ if (BLA_VENDOR MATCHES "Intel*" OR BLA_VENDOR STREQUAL "All")
         BLAS
         sgemm
         ""
-        "mkl_intel;mkl_intel_thread;mkl_core;guide"
+        "mkl_intel;mkl_intel_thread;mkl_core;iomp5"
         "${CMAKE_THREAD_LIBS_INIT}"
         )
         endif(NOT BLAS_LIBRARIES)
@@ -344,9 +339,9 @@ if (BLA_VENDOR MATCHES "Intel*" OR BLA_VENDOR STREQUAL "All")
     endif (BLA_VENDOR STREQUAL "Intel10_32" OR BLA_VENDOR STREQUAL "All")
     if (BLA_VENDOR STREQUAL "Intel10_64lp" OR BLA_VENDOR STREQUAL "All")
     if(BLA_F95)
-      if(NOT BLAS95_LIBRARIES)
+      if(NOT BLAS_LIBRARIES)
         check_mkl_libraries(
-        BLAS95_LIBRARIES
+        BLAS_LIBRARIES
         BLAS
         sgemm
         ""
@@ -354,15 +349,15 @@ if (BLA_VENDOR MATCHES "Intel*" OR BLA_VENDOR STREQUAL "All")
         "mkl_intel_lp64"
         "mkl_intel_thread"
         "mkl_core"
-        "guide"
+        "iomp5"
         "${CMAKE_THREAD_LIBS_INIT}"
         ""
         )
-      endif(NOT BLAS95_LIBRARIES)
+      endif(NOT BLAS_LIBRARIES)
     else(BLA_F95)
       if(NOT BLAS_LIBRARIES)
         check_mkl_libraries(
-        BLAS95_LIBRARIES
+        BLAS_LIBRARIES
         BLAS
         sgemm
         ""
@@ -370,7 +365,7 @@ if (BLA_VENDOR MATCHES "Intel*" OR BLA_VENDOR STREQUAL "All")
         "mkl_intel_lp64"
         "mkl_intel_thread"
         "mkl_core"
-        "guide"
+        "iomp5"
         "${CMAKE_THREAD_LIBS_INIT}"
         ""
         )
@@ -416,48 +411,21 @@ if (BLA_VENDOR MATCHES "Intel*" OR BLA_VENDOR STREQUAL "All")
 endif (BLA_VENDOR MATCHES "Intel*" OR BLA_VENDOR STREQUAL "All")
 
 
-if(BLA_F95)
- if(BLAS95_LIBRARIES)
-    set(BLAS95_FOUND TRUE)
-  else(BLAS95_LIBRARIES)
-    set(BLAS95_FOUND FALSE)
-  endif(BLAS95_LIBRARIES)
 
-  if(NOT BLAS_FIND_QUIETLY)
-    if(BLAS95_FOUND)
-      message(STATUS "A library with BLAS95 API found.")
-    else(BLAS95_FOUND)
-      if(BLAS_FIND_REQUIRED)
-        message(FATAL_ERROR
-        "A required library with BLAS95 API not found. Please specify library location.")
-      else(BLAS_FIND_REQUIRED)
-        message(STATUS
-        "A library with BLAS95 API not found. Please specify library location.")
-      endif(BLAS_FIND_REQUIRED)
-    endif(BLAS95_FOUND)
-  endif(NOT BLAS_FIND_QUIETLY)
+if(BLAS_LIBRARIES)
   set(BLAS_FOUND TRUE)
-  set(BLAS_LIBRARIES "${BLAS95_LIBRARIES}")
-else(BLA_F95)
-  if(BLAS_LIBRARIES)
-    set(BLAS_FOUND TRUE)
-  else(BLAS_LIBRARIES)
-    set(BLAS_FOUND FALSE)
-  endif(BLAS_LIBRARIES)
+endif(BLAS_LIBRARIES)
 
-  if(NOT BLAS_FIND_QUIETLY)
-    if(BLAS_FOUND)
-      message(STATUS "A library with BLAS API found.")
-    else(BLAS_FOUND)
-      if(BLAS_FIND_REQUIRED)
-        message(FATAL_ERROR
-        "A required library with BLAS API not found. Please specify library location."
-        )
-      else(BLAS_FIND_REQUIRED)
-        message(STATUS
-        "A library with BLAS API not found. Please specify library location."
-        )
-      endif(BLAS_FIND_REQUIRED)
-    endif(BLAS_FOUND)
-  endif(NOT BLAS_FIND_QUIETLY)
-endif(BLA_F95)
+if(NOT BLAS_FIND_QUIETLY)
+  if(BLAS_FOUND)
+    message(STATUS "A library with BLAS API found.")
+  else(BLAS_FOUND)
+    if(BLAS_FIND_REQUIRED)
+      message(FATAL_ERROR
+        "A required library with BLAS API not found. Please specify library location.")
+    else(BLAS_FIND_REQUIRED)
+      message(STATUS
+        "A library with BLAS API not found. Please specify library location.")
+    endif(BLAS_FIND_REQUIRED)
+  endif(BLAS_FOUND)
+endif(NOT BLAS_FIND_QUIETLY)

@@ -42,15 +42,22 @@ if (WIN32)
   set(BLA_VENDOR "Intel10_32")
 endif(WIN32)
 
-set(BLA_F95 ON)
+if(BLA_F95)
+  ADD_DEFINITIONS(-DMKL95)
+endif(BLA_F95)
 find_package(Threads)
 message("Using this linkage for threads ${CMAKE_THREAD_LIBS_INIT}")
-find_package(MKLSOLVER REQUIRED)
-message("Using this linkage for mkl: ${MKLSOLVER95_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} with flags  ${MKLSOLVER_LINKER_FLAGS} ")
 
- set(LIBS ${MKLSOLVER_LINKER_FLAGS} ${MKLSOLVER95_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-
-
+if(MKLSOLVER)
+  ADD_DEFINITIONS(-DMKLSOLVER)
+  find_package(MKLSOLVER REQUIRED)
+  message("Using this linkage for Linear Algebra libs: ${MKLSOLVER_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} with flags  ${MKLSOLVER_LINKER_FLAGS} ")
+  set(LIBS ${MKLSOLVER_LINKER_FLAGS} ${MKLSOLVER_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+else(MKLSOLVER)
+  find_package(LAPACK REQUIRED)
+  message("Using this linkage for Linear Algebra libs: ${LAPACK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} with flags  ${LAPACK_LINKER_FLAGS} ")
+  set(LIBS ${LAPACK_LINKER_FLAGS} ${LAPACK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+endif(MKLSOLVER)
 
 ##########################
 
@@ -108,7 +115,7 @@ ${src_dir}/SCF.f90
 ${src_dir}/Simplex.f90
 ${src_dir}/SA.f90
 ${src_dir}/SimplexSA.f90
-${src_dir}/Fit.f90
+${src_dir}/Fit.F90
 ${src_dir}/Dynamics.f90
 ${src_dir}/LBFGS.F90
 ${src_dir}/BFGS.F90

@@ -27,8 +27,10 @@ module m_Fit
   private
   public :: fitting
 !
+#ifdef MKLSOLVER
   integer, external :: djacobi_init, djacobi_solve, djacobi_delete, djacobi
   integer, external :: dtrnlspbc_get, dtrnlspbc_init, dtrnlspbc_solve, dtrnlspbc_delete
+#endif
 !
   type, public :: fitDataType
     real (k_pr), pointer :: x (:)
@@ -539,6 +541,7 @@ contains
       close (un)
       deallocate (best)
     case (k_TrustRegion)
+#ifdef MKLSOLVER
       allocate (best(1:gen%fit%iNoParams))
       call TrustRegion (gen, atomic, tb, sol, io)
       call PrintFit (gen, atomic, tb, sol, io)
@@ -549,6 +552,7 @@ contains
       end do
       close (un)
       deallocate (best)
+#endif
     end select
 !
     deallocate (fitData%x, fitData%exper, fitData%fit)
@@ -774,6 +778,7 @@ contains
     deallocate (tol)
   end subroutine SimplexSA
 !
+#ifdef MKLSOLVER
 !> \brief initializes the trust-region method
 !> \author Alin M Elena
 !> \date 14/11/07, 13:48:55
@@ -1021,4 +1026,5 @@ contains
     ComputeJacobi = tr_success
   end function ComputeJacobi
 !
+#endif
 end module m_Fit

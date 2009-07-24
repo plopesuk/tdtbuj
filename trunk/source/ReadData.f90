@@ -1085,7 +1085,7 @@ contains
 !></TR>
 !></TABLE>
 !> \endhtmlonly
-!
+
 !> \brief closes all the I/O units
 !> \author Alin M Elena
 !> \date 14th of January 2006
@@ -1710,7 +1710,7 @@ contains
 !> <2> Z the atomic number (integer) \n
 !> <3> atomic mass (in a.m.u.) it gets converted internally to the chosen system of units \n
 !> <4-5> U J (reals) U,J for the SCF calculation \n
-!> <6> the screening factor for tha electrostatic interaction if the option is chosen. \n
+!> <6> the screening factor for the electrostatic interaction if the option is chosen. \n
 !> \f[ V_I=\frac{e^2}{4\pi\epsilon_0}\cfrac{q_J}{\sqrt{r_{IJ}^2+\left ( \cfrac{1}{U_I}+\cfrac{1}{U_J}\right )^2}} \f]
 !
 !
